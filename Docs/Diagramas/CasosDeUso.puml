@@ -1,0 +1,50 @@
+@startuml
+left to right direction
+actor Usuario 
+actor UsuarioRegistrado
+actor Administrador
+actor Timer
+
+package "Autenticación y perfil" {
+    Usuario -- (Registrarse)
+    UsuarioRegistrado -- (Iniciar sesión)
+    UsuarioRegistrado -- (Editar perfil)
+    UsuarioRegistrado -- (Ver Progreso)
+    UsuarioRegistrado -- (Visualizar historial de actividades)
+}
+
+package "Actividades" {
+    UsuarioRegistrado -- (Registrar actividad)
+    UsuarioRegistrado -- (Ver detalles de una actividad)
+    UsuarioRegistrado -- (Publicar actividad)
+}
+
+package "Interacción social" {
+    UsuarioRegistrado -- (Seguir a otros usuarios)
+    UsuarioRegistrado -- (Visualizar actividades)
+    Usuario -- (Visualizar actividades)
+    UsuarioRegistrado -- (Comentar Actividad)
+    UsuarioRegistrado -- (Dar me gusta a una actividad)
+    UsuarioRegistrado -- (Compartir actividad)
+    Usuario -- (Compartir actividad)
+}
+
+package "Comunidades" {
+    UsuarioRegistrado -- (Crear comunidad)
+    UsuarioRegistrado -- (Unirse a una comunidad)
+    UsuarioRegistrado -- (Comentar en comunidades)
+    UsuarioRegistrado -- (Crear quedada a una fecha y hora específica)
+    Timer -- (Notificar quedada)
+}
+
+package "Objetivos" {
+    UsuarioRegistrado -- (Establecer objetivos)
+    UsuarioRegistrado -- (Visualizar objetivos)
+}
+
+package "Administración" {
+    Administrador -- (Gestionar Usuarios)
+    Administrador -- (Administrar reportes de problemas)
+}
+
+@enduml
