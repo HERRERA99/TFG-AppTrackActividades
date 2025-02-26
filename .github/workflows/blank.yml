@@ -12,12 +12,14 @@ on:
 
 jobs:
   build:
-    name: Build and Test
+    name: Build, Test & Sonar Analysis
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Enable KVM
         run: |
@@ -54,8 +56,7 @@ jobs:
           arch: x86_64
           profile: pixel_4
           script: ./gradlew connectedDebugAndroidTest
-        
-
+      
       - name: Run Lint checks
         run: ./gradlew lintDebug
         working-directory: AndroidProject
@@ -65,3 +66,16 @@ jobs:
         with:
           name: lint-reports
           path: AndroidProject/app/build/reports/lint-results-debug.html
+
+      - name: SonarCloud Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORG: "herrera99"
+          SONAR_PROJECT_KEY: "HERRERA99_TFG-AppTrackActividades"
+        run: |
+          ./gradlew sonarqube \
+            -Dsonar.organization=$SONAR_ORG \
+            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token=$SONAR_TOKEN
+        working-directory: AndroidProject
