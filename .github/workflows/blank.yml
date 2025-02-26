@@ -1,4 +1,4 @@
-name: Android Tests
+name: Android CI
 
 on:
   push:
@@ -35,9 +35,20 @@ jobs:
         run: ./gradlew assembleDebug
         working-directory: AndroidProject
 
-      - name: Run tests
+      - name: Run unit tests
         run: ./gradlew testDebugUnitTest
         working-directory: AndroidProject
+
+      - name: Start AVD (Android Emulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          working-directory: AndroidProject
+          target: google_apis
+          arch: x86_64
+          profile: pixel_4
+          script: ./gradlew connectedDebugAndroidTest
+        
 
       - name: Run Lint checks
         run: ./gradlew lintDebug
@@ -48,4 +59,3 @@ jobs:
         with:
           name: lint-reports
           path: AndroidProject/app/build/reports/lint-results-debug.html
-
