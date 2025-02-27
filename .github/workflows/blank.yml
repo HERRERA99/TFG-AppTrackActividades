@@ -66,6 +66,11 @@ jobs:
         with:
           name: lint-reports
           path: AndroidProject/app/build/reports/lint-results-debug.html
+      
+      - name: Build without Sonar
+        run: ./gradlew build --info
+        working-directory: AndroidProject
+
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
