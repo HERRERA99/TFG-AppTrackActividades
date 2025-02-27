@@ -67,15 +67,19 @@ jobs:
           name: lint-reports
           path: AndroidProject/app/build/reports/lint-results-debug.html
 
-      - name: SonarCloud Analysis
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORG: "herrera99"
-          SONAR_PROJECT_KEY: "HERRERA99_TFG-AppTrackActividades"
-        run: |
-          ./gradlew sonarqube \
-            -Dsonar.organization=$SONAR_ORG \
-            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=$SONAR_TOKEN
-        working-directory: AndroidProject
+        run: ./gradlew build sonar --info
