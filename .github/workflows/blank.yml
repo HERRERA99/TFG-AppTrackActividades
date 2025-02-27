@@ -67,9 +67,12 @@ jobs:
           name: lint-reports
           path: AndroidProject/app/build/reports/lint-results-debug.html
       
-      - name: Build without Sonar
-        run: ./gradlew build --info
+      - name: Run SonarQube only
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar --stacktrace --warning-mode all --info
         working-directory: AndroidProject
+
 
 
       - name: Cache SonarQube packages
