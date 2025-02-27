@@ -2,6 +2,21 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.sonarqube)
+}
+
+sonar {
+    properties {
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.organization", "herrera99")
+        property("sonar.token", "b35b41c8b23c113fa7594a62df6624729a509b49")
+        property("sonar.projectKey", "HERRERA99_TFG-AppTrackActividades")
+        property("sonar.projectName", "TFG-AppTrackActividades")
+
+        // I need this property to avoid the error where sonarqube does not close some files and
+        // prevents a clean afterwards
+        property("sonar.scm.disabled", true)
+    }
 }
 
 android {
