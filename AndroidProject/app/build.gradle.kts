@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.sonarqube)
+    alias(libs.plugins.hilt)
+    id("kotlin-kapt")
 }
 
 sonar {
@@ -58,6 +60,24 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.coil)
+    implementation(libs.location)
+    implementation(libs.coroutines)
+
+    // Hilt
+    implementation(libs.hilt)
+    kapt(libs.hilt.compiler)
+
+    // OSM
+    implementation(libs.osmandroid)
+
+    implementation(libs.lottie.compose)
+    implementation(libs.material.icons)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
