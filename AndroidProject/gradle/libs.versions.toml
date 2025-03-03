@@ -9,13 +9,15 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
 composeBom = "2024.04.01"
 sonarqube = "6.0.1.5171"
-retrofit = "2.9.0"
-coil = "2.5.0"
-location = "21.0.1"
+retrofit = "2.10.0"
+coil = "2.6.0"
+location = "21.3.0"
 coroutines = "1.7.3"
-hilt = "2.50"
-material-icons = "1.5.0"
+hilt = "2.51.1"
+material-icons = "1.7.8"
 osmandroid = "6.1.16"
+navigationCompose = "2.8.8"
+kotlinSerialization = "1.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,6 +44,8 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version = "6.3.0" }
 material-icons = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "material-icons" }
 osmandroid = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmandroid"}
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose"}
+kotlin-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -49,4 +53,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqube"}
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+jetbrainsKotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
