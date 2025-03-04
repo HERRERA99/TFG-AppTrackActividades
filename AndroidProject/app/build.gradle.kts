@@ -72,6 +72,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation)
 
     // OSM
     implementation(libs.osmandroid)
@@ -79,6 +80,9 @@ dependencies {
     // Navigation
     implementation(libs.navigation.compose)
     implementation(libs.kotlin.serialization)
+
+    // LiveData
+    implementation(libs.runtime.livedata)
 
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)

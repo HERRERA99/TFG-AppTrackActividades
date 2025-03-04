@@ -18,6 +18,8 @@ material-icons = "1.7.8"
 osmandroid = "6.1.16"
 navigationCompose = "2.8.8"
 kotlinSerialization = "1.7.0"
+livedata = "1.7.8"
+hiltNavigation = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +48,8 @@ material-icons = { group = "androidx.compose.material", name = "material-icons-e
 osmandroid = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmandroid"}
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose"}
 kotlin-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization"}
+runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "livedata" }
+hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

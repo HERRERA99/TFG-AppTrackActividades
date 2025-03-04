@@ -2,10 +2,16 @@ package com.aitor.trackactividades.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Modo claro
+val LightPrimary = Color(0xFFF24822)
+val LightOnPrimary = Color.White
+val LightText = Color(0xFF161616)
+val LightBackground = Color.White
+val LightInactive = Color(0xFF959595)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Modo oscuro
+val DarkPrimary = Color(0xFFF24822)
+val DarkOnPrimary = Color.White
+val DarkText = Color(0xFFFFFFFF)
+val DarkBackground = Color(0xFF161616)
+val DarkInactive = Color(0xFF959595)

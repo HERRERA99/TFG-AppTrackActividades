@@ -3,7 +3,10 @@ package com.aitor.trackactividades.core.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Home
+object Login
 
 @Serializable
 object Register
+
+@Serializable
+object Feed
