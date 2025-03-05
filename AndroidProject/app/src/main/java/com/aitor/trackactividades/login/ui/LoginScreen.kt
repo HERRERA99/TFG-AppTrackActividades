@@ -139,12 +139,12 @@ fun EmailInput(email: String, onTextChange: (String) -> Unit) {
         leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = null) },
         placeholder = { Text(text = "Email") },
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color(0xFFB2B2B2),
-            unfocusedTextColor = Color(0xFFB2B2B2),
-            focusedContainerColor = Color(0xFFEFEFEF),
-            unfocusedContainerColor = Color(0xFFEFEFEF),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,  // Color del borde cuando está enfocado
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Color del borde cuando no está enfocado
         ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         maxLines = 1,
@@ -175,12 +175,12 @@ fun PasswordInput(password: String, onTextChange: (String) -> Unit) {
             }
         },
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color(0xFFB2B2B2),
-            unfocusedTextColor = Color(0xFFB2B2B2),
-            focusedContainerColor = Color(0xFFEFEFEF),
-            unfocusedContainerColor = Color(0xFFEFEFEF),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,  // Color del borde cuando está enfocado
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Color del borde cuando no está enfocado
         ),
         visualTransformation = if (passwordVisibility) {
             VisualTransformation.None
@@ -199,9 +199,9 @@ fun LoginButton(loginEnable: Boolean, loginViewModel: LoginViewModel) {
             .fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            disabledContainerColor = Color(0xFF78C8F9),
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContentColor = Color.White
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
         )
     ) {
         Text(text = "Log In")

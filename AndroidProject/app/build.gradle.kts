@@ -84,6 +84,9 @@ dependencies {
     // LiveData
     implementation(libs.runtime.livedata)
 
+    // Google fonts
+    implementation(libs.google.fonts)
+
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
 
