@@ -15,10 +15,10 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -40,10 +40,10 @@ fun LoginScreen(
     navigateToFeed: () -> Unit,
     loginViewModel: LoginViewModel
 ) {
-    val navigateToHome: Boolean by loginViewModel.navigateToFeed.observeAsState(initial = false)
+    val navigateToFeed: Boolean by loginViewModel.navigateToFeed.observeAsState(initial = false)
 
-    LaunchedEffect(navigateToHome) {
-        if (navigateToHome) {
+    LaunchedEffect(navigateToFeed) {
+        if (navigateToFeed) {
             navigateToFeed()
         }
     }
@@ -62,12 +62,12 @@ fun LoginScreen(
                 if (isLoading) {
                     CircularProgressIndicator(Modifier)
                 } else {
-                    Header(Modifier)
-                    Body(
+                    LoginHeader(Modifier)
+                    LoginBody(
                         Modifier,
                         loginViewModel = loginViewModel
                     )
-                    Footer(Modifier, navigateToRegister)
+                    Footer("No tienes cuenta?", "Registrate aquí", Modifier, navigateToRegister)
                 }
             }
         }
@@ -75,7 +75,7 @@ fun LoginScreen(
 }
 
 @Composable
-fun Header(modifier: Modifier) {
+fun LoginHeader(modifier: Modifier) {
     Icon(
         painter = painterResource(id = R.drawable.ic_launcher_foreground),
         contentDescription = "Logo",
@@ -85,7 +85,12 @@ fun Header(modifier: Modifier) {
 }
 
 @Composable
-fun Footer(modifier: Modifier, navigateToRegister: () -> Unit) {
+fun Footer(
+    titleText: String,
+    buttonText: String,
+    modifier: Modifier,
+    navigateToRegister: () -> Unit
+) {
     Divider(
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
         thickness = 1.dp,
@@ -93,16 +98,20 @@ fun Footer(modifier: Modifier, navigateToRegister: () -> Unit) {
     )
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Don't have an account?", color = MaterialTheme.colorScheme.onBackground)
+            Text(text = titleText, color = MaterialTheme.colorScheme.onBackground)
             TextButton(onClick = { navigateToRegister() }) {
-                Text(text = "Sing Up", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = buttonText,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
 }
 
 @Composable
-fun Body(modifier: Modifier, loginViewModel: LoginViewModel) {
+fun LoginBody(modifier: Modifier, loginViewModel: LoginViewModel) {
     val email: String by loginViewModel.email.observeAsState(initial = "")
     val password: String by loginViewModel.password.observeAsState(initial = "")
     val isLoginEnable: Boolean by loginViewModel.isLoginEnable.observeAsState(initial = false)
@@ -110,8 +119,11 @@ fun Body(modifier: Modifier, loginViewModel: LoginViewModel) {
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Bottom),
     ) {
-        EmailInput(email, onTextChange = { loginViewModel.onLoginChanged(it, password) })
-        PasswordInput(password, onTextChange = { loginViewModel.onLoginChanged(email, it) })
+        EmailInput(email = email, onTextChange = { loginViewModel.onLoginChanged(it, password) })
+        PasswordInput(
+            text = "Contraseña",
+            password = password,
+            onTextChange = { loginViewModel.onLoginChanged(email, it) })
         ForgotPassword(modifier = Modifier.align(Alignment.End))
         LoginButton(isLoginEnable, loginViewModel)
     }
@@ -121,7 +133,7 @@ fun Body(modifier: Modifier, loginViewModel: LoginViewModel) {
 fun ForgotPassword(modifier: Modifier) {
     TextButton(onClick = {}) {
         Text(
-            text = "Forgot password?",
+            text = "Olvidaste tu contraseña?",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             modifier = modifier,
@@ -132,19 +144,25 @@ fun ForgotPassword(modifier: Modifier) {
 
 @Composable
 fun EmailInput(email: String, onTextChange: (String) -> Unit) {
-    TextField(
+    OutlinedTextField(
         value = email,
         onValueChange = { onTextChange(it) },
         modifier = Modifier.fillMaxWidth(),
-        leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = null) },
-        placeholder = { Text(text = "Email") },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Email,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        },
+        label = { Text(text = "Email") },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,  // Color del borde cuando está enfocado
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Color del borde cuando no está enfocado
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
         ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         maxLines = 1,
@@ -153,16 +171,22 @@ fun EmailInput(email: String, onTextChange: (String) -> Unit) {
 }
 
 @Composable
-fun PasswordInput(password: String, onTextChange: (String) -> Unit) {
+fun PasswordInput(text: String, password: String, onTextChange: (String) -> Unit) {
     var passwordVisibility by remember { mutableStateOf(false) }
-    TextField(
+    OutlinedTextField(
         value = password,
         onValueChange = { onTextChange(it) },
         modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(text = "Password") },
+        label = { Text(text = text) },
         maxLines = 1,
         singleLine = true,
-        leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = null) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         trailingIcon = {
             val image = if (passwordVisibility) {
@@ -179,8 +203,8 @@ fun PasswordInput(password: String, onTextChange: (String) -> Unit) {
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,  // Color del borde cuando está enfocado
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Color del borde cuando no está enfocado
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
         ),
         visualTransformation = if (passwordVisibility) {
             VisualTransformation.None
@@ -197,6 +221,7 @@ fun LoginButton(loginEnable: Boolean, loginViewModel: LoginViewModel) {
         enabled = loginEnable,
         modifier = Modifier
             .fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),

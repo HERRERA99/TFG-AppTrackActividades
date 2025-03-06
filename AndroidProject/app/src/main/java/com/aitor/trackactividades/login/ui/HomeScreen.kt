@@ -57,7 +57,7 @@ fun HomeScreen(
                         .weight(0.8f)
                         .align(Alignment.CenterHorizontally)
                 )
-                RegisterButton(Modifier.weight(0.1f)) { navigateToRegister() }
+                RegisterHomeButton(Modifier.weight(0.1f)) { navigateToRegister() }
                 LoginButton(Modifier.weight(0.1f)) { navigateToLogin() }
             }
         }
@@ -65,18 +65,19 @@ fun HomeScreen(
 }
 
 @Composable
-fun RegisterButton(modifier: Modifier = Modifier, onRegisterSelected: () -> Unit) {
+fun RegisterHomeButton(modifier: Modifier = Modifier, onRegisterSelected: () -> Unit) {
     Button(
         onClick = { onRegisterSelected() },
         enabled = true,
         modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
         Text(
-            text = "Register", color = MaterialTheme.colorScheme.onPrimary,
+            text = "Registrarse", color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
@@ -89,6 +90,7 @@ fun LoginButton(modifier: Modifier = Modifier, onLoginSelected: () -> Unit) {
         onClick = { onLoginSelected() },
         enabled = true,
         modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -119,7 +121,7 @@ fun Logo(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "unite, train, develop",
+            text = "entrena, mejora, aprende",
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 24.sp,

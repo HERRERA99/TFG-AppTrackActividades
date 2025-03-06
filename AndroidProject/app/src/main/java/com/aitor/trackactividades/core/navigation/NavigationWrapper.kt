@@ -1,5 +1,7 @@
 package com.aitor.trackactividades.core.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -13,6 +15,7 @@ import com.aitor.trackactividades.login.ui.LoginViewModel
 import com.aitor.trackactividades.login.ui.RegisterScreen
 import com.aitor.trackactividades.login.ui.RegisterViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationWrapper() {
     val navController = rememberNavController()
@@ -33,7 +36,10 @@ fun NavigationWrapper() {
         }
         composable<Register> {
             val registerViewModel: RegisterViewModel = hiltViewModel()
-            RegisterScreen(registerViewModel = registerViewModel)
+            RegisterScreen(
+                navigateToLogin = { navController.navigate(Login) },
+                navigateToFeed = { navController.navigate(Feed) },
+                registerViewModel = registerViewModel)
         }
         composable<Feed> {
             val feedViewModel: FeedViewModel = hiltViewModel()
