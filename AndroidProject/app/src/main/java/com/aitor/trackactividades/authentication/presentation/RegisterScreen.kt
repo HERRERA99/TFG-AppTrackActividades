@@ -1,6 +1,7 @@
-package com.aitor.trackactividades.login.ui
+package com.aitor.trackactividades.authentication.presentation
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.Instant
@@ -58,6 +61,15 @@ fun RegisterScreen(
     LaunchedEffect(navigateToFeed) {
         if (navigateToFeed) {
             navigateToFeed()
+        }
+    }
+
+    val errorMessage: String? by registerViewModel.errorMessage.observeAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -102,6 +114,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
     val password1: String by registerViewModel.password1.observeAsState(initial = "")
     val password2: String by registerViewModel.password2.observeAsState(initial = "")
     val name: String by registerViewModel.name.observeAsState(initial = "")
+    val username: String by registerViewModel.username.observeAsState(initial = "")
     val surname: String by registerViewModel.surname.observeAsState(initial = "")
     val birthDate: LocalDate by registerViewModel.birthDate.observeAsState(initial = LocalDate.now())
     val gender: String by registerViewModel.gender.observeAsState(initial = "")
@@ -114,11 +127,29 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        UsernameInput(
+            text = "Usuario",
+            variable = username,
+            onTextChange = {
+                registerViewModel.onRegisterChanged(
+                    email,
+                    it,
+                    password1,
+                    password2,
+                    name,
+                    surname,
+                    birthDate,
+                    gender
+                )
+            }
+        )
+
         EmailInput(
             email = email,
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     it,
+                    username,
                     password1,
                     password2,
                     name,
@@ -133,6 +164,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     email,
+                    username,
                     it,
                     password2,
                     name,
@@ -147,6 +179,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     email,
+                    username,
                     password1,
                     it,
                     name,
@@ -163,6 +196,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     email,
+                    username,
                     password1,
                     password2,
                     it,
@@ -174,11 +208,12 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
         )
 
         NameInput(
-            text = "Apellido",
+            text = "Apellidos",
             variable = surname,
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     email,
+                    username,
                     password1,
                     password2,
                     name,
@@ -201,6 +236,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     onDateSelected = {
                         registerViewModel.onRegisterChanged(
                             email,
+                            username,
                             password1,
                             password2,
                             name,
@@ -227,6 +263,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     {
                         registerViewModel.onRegisterChanged(
                             email,
+                            username,
                             password1,
                             password2,
                             name,
@@ -250,7 +287,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
 @Composable
 fun GenderInput(selectedGender: String, modifier: Modifier, onGenderSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val genderOptions = listOf("Masculino", "Femenino", "Otros")
+    val genderOptions = listOf("MASCULINO", "FEMENINO", "OTRO")
     var gender by remember { mutableStateOf(selectedGender) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -318,6 +355,34 @@ fun NameInput(text: String, variable: String, onTextChange: (String) -> Unit) {
     )
 }
 
+@Composable
+fun UsernameInput(text: String, variable: String, onTextChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = variable,
+        onValueChange = { onTextChange(it) },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(text = text) },
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+        ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+        maxLines = 1,
+        singleLine = true,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    )
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -329,7 +394,7 @@ fun DateOfBirthInput(
     setShowDatePicker: (Boolean) -> Unit
 ) {
     val formattedDate =
-        selectedDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "Selecciona fecha"
+        selectedDate?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) ?: "Selecciona fecha"
 
     OutlinedTextField(
         value = formattedDate,

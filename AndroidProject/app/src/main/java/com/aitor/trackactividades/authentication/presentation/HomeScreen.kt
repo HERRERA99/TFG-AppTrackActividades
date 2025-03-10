@@ -1,4 +1,4 @@
-package com.aitor.trackactividades.login.ui
+package com.aitor.trackactividades.authentication.presentation
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image

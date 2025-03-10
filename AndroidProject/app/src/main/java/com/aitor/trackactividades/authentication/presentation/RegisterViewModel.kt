@@ -1,17 +1,27 @@
-package com.aitor.trackactividades.login.ui
+package com.aitor.trackactividades.authentication.presentation
 
 import android.os.Build
+import android.util.Log
 import android.util.Patterns
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.aitor.trackactividades.authentication.domain.RegisterUseCase
+import com.aitor.trackactividades.authentication.presentation.model.LoginModel
+import com.aitor.trackactividades.authentication.presentation.model.RegisterModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor() : ViewModel() {
+class RegisterViewModel @Inject constructor(
+    private val registerUseCase: RegisterUseCase
+) : ViewModel() {
     private val _email = MutableLiveData<String>()
     val email: LiveData<String> = _email
 
@@ -26,6 +36,9 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
 
     private val _name = MutableLiveData<String>()
     val name: LiveData<String> = _name
+
+    private val _username = MutableLiveData<String>()
+    val username: LiveData<String> = _username
 
     private val _surname = MutableLiveData<String>()
     val surname: LiveData<String> = _surname
@@ -42,8 +55,12 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
     private val _textoInfo = MutableLiveData<String>()
     val textoInfo: LiveData<String> = _textoInfo
 
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> get() = _errorMessage
+
     fun onRegisterChanged(
         email: String,
+        username: String,
         password1: String,
         password2: String,
         name: String,
@@ -54,6 +71,7 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
         _email.value = email
         _password1.value = password1
         _password2.value = password2
+        _username.value = username
         _name.value = name
         _surname.value = surname
         _birthDate.value = birthDate
@@ -63,30 +81,49 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
     @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterSelected() {
         if (chekTexts(
-                _email.value,
-                _password1.value,
-                _password2.value,
-                _name.value,
-                _surname.value,
-                _birthDate.value,
-                _gender.value
+                _email.value!!,
+                _password1.value!!,
+                _username.value!!,
+                _name.value!!,
+                _surname.value!!,
+                _birthDate.value!!,
+                _gender.value!!
             )
         ) {
-            _isLoading.value = true
-
-            // Simulación de autenticación exitosa después de un delay
-            Thread {
-                Thread.sleep(2000) // Simula una operación de red
-
-                _isLoading.postValue(false)
-
-                // Aquí deberías comprobar si el usuario existe en tu backend
-                val userExists = true // Simulación
-
-                if (userExists) {
-                    _navigateToFeed.postValue(true)
+            viewModelScope.launch {
+                _isLoading.value = true
+                try {
+                    // Realiza la llamada de login
+                    val result = registerUseCase(RegisterModel(
+                        _email.value!!,
+                        _password1.value!!,
+                        _username.value!!,
+                        _name.value!!,
+                        _surname.value!!,
+                        _birthDate.value!!,
+                        _gender.value!!
+                    ))
+                    // Si el token no es nulo, navega al feed
+                    if (result.token != null) {
+                        _navigateToFeed.value = true
+                    } else {
+                        // Si el token es nulo, muestra un mensaje de error (opcional)
+                        showError("Credenciales incorrectas o acceso denegado.")
+                    }
+                } catch (e: HttpException) {
+                    // Manejo específico para errores HTTP, como el error 403
+                    if (e.code() == 403) {
+                        showError("Acceso denegado. Verifique sus credenciales.")
+                    } else {
+                        showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
+                    }
+                } catch (e: Exception) {
+                    // Manejo de cualquier otro tipo de excepción (red, timeout, etc.)
+                    showError("Ocurrió un error. Intente de nuevo.")
+                } finally {
+                    _isLoading.value = false
                 }
-            }.start()
+            }
         }
     }
 
@@ -155,5 +192,14 @@ class RegisterViewModel @Inject constructor() : ViewModel() {
         _textoInfo.value = texto
 
         return result
+    }
+
+    fun showError(message: String) {
+        _errorMessage.value = message
+        // Resetear el error después de un pequeño delay, esto garantiza que siempre se pueda mostrar el toast para errores consecutivos
+        viewModelScope.launch {
+            delay(500)  // Un pequeño retraso antes de resetear el mensaje
+            _errorMessage.value = null
+        }
     }
 }

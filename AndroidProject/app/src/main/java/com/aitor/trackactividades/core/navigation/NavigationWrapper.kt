@@ -9,11 +9,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.aitor.trackactividades.feed.ui.FeedScreen
 import com.aitor.trackactividades.feed.ui.FeedViewModel
-import com.aitor.trackactividades.login.ui.HomeScreen
-import com.aitor.trackactividades.login.ui.LoginScreen
-import com.aitor.trackactividades.login.ui.LoginViewModel
-import com.aitor.trackactividades.login.ui.RegisterScreen
-import com.aitor.trackactividades.login.ui.RegisterViewModel
+import com.aitor.trackactividades.authentication.presentation.HomeScreen
+import com.aitor.trackactividades.authentication.presentation.LoginScreen
+import com.aitor.trackactividades.authentication.presentation.LoginViewModel
+import com.aitor.trackactividades.authentication.presentation.RegisterScreen
+import com.aitor.trackactividades.authentication.presentation.RegisterViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

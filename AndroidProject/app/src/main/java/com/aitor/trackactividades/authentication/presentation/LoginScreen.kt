@@ -1,5 +1,6 @@
-package com.aitor.trackactividades.login.ui
+package com.aitor.trackactividades.authentication.presentation
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.KeyboardOptions
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.aitor.trackactividades.R
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun LoginScreen(
@@ -45,6 +47,15 @@ fun LoginScreen(
     LaunchedEffect(navigateToFeed) {
         if (navigateToFeed) {
             navigateToFeed()
+        }
+    }
+
+    val errorMessage: String? by loginViewModel.errorMessage.observeAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -112,7 +123,7 @@ fun Footer(
 
 @Composable
 fun LoginBody(modifier: Modifier, loginViewModel: LoginViewModel) {
-    val email: String by loginViewModel.email.observeAsState(initial = "")
+    val email: String by loginViewModel.identifier.observeAsState(initial = "")
     val password: String by loginViewModel.password.observeAsState(initial = "")
     val isLoginEnable: Boolean by loginViewModel.isLoginEnable.observeAsState(initial = false)
     Column(
@@ -155,7 +166,7 @@ fun EmailInput(email: String, onTextChange: (String) -> Unit) {
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         },
-        label = { Text(text = "Email") },
+        label = { Text(text = "Usuario o Email") },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
