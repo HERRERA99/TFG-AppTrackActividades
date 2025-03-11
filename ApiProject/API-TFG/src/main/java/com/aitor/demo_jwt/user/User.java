@@ -20,17 +20,17 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "user", uniqueConstraints = {@UniqueConstraint(columnNames = {"username", "email"})})
+@Table(name = "user")
 public class User implements UserDetails {
     @Id
     @GeneratedValue
     Integer id;
 
     @Basic
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String username;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String email;
 
     @Column(nullable = false)
