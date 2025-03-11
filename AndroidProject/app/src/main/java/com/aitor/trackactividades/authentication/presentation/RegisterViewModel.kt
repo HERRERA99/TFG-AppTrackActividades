@@ -1,7 +1,6 @@
 package com.aitor.trackactividades.authentication.presentation
 
 import android.os.Build
-import android.util.Log
 import android.util.Patterns
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
@@ -9,7 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.authentication.domain.RegisterUseCase
-import com.aitor.trackactividades.authentication.presentation.model.LoginModel
+import com.aitor.trackactividades.authentication.presentation.model.Gender
 import com.aitor.trackactividades.authentication.presentation.model.RegisterModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -34,20 +33,20 @@ class RegisterViewModel @Inject constructor(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _name = MutableLiveData<String>()
-    val name: LiveData<String> = _name
+    private val _firstname = MutableLiveData<String>()
+    val firstname: LiveData<String> = _firstname
 
     private val _username = MutableLiveData<String>()
     val username: LiveData<String> = _username
 
-    private val _surname = MutableLiveData<String>()
-    val surname: LiveData<String> = _surname
+    private val _lastname = MutableLiveData<String>()
+    val lastname: LiveData<String> = _lastname
 
     private val _birthDate = MutableLiveData<LocalDate>()
     val birthDate: LiveData<LocalDate> = _birthDate
 
-    private val _gender = MutableLiveData<String>()
-    val gender: LiveData<String> = _gender
+    private val _gender = MutableLiveData<Gender>()
+    val gender: LiveData<Gender> = _gender
 
     private val _navigateToFeed = MutableLiveData<Boolean>()
     val navigateToFeed: LiveData<Boolean> = _navigateToFeed
@@ -58,6 +57,7 @@ class RegisterViewModel @Inject constructor(
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterChanged(
         email: String,
         username: String,
@@ -66,56 +66,69 @@ class RegisterViewModel @Inject constructor(
         name: String,
         surname: String,
         birthDate: LocalDate,
-        gender: String
+        gender: Gender
     ) {
         _email.value = email
         _password1.value = password1
         _password2.value = password2
         _username.value = username
-        _name.value = name
-        _surname.value = surname
+        _firstname.value = name
+        _lastname.value = surname
         _birthDate.value = birthDate
         _gender.value = gender
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterSelected() {
-        if (chekTexts(
-                _email.value!!,
-                _password1.value!!,
-                _username.value!!,
-                _name.value!!,
-                _surname.value!!,
-                _birthDate.value!!,
-                _gender.value!!
-            )
+        val email = _email.value
+        val password1 = _password1.value
+        val password2 = _password2.value
+        val username = _username.value
+        val name = _firstname.value
+        val surname = _lastname.value
+        val birthDate = _birthDate.value
+        val gender = _gender.value
+
+        // Verificar que ningún campo sea nulo o esté vacío
+        if (email.isNullOrEmpty() || password1.isNullOrEmpty() || password2.isNullOrEmpty() || username.isNullOrEmpty() ||
+            name.isNullOrEmpty() || surname.isNullOrEmpty() || birthDate == null || gender == null
         ) {
+            showError("Todos los campos son obligatorios.")
+            return
+        }
+
+        if (chekTexts(email, username, password1, password2, birthDate)) {
             viewModelScope.launch {
                 _isLoading.value = true
                 try {
-                    // Realiza la llamada de login
-                    val result = registerUseCase(RegisterModel(
-                        _email.value!!,
-                        _password1.value!!,
-                        _username.value!!,
-                        _name.value!!,
-                        _surname.value!!,
-                        _birthDate.value!!,
-                        _gender.value!!
-                    ))
+                    // Realiza la llamada de registro
+                    val result = registerUseCase(
+                        RegisterModel(
+                            username = username,
+                            email = email,
+                            password = password1,
+                            firstname = name,
+                            lastname = surname,
+                            birthdate = birthDate,
+                            gender = gender
+                        )
+                    )
                     // Si el token no es nulo, navega al feed
                     if (result.token != null) {
                         _navigateToFeed.value = true
                     } else {
-                        // Si el token es nulo, muestra un mensaje de error (opcional)
+                        // Si el token es nulo, muestra un mensaje de error
                         showError("Credenciales incorrectas o acceso denegado.")
                     }
                 } catch (e: HttpException) {
-                    // Manejo específico para errores HTTP, como el error 403
-                    if (e.code() == 403) {
-                        showError("Acceso denegado. Verifique sus credenciales.")
-                    } else {
-                        showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
+                    // Manejo específico para errores HTTP
+                    when (e.code()) {
+                        403 -> {
+                            showError("Acceso denegado. Usuario o email ya en uso.")
+                        }
+                        else -> {
+                            showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
+                        }
                     }
                 } catch (e: Exception) {
                     // Manejo de cualquier otro tipo de excepción (red, timeout, etc.)
@@ -129,62 +142,42 @@ class RegisterViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun chekTexts(
-        email: String?,
-        password1: String?,
-        password2: String?,
-        name: String?,
-        surname: String?,
-        birthDate: LocalDate?,
-        gender: String?
+        email: String,
+        username: String,
+        password1: String,
+        password2: String,
+        birthDate: LocalDate,
     ): Boolean {
         var result = true
         var texto = ""
 
         // Validación del email
-        if (email.isNullOrEmpty()) {
-            texto += "Email vacío \n"
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            texto += "El correo electrónico no es válido. \n"
             result = false
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            texto += "Email incorrecto \n"
+        }
+
+        // Validacion del username
+        if (!isUsernameValid(username)) {
+            texto += "El nombre de usuario no es válido. \n"
             result = false
         }
 
         // Validación de las contraseñas
-        if (password1.isNullOrEmpty() || password2.isNullOrEmpty()) {
-            texto += "Contraseñas vacías \n"
+        if (password1.isEmpty() || password2.isEmpty()) {
+            texto += "Las contraseñas no pueden estar vacías. \n"
             result = false
         } else if (password1 != password2) {
-            texto += "Las contraseñas no coinciden \n"
+            texto += "Las contraseñas no coinciden. \n"
             result = false
-        } else if (password1.length < 6) {
-            texto += "La contraseña debe tener al menos 6 caracteres \n"
-            result = false
-        }
-
-        // Validación del nombre
-        if (name.isNullOrEmpty()) {
-            texto += "El nombre está vacío \n"
-            result = false
-        }
-
-        // Validación del apellido
-        if (surname.isNullOrEmpty()) {
-            texto += "El apellido está vacío \n"
+        } else if (!isPasswordSecure(password1)) {
+            texto += "Formato de contraseña incorrecto"
             result = false
         }
 
         // Validación de la fecha de nacimiento
-        if (birthDate == null) {
-            texto += "La fecha de nacimiento está vacía \n"
-            result = false
-        } else if (birthDate.isAfter(LocalDate.now())) {
-            texto += "La fecha de nacimiento no puede ser futura \n"
-            result = false
-        }
-
-        // Validación del género
-        if (gender.isNullOrEmpty()) {
-            texto += "El género está vacío \n"
+        if (birthDate.isAfter(LocalDate.now())) {
+            texto += "La fecha de nacimiento no puede ser futura. \n"
             result = false
         }
 
@@ -192,6 +185,30 @@ class RegisterViewModel @Inject constructor(
         _textoInfo.value = texto
 
         return result
+    }
+
+    /**
+     * Valida que la contraseña sea segura.
+     * Requisitos:
+     * - Al menos 8 caracteres.
+     * - Al menos una letra mayúscula.
+     * - Al menos una letra minúscula.
+     * - Al menos un número.
+     */
+    private fun isPasswordSecure(password: String): Boolean {
+        val passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$"
+        return password.matches(passwordRegex.toRegex())
+    }
+
+    /**
+     * Valida que el nombre de usuario cumpla con las reglas:
+     * - No contiene espacios.
+     * - Solo permite letras, números, guiones bajos (_) y guiones (-).
+     * - Longitud mínima de 3 caracteres y máxima de 20 (opcional).
+     */
+    private fun isUsernameValid(username: String): Boolean {
+        val usernameRegex = "^[a-zA-Z0-9_-]{3,20}$"
+        return username.matches(usernameRegex.toRegex())
     }
 
     fun showError(message: String) {

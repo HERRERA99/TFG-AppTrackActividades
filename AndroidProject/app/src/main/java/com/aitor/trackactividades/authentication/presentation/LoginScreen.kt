@@ -42,10 +42,10 @@ fun LoginScreen(
     navigateToFeed: () -> Unit,
     loginViewModel: LoginViewModel
 ) {
-    val navigateToFeed: Boolean by loginViewModel.navigateToFeed.observeAsState(initial = false)
+    val shouldNavigateToFeed: Boolean by loginViewModel.navigateToFeed.observeAsState(initial = false)
 
-    LaunchedEffect(navigateToFeed) {
-        if (navigateToFeed) {
+    LaunchedEffect(shouldNavigateToFeed) {
+        if (shouldNavigateToFeed) {
             navigateToFeed()
         }
     }
@@ -53,11 +53,14 @@ fun LoginScreen(
     val errorMessage: String? by loginViewModel.errorMessage.observeAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
+    val currentErrorMessage by rememberUpdatedState(errorMessage)
+
+    LaunchedEffect(currentErrorMessage) {
+        currentErrorMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
     }
+
 
     Scaffold { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
@@ -130,10 +133,14 @@ fun LoginBody(modifier: Modifier, loginViewModel: LoginViewModel) {
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Bottom),
     ) {
-        EmailInput(email = email, onTextChange = { loginViewModel.onLoginChanged(it, password) })
+        EmailInput(
+            email = email,
+            register = false,
+            onTextChange = { loginViewModel.onLoginChanged(it, password) })
         PasswordInput(
             text = "Contraseña",
             password = password,
+            info = false,
             onTextChange = { loginViewModel.onLoginChanged(email, it) })
         ForgotPassword(modifier = Modifier.align(Alignment.End))
         LoginButton(isLoginEnable, loginViewModel)
@@ -154,7 +161,7 @@ fun ForgotPassword(modifier: Modifier) {
 }
 
 @Composable
-fun EmailInput(email: String, onTextChange: (String) -> Unit) {
+fun EmailInput(email: String, register: Boolean, onTextChange: (String) -> Unit) {
     OutlinedTextField(
         value = email,
         onValueChange = { onTextChange(it) },
@@ -166,7 +173,7 @@ fun EmailInput(email: String, onTextChange: (String) -> Unit) {
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         },
-        label = { Text(text = "Usuario o Email") },
+        label = { Text(text = if (register) "Email" else "Usuario o Email") },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
@@ -182,13 +189,16 @@ fun EmailInput(email: String, onTextChange: (String) -> Unit) {
 }
 
 @Composable
-fun PasswordInput(text: String, password: String, onTextChange: (String) -> Unit) {
+fun PasswordInput(text: String, password: String, info: Boolean, onTextChange: (String) -> Unit) {
     var passwordVisibility by remember { mutableStateOf(false) }
     OutlinedTextField(
         value = password,
         onValueChange = { onTextChange(it) },
         modifier = Modifier.fillMaxWidth(),
         label = { Text(text = text) },
+        supportingText = if (info) {
+            { Text(text = "Mínimo 8 caracteres, una mayúscula, una minúscula y un número.") }
+        } else null,
         maxLines = 1,
         singleLine = true,
         leadingIcon = {

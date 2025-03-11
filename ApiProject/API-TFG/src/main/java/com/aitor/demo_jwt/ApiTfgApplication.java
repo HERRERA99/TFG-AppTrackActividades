@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DemoJwtApplication {
+public class ApiTfgApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DemoJwtApplication.class, args);
+		SpringApplication.run(ApiTfgApplication.class, args);
 	}
 
 }

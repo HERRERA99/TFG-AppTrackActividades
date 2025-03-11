@@ -30,7 +30,13 @@ fun NavigationWrapper() {
             val loginViewModel: LoginViewModel = hiltViewModel()
             LoginScreen(
                 navigateToRegister = { navController.navigate(Register) },
-                navigateToFeed = { navController.navigate(Feed) },
+                navigateToFeed = {
+                    navController.navigate(Feed) {
+                        popUpTo(Login) { inclusive = true }  // Elimina Login de la pila de navegación
+                        popUpTo(Register) { inclusive = true }  // Elimina Register de la pila de navegación
+                        popUpTo(Home) { inclusive = true }  // Elimina Home de la pila de navegación
+                    }
+                },
                 loginViewModel = loginViewModel
             )
         }
@@ -38,7 +44,13 @@ fun NavigationWrapper() {
             val registerViewModel: RegisterViewModel = hiltViewModel()
             RegisterScreen(
                 navigateToLogin = { navController.navigate(Login) },
-                navigateToFeed = { navController.navigate(Feed) },
+                navigateToFeed = {
+                    navController.navigate(Feed) {
+                        popUpTo(Login) { inclusive = true }  // Elimina Login de la pila de navegación
+                        popUpTo(Register) { inclusive = true }  // Elimina Login de la pila de navegación
+                        popUpTo(Home) { inclusive = true }  // Elimina Home de la pila de navegación
+                    }
+                },
                 registerViewModel = registerViewModel)
         }
         composable<Feed> {

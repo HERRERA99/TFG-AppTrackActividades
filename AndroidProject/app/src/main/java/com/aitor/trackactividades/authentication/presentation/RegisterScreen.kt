@@ -4,14 +4,22 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidthIn
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -40,10 +48,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.aitor.trackactividades.authentication.presentation.model.Gender
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -56,10 +66,10 @@ fun RegisterScreen(
     navigateToLogin: () -> Unit,
     navigateToFeed: () -> Unit
 ) {
-    val navigateToFeed: Boolean by registerViewModel.navigateToFeed.observeAsState(initial = false)
+    val navigateToFeedState: Boolean by registerViewModel.navigateToFeed.observeAsState(initial = false)
 
-    LaunchedEffect(navigateToFeed) {
-        if (navigateToFeed) {
+    LaunchedEffect(navigateToFeedState) {
+        if (navigateToFeedState) {
             navigateToFeed()
         }
     }
@@ -74,11 +84,16 @@ fun RegisterScreen(
     }
 
     Scaffold { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
             Column(
-                Modifier
+                modifier = Modifier
                     .padding(24.dp)
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()), // Agregar scroll
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val isLoading: Boolean by registerViewModel.isLoading.observeAsState(initial = false)
@@ -98,6 +113,7 @@ fun RegisterScreen(
     }
 }
 
+
 @Composable
 fun RegisterHeader(modifier: Modifier) {
     Text(
@@ -113,17 +129,18 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
     val email: String by registerViewModel.email.observeAsState(initial = "")
     val password1: String by registerViewModel.password1.observeAsState(initial = "")
     val password2: String by registerViewModel.password2.observeAsState(initial = "")
-    val name: String by registerViewModel.name.observeAsState(initial = "")
+    val name: String by registerViewModel.firstname.observeAsState(initial = "")
     val username: String by registerViewModel.username.observeAsState(initial = "")
-    val surname: String by registerViewModel.surname.observeAsState(initial = "")
+    val surname: String by registerViewModel.lastname.observeAsState(initial = "")
     val birthDate: LocalDate by registerViewModel.birthDate.observeAsState(initial = LocalDate.now())
-    val gender: String by registerViewModel.gender.observeAsState(initial = "")
+    val gender: Gender by registerViewModel.gender.observeAsState(initial = Gender.MASCULINO)
     val textoInfo: String by registerViewModel.textoInfo.observeAsState(initial = "")
 
     var showDatePicker by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .verticalScroll(rememberScrollState()), // Agregar scroll
         verticalArrangement = Arrangement.spacedBy(16.dp, alignment = Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -146,6 +163,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
 
         EmailInput(
             email = email,
+            register = true,
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     it,
@@ -161,6 +179,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
         PasswordInput(
             text = "Contraseña",
             password = password1,
+            info = true,
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     email,
@@ -176,6 +195,7 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
         PasswordInput(
             text = "Repite contraseña",
             password = password2,
+            info = false,
             onTextChange = {
                 registerViewModel.onRegisterChanged(
                     email,
@@ -224,75 +244,67 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
             }
         )
 
-        Row(
+
+        DateOfBirthInput(
+            selectedDate = birthDate,
+            onDateSelected = {
+                registerViewModel.onRegisterChanged(
+                    email,
+                    username,
+                    password1,
+                    password2,
+                    name,
+                    surname,
+                    it,
+                    gender
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()) {
-                DateOfBirthInput(
-                    selectedDate = birthDate,
-                    onDateSelected = {
-                        registerViewModel.onRegisterChanged(
-                            email,
-                            username,
-                            password1,
-                            password2,
-                            name,
-                            surname,
-                            it,
-                            gender
-                        )
-                    },
-                    modifier = Modifier,
-                    showDatePicker = showDatePicker,
-                    setShowDatePicker =
-                    {
-                        showDatePicker = it
-                    }
-                )
+            showDatePicker = showDatePicker,
+            setShowDatePicker =
+            {
+                showDatePicker = it
             }
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()) {
-                GenderInput(
-                    selectedGender = gender,
-                    modifier = Modifier,
-                    onGenderSelected =
-                    {
-                        registerViewModel.onRegisterChanged(
-                            email,
-                            username,
-                            password1,
-                            password2,
-                            name,
-                            surname,
-                            birthDate,
-                            it
-                        )
-                    }
-                )
-            }
-        }
-
-        Text(text = textoInfo, color = Color.Red)
-
-        RegisterButton(
-            registerViewModel = registerViewModel
         )
+
+
+        GenderInput(
+            selectedGender = gender,
+            modifier = Modifier.fillMaxWidth(),
+            onGenderSelected =
+            {
+                registerViewModel.onRegisterChanged(
+                    email,
+                    username,
+                    password1,
+                    password2,
+                    name,
+                    surname,
+                    birthDate,
+                    it
+                )
+            }
+        )
+
     }
+
+    Text(text = textoInfo, color = Color.Red)
+
+    RegisterButton(
+        registerViewModel = registerViewModel
+    )
 }
 
+
 @Composable
-fun GenderInput(selectedGender: String, modifier: Modifier, onGenderSelected: (String) -> Unit) {
+fun GenderInput(selectedGender: Gender, modifier: Modifier, onGenderSelected: (Gender) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val genderOptions = listOf("MASCULINO", "FEMENINO", "OTRO")
+    val genderOptions = Gender.entries.toTypedArray()
     var gender by remember { mutableStateOf(selectedGender) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = gender,
+            value = gender.name,
             onValueChange = {},
             modifier = modifier
                 .clickable { expanded = true },
@@ -322,7 +334,7 @@ fun GenderInput(selectedGender: String, modifier: Modifier, onGenderSelected: (S
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             genderOptions.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(option.name) },
                     onClick = {
                         gender = option
                         onGenderSelected(option)
@@ -362,6 +374,7 @@ fun UsernameInput(text: String, variable: String, onTextChange: (String) -> Unit
         onValueChange = { onTextChange(it) },
         modifier = Modifier.fillMaxWidth(),
         label = { Text(text = text) },
+        supportingText = { Text(text = "Solo letras, números, guiones bajos (_) y guiones (-).") },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
@@ -448,12 +461,21 @@ fun DateOfBirthInput(
                 }
             },
             text = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    DatePicker(state = datePickerState)
+                BoxWithConstraints {
+                    // 360 is minimum because DatePicker uses 12.dp horizontal padding and 48.dp for each week day
+                    val scale =
+                        remember(this.maxWidth) { if (this.maxWidth > 360.dp) 1f else (this.maxWidth / 360.dp) }
+                    // Make sure there is always enough room, so use requiredWidthIn
+                    Box(modifier = Modifier.requiredWidthIn(min = 360.dp)) {
+                        // Scale in case the width is too large for the screen
+                        DatePicker(
+                            modifier = Modifier.scale(scale),
+                            state = datePickerState,
+                            title = null,
+                            headline = null,
+                            showModeToggle = false,
+                        )
+                    }
                 }
             }
         )

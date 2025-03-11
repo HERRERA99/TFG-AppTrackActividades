@@ -10,5 +10,5 @@ data class RegisterModel (
     val firstname: String,
     val lastname: String,
     val birthdate: LocalDate,
-    val gender: String
+    val gender: Gender
 )

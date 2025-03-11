@@ -14,8 +14,8 @@ class RegisterUseCase @Inject constructor(private val authenticationRepository: 
             registerModel.password,
             registerModel.firstname,
             registerModel.lastname,
-            registerModel.birthdate,
-            registerModel.gender
+            registerModel.birthdate.toString(),
+            registerModel.gender.name
         ))
     }
 }

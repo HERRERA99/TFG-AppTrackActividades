@@ -41,38 +41,35 @@ class LoginViewModel @Inject constructor(
     }
 
     fun enableLogin(identifier: String, password: String): Boolean {
-        return identifier.isNotEmpty() && password.isNotEmpty()
+        return identifier.isNotBlank() && password.isNotBlank()
     }
 
     fun onLoginSelected() {
+        val email = _identifier.value?.takeIf { it.isNotBlank() } ?: return
+        val pass = _password.value?.takeIf { it.isNotBlank() } ?: return
+
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Realiza la llamada de login
-                val result = loginUseCase(LoginModel(_identifier.value!!, _password.value!!))
-
-                // Si el token no es nulo, navega al feed
+                val result = loginUseCase(LoginModel(email, pass))
                 if (result.token != null) {
                     _navigateToFeed.value = true
                 } else {
-                    // Si el token es nulo, muestra un mensaje de error (opcional)
                     showError("Credenciales incorrectas o acceso denegado.")
                 }
             } catch (e: HttpException) {
-                // Manejo específico para errores HTTP, como el error 403
-                if (e.code() == 403) {
-                    showError("Acceso denegado. Verifique sus credenciales.")
-                } else {
-                    showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
+                when (e.code()) {
+                    403 -> showError("Acceso denegado. Verifique sus credenciales.")
+                    else -> showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
                 }
             } catch (e: Exception) {
-                // Manejo de cualquier otro tipo de excepción (red, timeout, etc.)
                 showError("Ocurrió un error. Intente de nuevo.")
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
 
     fun showError(message: String) {
         _errorMessage.value = message
