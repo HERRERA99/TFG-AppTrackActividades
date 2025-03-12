@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.sonarqube)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.jetbrainsKotlinSerialization)
     id("kotlin-kapt")
 }
 
@@ -71,9 +72,23 @@ dependencies {
     // Hilt
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation)
 
     // OSM
     implementation(libs.osmandroid)
+
+    // Navigation
+    implementation(libs.navigation.compose)
+    implementation(libs.kotlin.serialization)
+
+    // LiveData
+    implementation(libs.runtime.livedata)
+
+    // Google fonts
+    implementation(libs.google.fonts)
+
+    // DataStore
+    implementation(libs.data.store)
 
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
