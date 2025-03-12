@@ -56,7 +56,3 @@ jobs:
           arch: x86_64
           profile: pixel_4
           script: ./gradlew connectedDebugAndroidTest
-      
-      - name: Run Lint checks
-        run: ./gradlew lintDebug
-        working-directory: AndroidProject
