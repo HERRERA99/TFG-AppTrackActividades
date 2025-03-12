@@ -1,4 +1,4 @@
-package com.aitor.demo_jwt.auth;
+package com.aitor.api_tfg.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

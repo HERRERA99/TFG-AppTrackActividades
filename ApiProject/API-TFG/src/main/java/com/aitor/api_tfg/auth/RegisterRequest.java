@@ -1,6 +1,6 @@
-package com.aitor.demo_jwt.auth;
+package com.aitor.api_tfg.auth;
 
-import com.aitor.demo_jwt.user.Gender;
+import com.aitor.api_tfg.user.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

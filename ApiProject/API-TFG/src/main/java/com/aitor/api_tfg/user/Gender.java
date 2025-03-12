@@ -1,4 +1,4 @@
-package com.aitor.demo_jwt.user;
+package com.aitor.api_tfg.user;
 
 public enum Gender {
     MASCULINO, FEMENINO, OTRO

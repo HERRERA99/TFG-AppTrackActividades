@@ -1,4 +1,4 @@
-package com.aitor.demo_jwt.jwt;
+package com.aitor.api_tfg.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

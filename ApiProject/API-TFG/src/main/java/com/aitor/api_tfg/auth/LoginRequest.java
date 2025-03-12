@@ -1,4 +1,4 @@
-package com.aitor.demo_jwt.auth;
+package com.aitor.api_tfg.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
-    private String token;
+public class LoginRequest {
+    private String identifier;
+    private String password;
 }

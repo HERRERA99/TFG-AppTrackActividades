@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.authentication.domain.RegisterUseCase
 import com.aitor.trackactividades.authentication.presentation.model.Gender
 import com.aitor.trackactividades.authentication.presentation.model.RegisterModel
+import com.aitor.trackactividades.core.token.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -19,7 +20,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterUseCase
+    private val registerUseCase: RegisterUseCase,
+    private val tokenManager: TokenManager
+
 ) : ViewModel() {
     private val _email = MutableLiveData<String>()
     val email: LiveData<String> = _email
@@ -115,6 +118,7 @@ class RegisterViewModel @Inject constructor(
                     )
                     // Si el token no es nulo, navega al feed
                     if (result.token != null) {
+                        tokenManager.saveToken(result.token)
                         _navigateToFeed.value = true
                     } else {
                         // Si el token es nulo, muestra un mensaje de error

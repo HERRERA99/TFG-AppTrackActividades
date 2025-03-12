@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.authentication.domain.LoginUseCase
 import com.aitor.trackactividades.authentication.presentation.model.LoginModel
+import com.aitor.trackactividades.core.token.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val tokenManager: TokenManager
 ): ViewModel() {
     private val _identifier = MutableLiveData<String>()
     val identifier : LiveData<String> = _identifier
@@ -53,6 +55,7 @@ class LoginViewModel @Inject constructor(
             try {
                 val result = loginUseCase(LoginModel(email, pass))
                 if (result.token != null) {
+                    tokenManager.saveToken(result.token)
                     _navigateToFeed.value = true
                 } else {
                     showError("Credenciales incorrectas o acceso denegado.")

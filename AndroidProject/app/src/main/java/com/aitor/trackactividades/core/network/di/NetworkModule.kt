@@ -1,4 +1,4 @@
-package com.aitor.trackactividades.authentication.data.di
+package com.aitor.trackactividades.core.network.di
 
 import com.aitor.trackactividades.authentication.data.AuthenticationApiService
 import dagger.Module

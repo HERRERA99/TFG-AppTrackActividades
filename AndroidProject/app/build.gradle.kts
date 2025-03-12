@@ -87,6 +87,9 @@ dependencies {
     // Google fonts
     implementation(libs.google.fonts)
 
+    // DataStore
+    implementation(libs.data.store)
+
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
 

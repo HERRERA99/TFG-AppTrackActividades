@@ -1,4 +1,4 @@
-package com.aitor.demo_jwt.user;
+package com.aitor.api_tfg.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
