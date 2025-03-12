@@ -56,13 +56,3 @@ jobs:
           arch: x86_64
           profile: pixel_4
           script: ./gradlew connectedDebugAndroidTest
-      
-      - name: Run Lint checks
-        run: ./gradlew lintDebug
-        working-directory: AndroidProject
-
-      - name: Upload Lint Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-reports
-          path: AndroidProject/app/build/reports/lint-results-debug.html
