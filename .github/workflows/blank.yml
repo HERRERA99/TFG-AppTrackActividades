@@ -33,11 +33,22 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install required Android SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v3
 
+      - name: Set up Gradle version
+        run: ./gradlew wrapper --gradle-version 8.4
+        working-directory: AndroidProject
+
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x AndroidProject/gradlew
+
+      - name: Check dependencies
+        run: ./gradlew dependencies
+        working-directory: AndroidProject
 
       - name: Build project
         run: ./gradlew assembleDebug
