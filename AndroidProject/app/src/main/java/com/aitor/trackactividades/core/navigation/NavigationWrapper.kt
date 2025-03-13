@@ -7,13 +7,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.aitor.trackactividades.feed.ui.FeedScreen
-import com.aitor.trackactividades.feed.ui.FeedViewModel
+import com.aitor.trackactividades.feed.presentation.FeedScreen
+import com.aitor.trackactividades.feed.presentation.FeedViewModel
 import com.aitor.trackactividades.authentication.presentation.HomeScreen
 import com.aitor.trackactividades.authentication.presentation.LoginScreen
 import com.aitor.trackactividades.authentication.presentation.LoginViewModel
 import com.aitor.trackactividades.authentication.presentation.RegisterScreen
 import com.aitor.trackactividades.authentication.presentation.RegisterViewModel
+import com.aitor.trackactividades.recordActivity.presentation.RecordActivityScreen
+import com.aitor.trackactividades.recordActivity.presentation.RecordActivityViewModel
+import com.aitor.trackactividades.recordActivity.presentation.RecordStartActivityScreen
+import com.aitor.trackactividades.recordActivity.presentation.RecordStartActivityViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -32,9 +36,9 @@ fun NavigationWrapper() {
                 navigateToRegister = { navController.navigate(Register) },
                 navigateToFeed = {
                     navController.navigate(Feed) {
-                        popUpTo(Login) { inclusive = true }  // Elimina Login de la pila de navegación
-                        popUpTo(Register) { inclusive = true }  // Elimina Register de la pila de navegación
-                        popUpTo(Home) { inclusive = true }  // Elimina Home de la pila de navegación
+                        popUpTo(Login) { inclusive = true }
+                        popUpTo(Register) { inclusive = true }
+                        popUpTo(Home) { inclusive = true }
                     }
                 },
                 loginViewModel = loginViewModel
@@ -46,16 +50,31 @@ fun NavigationWrapper() {
                 navigateToLogin = { navController.navigate(Login) },
                 navigateToFeed = {
                     navController.navigate(Feed) {
-                        popUpTo(Login) { inclusive = true }  // Elimina Login de la pila de navegación
-                        popUpTo(Register) { inclusive = true }  // Elimina Login de la pila de navegación
-                        popUpTo(Home) { inclusive = true }  // Elimina Home de la pila de navegación
+                        popUpTo(Login) { inclusive = true }
+                        popUpTo(Register) { inclusive = true }
+                        popUpTo(Home) { inclusive = true }
                     }
                 },
                 registerViewModel = registerViewModel)
         }
         composable<Feed> {
             val feedViewModel: FeedViewModel = hiltViewModel()
-            FeedScreen(feedViewModel = feedViewModel)
+            FeedScreen(
+                navigateToStartRecordActivity = { navController.navigate(RecordStartActivity) },
+                feedViewModel = feedViewModel
+            )
+        }
+        composable<RecordActivity> {
+            val recordActivityViewModel: RecordActivityViewModel = hiltViewModel()
+            RecordActivityScreen(recordActivityViewModel = recordActivityViewModel)
+        }
+        composable<RecordStartActivity> {
+            val recordStartActivityViewModel: RecordStartActivityViewModel = hiltViewModel()
+            RecordStartActivityScreen(
+                navigateToRecordActivity = { navController.navigate(RecordActivity) },
+                navigateToFeed = { navController.navigate(Feed) },
+                recordStartActivityViewModel = recordStartActivityViewModel
+            )
         }
     }
 }
