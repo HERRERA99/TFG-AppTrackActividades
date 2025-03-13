@@ -69,11 +69,11 @@ fun NavigationWrapper() {
             RecordActivityScreen(recordActivityViewModel = recordActivityViewModel)
         }
         composable<RecordStartActivity> {
-            val recordStartActivityViewModel: RecordStartActivityViewModel = hiltViewModel()
+            val recordActivityViewModel: RecordActivityViewModel = hiltViewModel()
             RecordStartActivityScreen(
                 navigateToRecordActivity = { navController.navigate(RecordActivity) },
                 navigateToFeed = { navController.navigate(Feed) },
-                recordStartActivityViewModel = recordStartActivityViewModel
+                recordActivityViewModel = recordActivityViewModel
             )
         }
     }

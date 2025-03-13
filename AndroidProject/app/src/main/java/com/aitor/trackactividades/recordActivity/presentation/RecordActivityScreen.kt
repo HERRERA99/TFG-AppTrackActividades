@@ -2,6 +2,7 @@ package com.aitor.trackactividades.recordActivity.presentation
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,23 +27,52 @@ fun RecordActivityScreen(
                     .padding(32.dp),
                 contentAlignment = Alignment.BottomCenter
             ) {
-                IconButton(
-                    onClick = {
-
-                    },
-                    modifier = Modifier
-                        .size(100.dp)
-                        .padding(8.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = "Accion",
-                        modifier = Modifier.size(48.dp)
-                    )
+                    // Botón de Stop (centrado)
+                    IconButton(
+                        onClick = {
+                            // Acción para detener la grabación
+                        },
+                        modifier = Modifier
+                            .size(100.dp)
+                            .padding(8.dp),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Stop,
+                            contentDescription = "Detener",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+
+                    // Espacio entre los botones
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Botón de punto en el mapa
+                    IconButton(
+                        onClick = {
+                            // Acción para marcar un punto en el mapa
+                        },
+                        modifier = Modifier
+                            .size(64.dp) // Tamaño más pequeño
+                            .padding(8.dp),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn, // Icono de punto en el mapa
+                            contentDescription = "Marcar punto",
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
             }
         }

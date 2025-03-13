@@ -90,6 +90,13 @@ dependencies {
     // DataStore
     implementation(libs.data.store)
 
+    // Maps
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+
+    // Corrutines Play Services
+    implementation(libs.corrutines.play.services)
+
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
 
