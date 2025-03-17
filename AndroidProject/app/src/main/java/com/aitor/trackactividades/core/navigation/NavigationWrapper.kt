@@ -16,8 +16,6 @@ import com.aitor.trackactividades.authentication.presentation.RegisterScreen
 import com.aitor.trackactividades.authentication.presentation.RegisterViewModel
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityScreen
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityViewModel
-import com.aitor.trackactividades.recordActivity.presentation.RecordStartActivityScreen
-import com.aitor.trackactividades.recordActivity.presentation.RecordStartActivityViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -60,20 +58,15 @@ fun NavigationWrapper() {
         composable<Feed> {
             val feedViewModel: FeedViewModel = hiltViewModel()
             FeedScreen(
-                navigateToStartRecordActivity = { navController.navigate(RecordStartActivity) },
+                navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
                 feedViewModel = feedViewModel
             )
         }
         composable<RecordActivity> {
             val recordActivityViewModel: RecordActivityViewModel = hiltViewModel()
-            RecordActivityScreen(recordActivityViewModel = recordActivityViewModel)
-        }
-        composable<RecordStartActivity> {
-            val recordActivityViewModel: RecordActivityViewModel = hiltViewModel()
-            RecordStartActivityScreen(
-                navigateToRecordActivity = { navController.navigate(RecordActivity) },
-                navigateToFeed = { navController.navigate(Feed) },
-                recordActivityViewModel = recordActivityViewModel
+            RecordActivityScreen(
+                recordActivityViewModel = recordActivityViewModel,
+                navigateToFeed = { navController.navigate(Feed) }
             )
         }
     }

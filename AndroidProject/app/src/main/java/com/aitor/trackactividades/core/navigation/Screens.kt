@@ -16,6 +16,3 @@ object Feed
 
 @Serializable
 object RecordActivity
-
-@Serializable
-object RecordStartActivity
