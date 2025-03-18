@@ -2,6 +2,8 @@ package com.aitor.trackactividades.recordActivity.presentation
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.location.Location
 import android.os.SystemClock
 import android.util.Log
@@ -39,11 +41,11 @@ class RecordActivityViewModel @Inject constructor(
     private val _speed = MutableLiveData<Float>(0f)
     val speed: LiveData<Float> get() = _speed
 
-    private val _altitude = MutableLiveData<List<Float>>(emptyList())
-    val altitude: LiveData<List<Float>> get() = _altitude
+    private val _altitude = MutableLiveData<Double>(0.0)
+    val altitude: LiveData<Double> get() = _altitude
 
-    private val _slope = MutableLiveData<List<Float>>(emptyList())
-    val slope: LiveData<List<Float>> get() = _slope
+    private val _slope = MutableLiveData<Float>(0f)
+    val slope: LiveData<Float> get() = _slope
 
     private val _distance = MutableLiveData<Float>(0f)
     val distance: LiveData<Float> get() = _distance
@@ -55,7 +57,6 @@ class RecordActivityViewModel @Inject constructor(
 
     private var locationCallback: LocationCallback? = null
     private var lastLocation: Location? = null // Almacena la última ubicación registrada
-
 
     fun start(context: Context) {
         if (isRunning) return
@@ -113,9 +114,13 @@ class RecordActivityViewModel @Inject constructor(
             return
         }
 
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).apply {
-            setMinUpdateIntervalMillis(500)
-        }.build()
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+            .setMinUpdateIntervalMillis(500)
+            .setWaitForAccurateLocation(true) // Esperar la mejor precisión posible
+            .build()
+
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val hasBarometer = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) != null
 
         if (locationCallback == null) {
             locationCallback = object : LocationCallback() {
@@ -125,6 +130,13 @@ class RecordActivityViewModel @Inject constructor(
                         val latLng = LatLng(location.latitude, location.longitude)
                         _routeCoordinates.postValue(_routeCoordinates.value.orEmpty() + latLng)
                         _speed.postValue(location.speed * 3.6f) // Convertir m/s a km/h
+                        _altitude.postValue(location.altitude)
+
+                        // Calcular la pendiente solo si hay una ubicación anterior
+                        lastLocation?.let { lastLoc ->
+                            val slope = calculateSlope(lastLoc, location)
+                            _slope.postValue(slope)
+                        }
 
                         // Calcular la distancia
                         lastLocation?.let { lastLoc ->
@@ -144,6 +156,17 @@ class RecordActivityViewModel @Inject constructor(
             locationCallback!!,
             null
         )
+    }
+
+    fun calculateSlope(lastLocation: Location, currentLocation: Location): Float {
+        val deltaAltitud = currentLocation.altitude - lastLocation.altitude
+        val distanceInMeters = lastLocation.distanceTo(currentLocation) // Distancia en metros
+
+        return (if (distanceInMeters > 0) { // Evitar división por 0
+            (deltaAltitud / distanceInMeters) * 100
+        } else {
+            0f
+        }).toFloat()
     }
 
     private fun stopLocationUpdates() {

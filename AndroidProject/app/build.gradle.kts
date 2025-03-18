@@ -97,6 +97,11 @@ dependencies {
     // Corrutines Play Services
     implementation(libs.corrutines.play.services)
 
+    // Mockito
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    androidTestImplementation(libs.mockito.android)
+
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
 

@@ -1,16 +1,12 @@
 package com.aitor.trackactividades.recordActivity.presentation
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.location.Location
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.material3.IconButton
@@ -18,17 +14,19 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,8 +41,8 @@ fun RecordActivityScreen(
     val stopwatch by recordActivityViewModel.stopwatch.observeAsState(initial = 0L)
     val distance by recordActivityViewModel.distance.observeAsState(initial = 0f)
     val speed by recordActivityViewModel.speed.observeAsState(initial = 0f)
-    val altitude by recordActivityViewModel.altitude.observeAsState(initial = emptyList())
-    val slope by recordActivityViewModel.slope.observeAsState(initial = emptyList())
+    val altitude by recordActivityViewModel.altitude.observeAsState(initial = 0.0)
+    val slope by recordActivityViewModel.slope.observeAsState(initial = 0f)
 
     Scaffold(
         topBar = {
@@ -193,21 +191,56 @@ fun StartActivityContent(
     GoogleMapView(userLocation, routeCoordinates)
 }
 
+@OptIn(FlowPreview::class)
 @Composable
 fun GoogleMapView(userLocation: Location?, routeCoordinates: List<LatLng>) {
     val cameraPositionState = rememberCameraPositionState()
+    var isFollowingUser by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Evitar múltiples ejecuciones rápidas
+    val debounceScope = rememberCoroutineScope()
+
     LaunchedEffect(userLocation) {
+        Log.d("Maps", "Se ejecuta el LaunchedEffect userLocation")
         userLocation?.let {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                LatLng(it.latitude, it.longitude), 15f
-            )
+            if (isFollowingUser) {
+                Log.d("Maps", "Se modifica la posicion de la camara")
+                coroutineScope.launch {
+                    cameraPositionState.animate(
+                        update = CameraUpdateFactory.newLatLngZoom(
+                            LatLng(it.latitude, it.longitude), 15f
+                        ),
+                        durationMs = 1000
+                    )
+                }
+            }
         }
     }
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = MapProperties(isMyLocationEnabled = true),
-        uiSettings = MapUiSettings(myLocationButtonEnabled = true)
+        uiSettings = MapUiSettings(myLocationButtonEnabled = true),
+        onMyLocationButtonClick = {
+            isFollowingUser = !isFollowingUser // Se vuelve a seguir al usuario
+            Log.d("Maps", "Se vuelve a seguir al usuario")
+
+            // Espera unos milisegundos para evitar que snapshotFlow desactive el seguimiento de inmediato
+            debounceScope.launch {
+                delay(500) // Espera 500ms antes de actualizar la cámara
+                userLocation?.let {
+                    cameraPositionState.animate(
+                        update = CameraUpdateFactory.newLatLngZoom(
+                            LatLng(it.latitude, it.longitude), 15f
+                        ),
+                        durationMs = 1000
+                    )
+                }
+            }
+            false // Permite que Google Maps haga la animación de centrado
+        }
     ) {
         if (routeCoordinates.isNotEmpty()) {
             Polyline(
@@ -219,13 +252,14 @@ fun GoogleMapView(userLocation: Location?, routeCoordinates: List<LatLng>) {
     }
 }
 
+
 @Composable
 fun StatsMode(
     stopwatch: Long,
     speed: Float,
     distance: Float,
-    altitude: List<Float>,
-    slope: List<Float>,
+    altitude: Double,
+    slope: Float,
     recordActivityViewModel: RecordActivityViewModel
 ) {
     Column(
@@ -252,8 +286,8 @@ fun StatsMode(
             verticalAlignment = Alignment.CenterVertically
 
         ) {
-            StatItem(title = "Altitud", value = "${altitude.lastOrNull()?.toInt() ?: 0} m", modifier = Modifier.weight(1f))
-            StatItem(title = "Pendiente", value = "${slope.lastOrNull()?.toInt() ?: 0}%", modifier = Modifier.weight(1f))
+            StatItem(title = "Altitud", value = String.format(Locale.FRANCE, "%.2f", altitude), modifier = Modifier.weight(1f))
+            StatItem(title = "Pendiente", value = String.format(Locale.FRANCE, "%.2f", slope), modifier = Modifier.weight(1f))
         }
     }
 }
