@@ -41,6 +41,12 @@ public class User implements UserDetails {
     @Column(nullable = false)
     String lastname;
 
+    @Column(nullable = false)
+    Double weight;
+
+    @Column(nullable = false)
+    Integer height;
+
     @Enumerated(EnumType.STRING)
     Role role;
 

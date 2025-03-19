@@ -60,6 +60,12 @@ class RegisterViewModel @Inject constructor(
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
 
+    private val _weight = MutableLiveData<Double>()
+    val weight: LiveData<Double> = _weight
+
+    private val _height = MutableLiveData<Int>()
+    val height: LiveData<Int> = _height
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterChanged(
         email: String,
@@ -69,7 +75,9 @@ class RegisterViewModel @Inject constructor(
         name: String,
         surname: String,
         birthDate: LocalDate,
-        gender: Gender
+        gender: Gender,
+        weight: Double,
+        height: Int
     ) {
         _email.value = email
         _password1.value = password1
@@ -79,6 +87,8 @@ class RegisterViewModel @Inject constructor(
         _lastname.value = surname
         _birthDate.value = birthDate
         _gender.value = gender
+        _weight.value = weight
+        _height.value = height
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -91,10 +101,12 @@ class RegisterViewModel @Inject constructor(
         val surname = _lastname.value
         val birthDate = _birthDate.value
         val gender = _gender.value
+        val weight = _weight.value
+        val height = _height.value
 
         // Verificar que ningún campo sea nulo o esté vacío
         if (email.isNullOrEmpty() || password1.isNullOrEmpty() || password2.isNullOrEmpty() || username.isNullOrEmpty() ||
-            name.isNullOrEmpty() || surname.isNullOrEmpty() || birthDate == null || gender == null
+            name.isNullOrEmpty() || surname.isNullOrEmpty() || birthDate == null || gender == null || weight == null || height == null
         ) {
             showError("Todos los campos son obligatorios.")
             return
@@ -113,6 +125,8 @@ class RegisterViewModel @Inject constructor(
                             firstname = name,
                             lastname = surname,
                             birthdate = birthDate,
+                            weight = weight,
+                            height = height,
                             gender = gender
                         )
                     )

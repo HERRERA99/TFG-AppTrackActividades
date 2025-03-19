@@ -19,6 +19,8 @@ public class RegisterRequest {
     String password;
     String firstname;
     String lastname;
+    Double weight;
+    Integer height;
     LocalDate birthdate;
     Gender gender;
 }

@@ -19,11 +19,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun FeedScreen(
     feedViewModel: FeedViewModel,
-    navigateToStartRecordActivity: () -> Unit
+    navigateToStartRecordActivity: () -> Unit,
+    navigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -58,7 +61,12 @@ fun FeedScreen(
     }
 
     Scaffold(
-        topBar = { FeedTopBar() },
+        topBar = {
+            FeedTopBar(
+                navigateToHome = navigateToHome,
+                feedViewModel = feedViewModel
+            )
+        },
         bottomBar = {
             FeedBottomBar(
                 onRegisterClick = {
@@ -98,7 +106,12 @@ fun FeedScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedTopBar() {
+fun FeedTopBar(
+    navigateToHome: () -> Unit,
+    feedViewModel: FeedViewModel
+) {
+    val coroutineScope = rememberCoroutineScope()
+
     TopAppBar(
         title = {
             Text(
@@ -115,7 +128,12 @@ fun FeedTopBar() {
                     modifier = Modifier.size(32.dp)
                 )
             }
-            IconButton(onClick = { /* TODO: Acción de perfil */ }) {
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    feedViewModel.logout()
+                    navigateToHome()
+                }
+            }) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = "Perfil",

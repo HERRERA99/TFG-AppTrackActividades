@@ -44,6 +44,8 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
+                .height(request.getHeight())
+                .weight(request.getWeight())
                 .role(Role.USER)
                 .birthdate(request.getBirthdate())
                 .gender(request.getGender())
