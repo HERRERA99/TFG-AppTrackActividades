@@ -1,12 +1,15 @@
 package com.aitor.trackactividades.authentication.presentation
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aitor.trackactividades.authentication.domain.GetUserUseCase
 import com.aitor.trackactividades.authentication.domain.LoginUseCase
 import com.aitor.trackactividades.authentication.presentation.model.LoginModel
 import com.aitor.trackactividades.core.token.TokenManager
+import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -16,6 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
+    private val getUserUseCase: GetUserUseCase,
+    private val userPreferences: UserPreferences,
     private val tokenManager: TokenManager
 ): ViewModel() {
     private val _identifier = MutableLiveData<String>()
@@ -47,15 +52,24 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onLoginSelected() {
-        val email = _identifier.value?.takeIf { it.isNotBlank() } ?: return
+        val identifier = _identifier.value?.takeIf { it.isNotBlank() } ?: return
         val pass = _password.value?.takeIf { it.isNotBlank() } ?: return
 
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val result = loginUseCase(LoginModel(email, pass))
+                val result = loginUseCase(LoginModel(identifier, pass))
                 if (result.token != null) {
                     tokenManager.saveToken(result.token)
+
+                    // Agregar el prefijo "Bearer " al token
+                    val authHeader = "Bearer ${result.token}"
+
+                    // Llamar a getUserUseCase con el token formateado
+                    val user = getUserUseCase(authHeader, identifier)
+
+                    Log.e("Usuario", user.toString())
+                    userPreferences.saveUser(user)
                     _navigateToFeed.value = true
                 } else {
                     showError("Credenciales incorrectas o acceso denegado.")
@@ -71,6 +85,7 @@ class LoginViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+
     }
 
 

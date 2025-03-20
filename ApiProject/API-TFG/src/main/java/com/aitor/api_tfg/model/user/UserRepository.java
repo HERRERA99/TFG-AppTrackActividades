@@ -1,4 +1,4 @@
-package com.aitor.api_tfg.user;
+package com.aitor.api_tfg.model.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

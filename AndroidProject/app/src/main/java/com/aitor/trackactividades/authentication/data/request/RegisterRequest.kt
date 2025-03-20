@@ -1,8 +1,6 @@
 package com.aitor.trackactividades.authentication.data.request
 
-import com.aitor.trackactividades.authentication.presentation.model.Gender
 import com.google.gson.annotations.SerializedName
-import java.time.LocalDate
 
 data class RegisterRequest (
     @SerializedName("username") val username: String,

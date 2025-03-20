@@ -2,21 +2,27 @@ package com.aitor.trackactividades.recordActivity.presentation
 
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aitor.trackactividades.core.model.Gender
+import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -42,7 +48,8 @@ fun RecordActivityScreen(
     val distance by recordActivityViewModel.distance.observeAsState(initial = 0f)
     val speed by recordActivityViewModel.speed.observeAsState(initial = 0f)
     val altitude by recordActivityViewModel.altitude.observeAsState(initial = 0.0)
-    val slope by recordActivityViewModel.slope.observeAsState(initial = 0f)
+    val calories by recordActivityViewModel.calories.observeAsState(initial = 0f)
+    val activityType by recordActivityViewModel.activityType.observeAsState(initial = Modalidades.CICLISMO_CARRETERA)
 
     Scaffold(
         topBar = {
@@ -157,8 +164,10 @@ fun RecordActivityScreen(
         ) {
             when (screenMode) {
                 ScreenTypes.START_ACTIVITY -> StartActivityContent(
-                    userLocation,
-                    routeCoordinates
+                    userLocation = userLocation,
+                    activityType = activityType,
+                    routeCoordinates = routeCoordinates,
+                    recordActivityViewModel = recordActivityViewModel
                 )
 
                 ScreenTypes.RECORD_ACTIVITY -> StatsMode(
@@ -166,11 +175,11 @@ fun RecordActivityScreen(
                     speed = speed,
                     distance = distance,
                     altitude = altitude,
-                    slope = slope,
+                    calories = calories,
                     recordActivityViewModel = recordActivityViewModel
                 )
 
-                ScreenTypes.MAP_RECORD_ACTIVITY -> GoogleMapView(userLocation, routeCoordinates)
+                ScreenTypes.MAP_RECORD_ACTIVITY -> GoogleMapView(userLocation, Modifier,routeCoordinates)
                 ScreenTypes.PAUSE_ACTIVITY -> PauseMode(userLocation, routeCoordinates)
             }
         }
@@ -179,21 +188,28 @@ fun RecordActivityScreen(
 
 @Composable
 fun PauseMode(userLocation: Location?, routeCoordinates: List<LatLng>) {
-    GoogleMapView(userLocation, routeCoordinates)
+    GoogleMapView(userLocation, Modifier, routeCoordinates)
 }
 
 
 @Composable
 fun StartActivityContent(
     userLocation: Location?,
-    routeCoordinates: List<LatLng>
+    activityType: Modalidades,
+    routeCoordinates: List<LatLng>,
+    recordActivityViewModel: RecordActivityViewModel
 ) {
-    GoogleMapView(userLocation, routeCoordinates)
+    Column(modifier = Modifier.fillMaxSize()) {
+        GoogleMapView(userLocation, Modifier.weight(1f), routeCoordinates)
+        ActivityTypeInput(activityType, Modifier) {
+            recordActivityViewModel.onTypeChange(it)
+        }
+    }
 }
 
 @OptIn(FlowPreview::class)
 @Composable
-fun GoogleMapView(userLocation: Location?, routeCoordinates: List<LatLng>) {
+fun GoogleMapView(userLocation: Location?, modifier: Modifier, routeCoordinates: List<LatLng>) {
     val cameraPositionState = rememberCameraPositionState()
     var isFollowingUser by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
@@ -219,7 +235,7 @@ fun GoogleMapView(userLocation: Location?, routeCoordinates: List<LatLng>) {
     }
 
     GoogleMap(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = MapProperties(isMyLocationEnabled = true),
         uiSettings = MapUiSettings(myLocationButtonEnabled = true),
@@ -259,7 +275,7 @@ fun StatsMode(
     speed: Float,
     distance: Float,
     altitude: Double,
-    slope: Float,
+    calories: Float,
     recordActivityViewModel: RecordActivityViewModel
 ) {
     Column(
@@ -275,20 +291,10 @@ fun StatsMode(
         StatItem(title = "Distancia", value = "${"%.2f".format(distance / 1000)} km", modifier = Modifier.weight(1f))
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
-        StatItem(title = "Velocidad", value = "${"%.2f".format(speed)} km/h", modifier = Modifier.weight(1f))
+        StatItem(title = "Velocidad", value = recordActivityViewModel.speedConversor(speed, recordActivityViewModel.activityType.value!!), modifier = Modifier.weight(1f))
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(1f),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-
-        ) {
-            StatItem(title = "Altitud", value = String.format(Locale.FRANCE, "%.2f", altitude), modifier = Modifier.weight(1f))
-            StatItem(title = "Pendiente", value = String.format(Locale.FRANCE, "%.2f", slope), modifier = Modifier.weight(1f))
-        }
+        StatItem(title = "Calorias", value = String.format(Locale.FRANCE, "%.0f", calories), modifier = Modifier.weight(1f))
     }
 }
 
@@ -309,5 +315,62 @@ fun StatItem(title: String, value: String, modifier: Modifier = Modifier) {
             fontSize = 48.sp,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
         )
+    }
+}
+
+@Composable
+fun ActivityTypeInput(selectedType: Modalidades, modifier: Modifier, onTypeSelected: (Modalidades) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val typeOptions = Modalidades.entries.toTypedArray()
+    var type by remember { mutableStateOf(selectedType) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = type.displayName,
+            onValueChange = {},
+            modifier = modifier.fillMaxWidth()
+                .clickable { expanded = true },
+            colors = TextFieldDefaults.colors(
+                disabledTextColor = MaterialTheme.colorScheme.onBackground,
+                disabledContainerColor = Color.Transparent,
+                disabledIndicatorColor = MaterialTheme.colorScheme.primary,
+                disabledLabelColor = MaterialTheme.colorScheme.onPrimary,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+            ),
+            leadingIcon = {
+                Icon(
+                    imageVector = type.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            readOnly = true,
+            enabled = false,
+            label = { Text(text = "Modalidad") }
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            typeOptions.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.displayName) },
+                    onClick = {
+                        type = option
+                        onTypeSelected(option)
+                        expanded = false
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = option.icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                )
+            }
+        }
     }
 }

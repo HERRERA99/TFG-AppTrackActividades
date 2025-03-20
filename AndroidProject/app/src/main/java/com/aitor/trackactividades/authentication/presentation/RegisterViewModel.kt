@@ -1,16 +1,19 @@
 package com.aitor.trackactividades.authentication.presentation
 
 import android.os.Build
+import android.util.Log
 import android.util.Patterns
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aitor.trackactividades.authentication.domain.GetUserUseCase
 import com.aitor.trackactividades.authentication.domain.RegisterUseCase
-import com.aitor.trackactividades.authentication.presentation.model.Gender
+import com.aitor.trackactividades.core.model.Gender
 import com.aitor.trackactividades.authentication.presentation.model.RegisterModel
 import com.aitor.trackactividades.core.token.TokenManager
+import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -21,6 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
+    private val getUserUseCase: GetUserUseCase,
+    private val userPreferences: UserPreferences,
     private val tokenManager: TokenManager
 
 ) : ViewModel() {
@@ -133,6 +138,9 @@ class RegisterViewModel @Inject constructor(
                     // Si el token no es nulo, navega al feed
                     if (result.token != null) {
                         tokenManager.saveToken(result.token)
+                        val user = getUserUseCase(result.token, email)
+                        Log.e("Usuario", user.toString())
+                        userPreferences.saveUser(user)
                         _navigateToFeed.value = true
                     } else {
                         // Si el token es nulo, muestra un mensaje de error

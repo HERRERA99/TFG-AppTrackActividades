@@ -1,9 +1,9 @@
 package com.aitor.api_tfg.auth;
 
 import com.aitor.api_tfg.jwt.JwtService;
-import com.aitor.api_tfg.user.Role;
-import com.aitor.api_tfg.user.User;
-import com.aitor.api_tfg.user.UserRepository;
+import com.aitor.api_tfg.model.user.Role;
+import com.aitor.api_tfg.model.user.User;
+import com.aitor.api_tfg.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
