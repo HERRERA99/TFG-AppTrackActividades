@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
@@ -21,16 +20,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aitor.trackactividades.core.model.Gender
 import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
+import com.aitor.trackactividades.recordActivity.presentation.utils.FormatTime.formatTime
+import com.aitor.trackactividades.recordActivity.presentation.utils.SpeedManager.speedConversor
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -42,12 +40,11 @@ fun RecordActivityScreen(
 ) {
     val context = LocalContext.current
     val screenMode by recordActivityViewModel.screenMode.observeAsState(initial = ScreenTypes.START_ACTIVITY)
-    val userLocation by recordActivityViewModel.filteredUserLocation.observeAsState()
+    val userLocation by recordActivityViewModel.userLocation.observeAsState()
     val routeCoordinates by recordActivityViewModel.routeCoordinates.observeAsState(initial = emptyList())
     val stopwatch by recordActivityViewModel.stopwatch.observeAsState(initial = 0L)
     val distance by recordActivityViewModel.distance.observeAsState(initial = 0f)
     val speed by recordActivityViewModel.speed.observeAsState(initial = 0f)
-    val altitude by recordActivityViewModel.altitude.observeAsState(initial = 0.0)
     val calories by recordActivityViewModel.calories.observeAsState(initial = 0f)
     val activityType by recordActivityViewModel.activityType.observeAsState(initial = Modalidades.CICLISMO_CARRETERA)
 
@@ -174,21 +171,83 @@ fun RecordActivityScreen(
                     stopwatch = stopwatch,
                     speed = speed,
                     distance = distance,
-                    altitude = altitude,
                     calories = calories,
                     recordActivityViewModel = recordActivityViewModel
                 )
 
                 ScreenTypes.MAP_RECORD_ACTIVITY -> GoogleMapView(userLocation, Modifier,routeCoordinates)
-                ScreenTypes.PAUSE_ACTIVITY -> PauseMode(userLocation, routeCoordinates)
+                ScreenTypes.PAUSE_ACTIVITY -> PauseMode(userLocation, routeCoordinates, stopwatch, distance, calories)
             }
         }
     }
 }
 
 @Composable
-fun PauseMode(userLocation: Location?, routeCoordinates: List<LatLng>) {
-    GoogleMapView(userLocation, Modifier, routeCoordinates)
+fun PauseMode(
+    userLocation: Location?,
+    routeCoordinates: List<LatLng>,
+    stopwatch: Long,
+    distance: Float,
+    calories: Float
+) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Mapa
+        GoogleMapView(userLocation, Modifier.weight(1f), routeCoordinates)
+
+        // Sección de estadísticas
+        StatsSection(
+            stopwatch = stopwatch,
+            distance = distance,
+            calories = calories,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+    }
+}
+
+@Composable
+fun StatsSection(
+    stopwatch: Long,
+    distance: Float,
+    calories: Float,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        StatItem(
+            title = "Tiempo",
+            value = formatTime(stopwatch),
+            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+        )
+        Divider(
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
+            thickness = 1.dp,
+            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+        )
+
+        StatItem(
+            title = "Distancia",
+            value = "${"%.2f".format(distance / 1000)} km",
+            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+        )
+        Divider(
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
+            thickness = 1.dp,
+            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+        )
+
+        StatItem(
+            title = "Calorías",
+            value = String.format(Locale.FRANCE, "%.0f", calories),
+            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+        )
+    }
 }
 
 
@@ -274,7 +333,6 @@ fun StatsMode(
     stopwatch: Long,
     speed: Float,
     distance: Float,
-    altitude: Double,
     calories: Float,
     recordActivityViewModel: RecordActivityViewModel
 ) {
@@ -285,13 +343,13 @@ fun StatsMode(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        StatItem(title = "Tiempo", value = recordActivityViewModel.formatTime(stopwatch), modifier = Modifier.weight(1f))
+        StatItem(title = "Tiempo", value = formatTime(stopwatch), modifier = Modifier.weight(1f))
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
         StatItem(title = "Distancia", value = "${"%.2f".format(distance / 1000)} km", modifier = Modifier.weight(1f))
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
-        StatItem(title = "Velocidad", value = recordActivityViewModel.speedConversor(speed, recordActivityViewModel.activityType.value!!), modifier = Modifier.weight(1f))
+        StatItem(title = "Velocidad", value = speedConversor(speed, recordActivityViewModel.activityType.value!!), modifier = Modifier.weight(1f))
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
         StatItem(title = "Calorias", value = String.format(Locale.FRANCE, "%.0f", calories), modifier = Modifier.weight(1f))
@@ -346,12 +404,12 @@ fun ActivityTypeInput(selectedType: Modalidades, modifier: Modifier, onTypeSelec
                 Icon(
                     imageVector = type.icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = MaterialTheme.colorScheme.primary
                 )
             },
             readOnly = true,
             enabled = false,
-            label = { Text(text = "Modalidad") }
+            label = { Text(text = "Modalidad", color = MaterialTheme.colorScheme.primary) }
         )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             typeOptions.forEach { option ->
@@ -366,7 +424,7 @@ fun ActivityTypeInput(selectedType: Modalidades, modifier: Modifier, onTypeSelec
                         Icon(
                             imageVector = option.icon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 )
