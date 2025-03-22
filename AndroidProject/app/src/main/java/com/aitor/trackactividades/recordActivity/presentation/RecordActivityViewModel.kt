@@ -1,5 +1,6 @@
 package com.aitor.trackactividades.recordActivity.presentation
 
+import Activity
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -13,7 +14,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
-import com.aitor.trackactividades.recordActivity.presentation.model.Activity
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
 import com.aitor.trackactividades.recordActivity.presentation.utils.CaloriesManager.calculateCalories
 import com.google.android.gms.location.*
@@ -55,6 +55,9 @@ class RecordActivityViewModel @Inject constructor(
     private val _activityType = MutableLiveData<Modalidades>(Modalidades.CICLISMO_CARRETERA)
     val activityType: LiveData<Modalidades> get() = _activityType
 
+    private val _activityTitle = MutableLiveData<String>()
+    val activityTitle: LiveData<String> get() = _activityTitle
+
     private var isRunning = false
     private var isPaused = false
     private var startTime: Long = 0L
@@ -64,6 +67,8 @@ class RecordActivityViewModel @Inject constructor(
     private var lastLocation: Location? = null // Almacena la última ubicación registrada
 
     private var userWeight: Double = 70.0 // Peso por defecto
+
+    private lateinit var actividad: Activity
 
     init {
         viewModelScope.launch {
@@ -79,6 +84,9 @@ class RecordActivityViewModel @Inject constructor(
         isRunning = true
         isPaused = false
         startTime = SystemClock.elapsedRealtime() - elapsedTime
+
+        actividad = Activity(horaInicio = LocalDateTime.now(), tipoActividad = _activityType.value!!)
+        _activityTitle.postValue(actividad.titulo)
 
         viewModelScope.launch {
             while (isRunning) {
@@ -113,6 +121,13 @@ class RecordActivityViewModel @Inject constructor(
         stopLocationUpdates()
     }
 
+    fun save() {
+        actividad.terminarActividad(
+            distancia = _distance.value?.toDouble(),
+            calorias = _calories.value?.toDouble()
+        )
+    }
+
     fun setScreenMode(screenMode: ScreenTypes) {
         _screenMode.postValue(screenMode)
     }
@@ -138,8 +153,12 @@ class RecordActivityViewModel @Inject constructor(
             locationCallback = object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult) {
                     locationResult.lastLocation?.let { location ->
-                        actualizaDashboard(location)
-                        actualizaActividad()
+                        _userLocation.postValue(location)
+                        if (!isPaused) {
+                            actualizaDashboard(location)
+                            actualizaActividad(location)
+                        }
+                        lastLocation = location
                     }
                 }
             }
@@ -161,7 +180,6 @@ class RecordActivityViewModel @Inject constructor(
     }
 
     fun actualizaDashboard(location: Location) {
-        _userLocation.postValue(location)
         val latLng = LatLng(location.latitude, location.longitude)
         _routeCoordinates.postValue(_routeCoordinates.value.orEmpty() + latLng)
         _speed.postValue(location.speed * 3.6f)
@@ -170,10 +188,18 @@ class RecordActivityViewModel @Inject constructor(
             val distanceInMeters = lastLoc.distanceTo(location)
             _distance.postValue(_distance.value?.plus(distanceInMeters) ?: distanceInMeters)
         }
-        lastLocation = location
     }
 
-    fun actualizaActividad() {
+    fun actualizaActividad(location: Location) {
+        val latLng = LatLng(location.latitude, location.longitude)
+        actividad.agregarDatos(
+            velocidad = location.speed,
+            desnivel = location.altitude,
+            coordenada = latLng
+        )
+    }
 
+    fun setActivityTitle(title: String) {
+        actividad.titulo = title
     }
 }

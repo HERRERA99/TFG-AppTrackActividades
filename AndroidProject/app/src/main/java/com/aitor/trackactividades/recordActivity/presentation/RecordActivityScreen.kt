@@ -2,6 +2,7 @@ package com.aitor.trackactividades.recordActivity.presentation
 
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,13 +14,14 @@ import androidx.compose.material3.*
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
 import com.aitor.trackactividades.recordActivity.presentation.utils.FormatTime.formatTime
@@ -47,6 +49,16 @@ fun RecordActivityScreen(
     val speed by recordActivityViewModel.speed.observeAsState(initial = 0f)
     val calories by recordActivityViewModel.calories.observeAsState(initial = 0f)
     val activityType by recordActivityViewModel.activityType.observeAsState(initial = Modalidades.CICLISMO_CARRETERA)
+    val activityTitle by recordActivityViewModel.activityTitle.observeAsState(initial = "")
+
+    // Estado para controlar la visibilidad del AlertDialog
+    var showSaveDialog by remember { mutableStateOf(false) }
+    var activityTitleAux by remember { mutableStateOf("") }
+
+    // Actualizar activityTitleAux cuando activityTitle cambie
+    LaunchedEffect(activityTitle) {
+        activityTitleAux = activityTitle
+    }
 
     Scaffold(
         topBar = {
@@ -74,7 +86,7 @@ fun RecordActivityScreen(
                                     recordActivityViewModel.start(context)
                                 },
                                 modifier = Modifier
-                                    .size(120.dp), // Botón más grande
+                                    .size(120.dp),
                                 shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
@@ -86,12 +98,11 @@ fun RecordActivityScreen(
                         }
 
                         ScreenTypes.RECORD_ACTIVITY, ScreenTypes.MAP_RECORD_ACTIVITY -> {
-                            // Botón para detener la actividad
                             Button(
                                 onClick = {
                                     recordActivityViewModel.pause()
                                 },
-                                modifier = Modifier.size(120.dp), // Botón grande
+                                modifier = Modifier.size(120.dp),
                                 shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
@@ -101,14 +112,13 @@ fun RecordActivityScreen(
                                 Icon(imageVector = Icons.Default.Stop, contentDescription = "Stop")
                             }
 
-                            // Botón para alternar entre mapa y estadísticas (más pequeño)
                             val isMapMode = screenMode == ScreenTypes.MAP_RECORD_ACTIVITY
                             Button(
                                 onClick = {
                                     val newMode = if (isMapMode) ScreenTypes.RECORD_ACTIVITY else ScreenTypes.MAP_RECORD_ACTIVITY
                                     recordActivityViewModel.setScreenMode(newMode)
                                 },
-                                modifier = Modifier.size(90.dp), // Botón más pequeño
+                                modifier = Modifier.size(90.dp),
                                 shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (isMapMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
@@ -128,7 +138,7 @@ fun RecordActivityScreen(
                                 onClick = {
                                     recordActivityViewModel.resume()
                                 },
-                                modifier = Modifier.size(120.dp), // Botón grande
+                                modifier = Modifier.size(120.dp),
                                 shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
@@ -138,8 +148,10 @@ fun RecordActivityScreen(
                                 Text("Reanudar")
                             }
                             Button(
-                                onClick = { /* Guardar actividad */ },
-                                modifier = Modifier.size(120.dp), // Botón grande
+                                onClick = {
+                                    showSaveDialog = true // Mostrar el diálogo de guardar
+                                },
+                                modifier = Modifier.size(120.dp),
                                 shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
@@ -175,10 +187,109 @@ fun RecordActivityScreen(
                     recordActivityViewModel = recordActivityViewModel
                 )
 
-                ScreenTypes.MAP_RECORD_ACTIVITY -> GoogleMapView(userLocation, Modifier,routeCoordinates)
+                ScreenTypes.MAP_RECORD_ACTIVITY -> GoogleMapView(userLocation, Modifier, routeCoordinates)
                 ScreenTypes.PAUSE_ACTIVITY -> PauseMode(userLocation, routeCoordinates, stopwatch, distance, calories)
             }
+
+            // Diálogo para guardar la actividad
+            SaveActivityDialog(
+                showSaveDialog = showSaveDialog,
+                onDismissRequest = { showSaveDialog = false },
+                activityTitle = activityTitleAux,
+                onTitleChange = { activityTitleAux = it },
+                onSave = {
+                    recordActivityViewModel.setActivityTitle(activityTitleAux)
+                    recordActivityViewModel.save()
+                    navigateToFeed()
+                },
+                onDiscard = {
+                    navigateToFeed()
+                }
+            )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SaveActivityDialog(
+    showSaveDialog: Boolean,
+    onDismissRequest: () -> Unit,
+    activityTitle: String,
+    onTitleChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onDiscard: () -> Unit
+) {
+    if (showSaveDialog) {
+        AlertDialog(
+            onDismissRequest = onDismissRequest,
+            modifier = Modifier.fillMaxWidth(0.9f), // Ajusta el ancho al 90% de la pantalla
+            properties = DialogProperties(dismissOnClickOutside = true),
+            content = {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Guardar Actividad",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        Text(
+                            text = "Título de la actividad:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = activityTitle,
+                            onValueChange = onTitleChange,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            ),
+                            label = { Text("Título") },
+                            singleLine = true
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            TextButton(
+                                onClick = onDiscard,
+                                modifier = Modifier.padding(end = 8.dp)
+                            ) {
+                                Text(
+                                    text = "Descartar",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
+                            TextButton(
+                                onClick = onSave
+                            ) {
+                                Text(
+                                    text = "Guardar",
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -223,33 +334,32 @@ fun StatsSection(
         StatItem(
             title = "Tiempo",
             value = formatTime(stopwatch),
-            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+            modifier = Modifier.padding(vertical = 8.dp)
         )
         Divider(
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
             thickness = 1.dp,
-            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
         StatItem(
             title = "Distancia",
             value = "${"%.2f".format(distance / 1000)} km",
-            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+            modifier = Modifier.padding(vertical = 8.dp)
         )
         Divider(
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
             thickness = 1.dp,
-            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
         StatItem(
             title = "Calorías",
             value = String.format(Locale.FRANCE, "%.0f", calories),
-            modifier = Modifier.padding(vertical = 8.dp) // Espaciado vertical
+            modifier = Modifier.padding(vertical = 8.dp)
         )
     }
 }
-
 
 @Composable
 fun StartActivityContent(
@@ -327,7 +437,6 @@ fun GoogleMapView(userLocation: Location?, modifier: Modifier, routeCoordinates:
     }
 }
 
-
 @Composable
 fun StatsMode(
     stopwatch: Long,
@@ -371,7 +480,7 @@ fun StatItem(title: String, value: String, modifier: Modifier = Modifier) {
         Text(
             text = value,
             fontSize = 48.sp,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            fontWeight = FontWeight.Bold
         )
     }
 }
