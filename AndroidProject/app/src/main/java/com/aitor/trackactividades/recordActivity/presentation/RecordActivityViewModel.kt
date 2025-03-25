@@ -12,8 +12,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aitor.trackactividades.authentication.presentation.model.LoginModel
 import com.aitor.trackactividades.core.model.Modalidades
+import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
+import com.aitor.trackactividades.recordActivity.domain.SaveActivityUseCase
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
 import com.aitor.trackactividades.recordActivity.presentation.utils.CaloriesManager.calculateCalories
 import com.google.android.gms.location.*
@@ -22,13 +25,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
 class RecordActivityViewModel @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val tokenManager: TokenManager,
+    private val saveActivityUseCase: SaveActivityUseCase
 ) : ViewModel() {
 
     private val _userLocation = MutableLiveData<Location?>()
@@ -68,7 +74,12 @@ class RecordActivityViewModel @Inject constructor(
 
     private var userWeight: Double = 70.0 // Peso por defecto
 
+    // Variables para registrar la actividad
     private lateinit var actividad: Activity
+    private lateinit var startTimeActivity: LocalDateTime
+    private var velocidades: MutableList<Float> = mutableListOf()
+    private var altitudes: MutableList<Double> = mutableListOf()
+    private var visibility: Boolean = true
 
     init {
         viewModelScope.launch {
@@ -84,9 +95,8 @@ class RecordActivityViewModel @Inject constructor(
         isRunning = true
         isPaused = false
         startTime = SystemClock.elapsedRealtime() - elapsedTime
-
-        actividad = Activity(horaInicio = LocalDateTime.now(), tipoActividad = _activityType.value!!)
-        _activityTitle.postValue(actividad.titulo)
+        startTimeActivity = LocalDateTime.now()
+        _activityTitle.postValue(nombreAutomatico(startTimeActivity, _activityType.value!!))
 
         viewModelScope.launch {
             while (isRunning) {
@@ -122,10 +132,57 @@ class RecordActivityViewModel @Inject constructor(
     }
 
     fun save() {
-        actividad.terminarActividad(
-            distancia = _distance.value?.toDouble(),
-            calorias = _calories.value?.toDouble()
-        )
+        viewModelScope.launch {
+            actividad = Activity(
+                id = System.currentTimeMillis(),
+                horaInicio = startTimeActivity,
+                tipoActividad = _activityType.value!!,
+                horaFin = LocalDateTime.now(),
+                distancia = _distance.value!!,
+                duracion = _stopwatch.value!!,
+                desnivelPositivo = altitudes.sumOf { if (it > 0) it else 0.0 },
+                velocidadMedia = velocidades.average().toFloat(),
+                calorias = _calories.value!!,
+                velocidadMaxima = velocidades.maxOrNull() ?: 0.0f,
+                velocidades = velocidades,
+                desniveles = altitudes,
+                altitudMaxima = altitudes.maxOrNull() ?: 0.0,
+                ruta = _routeCoordinates.value!!,
+                titulo = _activityTitle.value!!,
+                isPublic = visibility
+            )
+            try {
+                saveActivityUseCase(
+                    "Bearer ${tokenManager.getToken()}",
+                    actividad
+                )
+            } catch (e: HttpException) {
+                Log.e("Error", e.message())
+            }
+        }
+    }
+
+    fun discard() {
+        // Detener las actualizaciones de ubicación
+        stopLocationUpdates()
+
+        // Reiniciar todos los LiveData y variables de estado
+        _stopwatch.postValue(0L)
+        _distance.postValue(0f)
+        _speed.postValue(0f)
+        _calories.postValue(0f)
+        _routeCoordinates.postValue(emptyList())
+        _userLocation.postValue(null)
+        _activityTitle.postValue("")
+
+        // Reiniciar variables temporales
+        isRunning = false
+        isPaused = false
+        startTime = 0L
+        elapsedTime = 0L
+        lastLocation = null
+        velocidades.clear()
+        altitudes.clear()
     }
 
     fun setScreenMode(screenMode: ScreenTypes) {
@@ -156,7 +213,6 @@ class RecordActivityViewModel @Inject constructor(
                         _userLocation.postValue(location)
                         if (!isPaused) {
                             actualizaDashboard(location)
-                            actualizaActividad(location)
                         }
                         lastLocation = location
                     }
@@ -183,23 +239,42 @@ class RecordActivityViewModel @Inject constructor(
         val latLng = LatLng(location.latitude, location.longitude)
         _routeCoordinates.postValue(_routeCoordinates.value.orEmpty() + latLng)
         _speed.postValue(location.speed * 3.6f)
-        _calories.postValue(_calories.value?.plus(calculateCalories(userWeight, _speed.value!!, _activityType.value!!, 1)))
+        velocidades.add(location.speed * 3.6f)
+        altitudes.add(location.altitude)
+        _calories.postValue(
+            _calories.value?.plus(
+                calculateCalories(
+                    userWeight,
+                    _speed.value!!,
+                    _activityType.value!!,
+                    1
+                )
+            )
+        )
         lastLocation?.let { lastLoc ->
             val distanceInMeters = lastLoc.distanceTo(location)
             _distance.postValue(_distance.value?.plus(distanceInMeters) ?: distanceInMeters)
         }
     }
 
-    fun actualizaActividad(location: Location) {
-        val latLng = LatLng(location.latitude, location.longitude)
-        actividad.agregarDatos(
-            velocidad = location.speed,
-            desnivel = location.altitude,
-            coordenada = latLng
-        )
-    }
-
     fun setActivityTitle(title: String) {
         actividad.titulo = title
+    }
+
+    fun setVisibility(visibility: Boolean) {
+        this.visibility = visibility
+    }
+
+    fun nombreAutomatico(horaInicio: LocalDateTime, tipoActividad: Modalidades): String {
+        val hora = horaInicio.hour
+        val parteDelDia = when (hora) {
+            in 6..11 -> "por la mañana"
+            in 12..17 -> "por la tarde"
+            in 18..21 -> "por la noche"
+            in 22..23 -> "por la noche"
+            in 0..5 -> "al amanecer"
+            else -> ""
+        }
+        return "${tipoActividad.displayName} $parteDelDia"
     }
 }

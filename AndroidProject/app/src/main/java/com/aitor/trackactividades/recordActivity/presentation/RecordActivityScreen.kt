@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.LocationSearching
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.material3.IconButton
@@ -51,21 +54,20 @@ fun RecordActivityScreen(
     val activityType by recordActivityViewModel.activityType.observeAsState(initial = Modalidades.CICLISMO_CARRETERA)
     val activityTitle by recordActivityViewModel.activityTitle.observeAsState(initial = "")
 
-    // Estado para controlar la visibilidad del AlertDialog
+    // Estado para controlar la visibilidad del AlertDialog de guardar
     var showSaveDialog by remember { mutableStateOf(false) }
-    var activityTitleAux by remember { mutableStateOf("") }
-
-    // Actualizar activityTitleAux cuando activityTitle cambie
-    LaunchedEffect(activityTitle) {
-        activityTitleAux = activityTitle
-    }
+    // Estado para controlar la visibilidad del AlertDialog de descartar
+    var showDiscardDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = { navigateToFeed() }) {
+                    IconButton(onClick = {
+                        // Mostrar diálogo de confirmación al pulsar cerrar
+                        showDiscardDialog = true
+                    }) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar")
                     }
                 }
@@ -115,7 +117,8 @@ fun RecordActivityScreen(
                             val isMapMode = screenMode == ScreenTypes.MAP_RECORD_ACTIVITY
                             Button(
                                 onClick = {
-                                    val newMode = if (isMapMode) ScreenTypes.RECORD_ACTIVITY else ScreenTypes.MAP_RECORD_ACTIVITY
+                                    val newMode =
+                                        if (isMapMode) ScreenTypes.RECORD_ACTIVITY else ScreenTypes.MAP_RECORD_ACTIVITY
                                     recordActivityViewModel.setScreenMode(newMode)
                                 },
                                 modifier = Modifier.size(90.dp),
@@ -187,22 +190,46 @@ fun RecordActivityScreen(
                     recordActivityViewModel = recordActivityViewModel
                 )
 
-                ScreenTypes.MAP_RECORD_ACTIVITY -> GoogleMapView(userLocation, Modifier, routeCoordinates)
-                ScreenTypes.PAUSE_ACTIVITY -> PauseMode(userLocation, routeCoordinates, stopwatch, distance, calories)
+                ScreenTypes.MAP_RECORD_ACTIVITY -> GoogleMapView(
+                    userLocation,
+                    Modifier,
+                    routeCoordinates
+                )
+
+                ScreenTypes.PAUSE_ACTIVITY -> PauseMode(
+                    userLocation,
+                    routeCoordinates,
+                    stopwatch,
+                    distance,
+                    calories
+                )
             }
 
             // Diálogo para guardar la actividad
             SaveActivityDialog(
                 showSaveDialog = showSaveDialog,
                 onDismissRequest = { showSaveDialog = false },
-                activityTitle = activityTitleAux,
-                onTitleChange = { activityTitleAux = it },
-                onSave = {
-                    recordActivityViewModel.setActivityTitle(activityTitleAux)
+                onSave = { newTitle, isPublic ->
+                    // Si el usuario introduce un título, se actualiza el título de la actividad
+                    if (newTitle.isNotEmpty()) {
+                        recordActivityViewModel.setActivityTitle(newTitle)
+                    }
+                    recordActivityViewModel.setVisibility(isPublic)
                     recordActivityViewModel.save()
                     navigateToFeed()
                 },
                 onDiscard = {
+                    navigateToFeed()
+                }
+            )
+
+            // Diálogo para descartar la actividad
+            DiscardActivityDialog(
+                showDiscardDialog = showDiscardDialog,
+                onDismissRequest = { showDiscardDialog = false },
+                onConfirmDiscard = {
+                    // Descarta la actividad y navega al feed
+                    recordActivityViewModel.discard()
                     navigateToFeed()
                 }
             )
@@ -215,15 +242,17 @@ fun RecordActivityScreen(
 fun SaveActivityDialog(
     showSaveDialog: Boolean,
     onDismissRequest: () -> Unit,
-    activityTitle: String,
-    onTitleChange: (String) -> Unit,
-    onSave: () -> Unit,
-    onDiscard: () -> Unit
+    onSave: (String, Boolean) -> Unit, // Ahora recibe título y visibilidad
+    onDiscard: () -> Unit,
+    initialPublicState: Boolean = true
 ) {
+    var newTitle by remember { mutableStateOf("") }
+    var isPublic by remember { mutableStateOf(initialPublicState) }
+
     if (showSaveDialog) {
         AlertDialog(
             onDismissRequest = onDismissRequest,
-            modifier = Modifier.fillMaxWidth(0.9f), // Ajusta el ancho al 90% de la pantalla
+            modifier = Modifier.fillMaxWidth(0.9f),
             properties = DialogProperties(dismissOnClickOutside = true),
             content = {
                 Surface(
@@ -241,49 +270,77 @@ fun SaveActivityDialog(
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
 
+                        // Campo de texto para el título
                         Text(
                             text = "Título de la actividad:",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
-
                         OutlinedTextField(
-                            value = activityTitle,
-                            onValueChange = onTitleChange,
+                            value = newTitle,
+                            onValueChange = { newTitle = it },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            ),
                             label = { Text("Título") },
-                            singleLine = true
+                            singleLine = true,
+                            placeholder = { Text("Ponle título a tu actividad") },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
                         )
 
+                        // Selector de visibilidad con Switch
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp)
+                        ) {
+                            Switch(
+                                checked = isPublic,
+                                onCheckedChange = { isPublic = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                    checkedTrackColor = MaterialTheme.colorScheme.secondary
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Actividad pública",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = if (isPublic) "Visible para otros usuarios"
+                                    else "Solo visible para ti",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+
+                        // Botones de acción
                         Row(
                             horizontalArrangement = Arrangement.End,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             TextButton(
-                                onClick = onDiscard,
+                                onClick = onDismissRequest,
                                 modifier = Modifier.padding(end = 8.dp)
                             ) {
-                                Text(
-                                    text = "Descartar",
-                                    color = MaterialTheme.colorScheme.error
-                                )
+                                Text("Cancelar")
                             }
-
                             TextButton(
-                                onClick = onSave
-                            ) {
-                                Text(
-                                    text = "Guardar",
-                                    color = MaterialTheme.colorScheme.primary
+                                onClick = {
+                                    onSave(newTitle, isPublic)
+                                },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
                                 )
+                            ) {
+                                Text("Guardar", fontWeight = FontWeight.Medium)
                             }
                         }
                     }
@@ -403,39 +460,59 @@ fun GoogleMapView(userLocation: Location?, modifier: Modifier, routeCoordinates:
         }
     }
 
-    GoogleMap(
-        modifier = modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties = MapProperties(isMyLocationEnabled = true),
-        uiSettings = MapUiSettings(myLocationButtonEnabled = true),
-        onMyLocationButtonClick = {
-            isFollowingUser = !isFollowingUser // Se vuelve a seguir al usuario
-            Log.d("Maps", "Se vuelve a seguir al usuario")
+    Box(modifier = modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.matchParentSize(),
+            cameraPositionState = cameraPositionState,
+            properties = MapProperties(isMyLocationEnabled = true),
+            uiSettings = MapUiSettings(
+                myLocationButtonEnabled = false,
+                zoomControlsEnabled = false
+            ),
+            onMyLocationButtonClick = {
+                isFollowingUser = !isFollowingUser // Se vuelve a seguir al usuario
+                Log.d("Maps", "isFollowingUser = $isFollowingUser")
 
-            // Espera unos milisegundos para evitar que snapshotFlow desactive el seguimiento de inmediato
-            debounceScope.launch {
-                delay(500) // Espera 500ms antes de actualizar la cámara
-                userLocation?.let {
-                    cameraPositionState.animate(
-                        update = CameraUpdateFactory.newLatLngZoom(
-                            LatLng(it.latitude, it.longitude), 15f
-                        ),
-                        durationMs = 1000
-                    )
+                // Espera unos milisegundos para evitar que snapshotFlow desactive el seguimiento de inmediato
+                debounceScope.launch {
+                    delay(500) // Espera 500ms antes de actualizar la cámara
+                    userLocation?.let {
+                        cameraPositionState.animate(
+                            update = CameraUpdateFactory.newLatLngZoom(
+                                LatLng(it.latitude, it.longitude), 15f
+                            ),
+                            durationMs = 1000
+                        )
+                    }
                 }
+                false // Permite que Google Maps haga la animación de centrado
             }
-            false // Permite que Google Maps haga la animación de centrado
+        ) {
+            if (routeCoordinates.isNotEmpty()) {
+                Polyline(
+                    points = routeCoordinates,
+                    color = MaterialTheme.colorScheme.primary,
+                    width = 8f
+                )
+            }
         }
-    ) {
-        if (routeCoordinates.isNotEmpty()) {
-            Polyline(
-                points = routeCoordinates,
-                color = MaterialTheme.colorScheme.primary,
-                width = 8f
+
+        FloatingActionButton(
+            onClick = { isFollowingUser = !isFollowingUser },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(
+                imageVector = if (isFollowingUser) Icons.Default.MyLocation else Icons.Default.LocationSearching,
+                contentDescription = "Toggle Seguimiento",
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
 }
+
 
 @Composable
 fun StatsMode(
@@ -455,13 +532,25 @@ fun StatsMode(
         StatItem(title = "Tiempo", value = formatTime(stopwatch), modifier = Modifier.weight(1f))
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
-        StatItem(title = "Distancia", value = "${"%.2f".format(distance / 1000)} km", modifier = Modifier.weight(1f))
+        StatItem(
+            title = "Distancia",
+            value = "${"%.2f".format(distance / 1000)} km",
+            modifier = Modifier.weight(1f)
+        )
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
-        StatItem(title = "Velocidad", value = speedConversor(speed, recordActivityViewModel.activityType.value!!), modifier = Modifier.weight(1f))
+        StatItem(
+            title = "Velocidad",
+            value = speedConversor(speed, recordActivityViewModel.activityType.value!!),
+            modifier = Modifier.weight(1f)
+        )
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f), thickness = 1.dp)
 
-        StatItem(title = "Calorias", value = String.format(Locale.FRANCE, "%.0f", calories), modifier = Modifier.weight(1f))
+        StatItem(
+            title = "Calorias",
+            value = String.format(Locale.FRANCE, "%.0f", calories),
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -486,7 +575,11 @@ fun StatItem(title: String, value: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ActivityTypeInput(selectedType: Modalidades, modifier: Modifier, onTypeSelected: (Modalidades) -> Unit) {
+fun ActivityTypeInput(
+    selectedType: Modalidades,
+    modifier: Modifier,
+    onTypeSelected: (Modalidades) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     val typeOptions = Modalidades.entries.toTypedArray()
     var type by remember { mutableStateOf(selectedType) }
@@ -495,7 +588,8 @@ fun ActivityTypeInput(selectedType: Modalidades, modifier: Modifier, onTypeSelec
         OutlinedTextField(
             value = type.displayName,
             onValueChange = {},
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier
+                .fillMaxWidth()
                 .clickable { expanded = true },
             colors = TextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onBackground,
@@ -539,5 +633,41 @@ fun ActivityTypeInput(selectedType: Modalidades, modifier: Modifier, onTypeSelec
                 )
             }
         }
+    }
+}
+
+@Composable
+fun DiscardActivityDialog(
+    showDiscardDialog: Boolean,
+    onDismissRequest: () -> Unit,
+    onConfirmDiscard: (isPublic: Boolean) -> Unit, // Ahora recibe un parámetro booleano
+    initialPublicState: Boolean = true // Estado inicial del RadioButton
+) {
+    var isPublic by remember { mutableStateOf(initialPublicState) } // Estado local para el RadioButton
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = onDismissRequest,
+            title = {
+                Text(text = "Descartar actividad")
+            },
+            text = {
+                Text("¿Estás seguro de que quieres descartar esta actividad? Todos los datos se perderán.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { onConfirmDiscard(isPublic) } // Pasamos el estado de visibilidad
+                ) {
+                    Text("Descartar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = onDismissRequest
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
