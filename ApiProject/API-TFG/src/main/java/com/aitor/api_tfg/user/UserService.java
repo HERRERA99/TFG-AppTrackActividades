@@ -12,12 +12,8 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
 
-    public UserResponse getUserByEmailOrUsername(String identifier) {
-        Optional<User> userOptional = userRepository.findByEmail(identifier);
-
-        if (userOptional.isEmpty()) {
-            userOptional = userRepository.findByUsername(identifier);
-        }
+    public UserResponse getUserByName(String name) {
+        Optional<User> userOptional = userRepository.findByUsername(name);
 
         if (userOptional.isEmpty()) {
             throw new RuntimeException("Usuario no encontrado");

@@ -5,7 +5,7 @@ import com.aitor.trackactividades.authentication.data.response.UserResponse
 import javax.inject.Inject
 
 class GetUserUseCase @Inject constructor(private val authenticationRepository: AuthenticationRepository) {
-    suspend operator fun invoke(token: String, identifier: String): UserResponse {
-        return authenticationRepository.getUser(token, identifier)
+    suspend operator fun invoke(token: String): UserResponse {
+        return authenticationRepository.getUser(token)
     }
 }

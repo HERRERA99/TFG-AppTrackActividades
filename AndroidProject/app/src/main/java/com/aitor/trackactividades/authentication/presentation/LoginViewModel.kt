@@ -60,13 +60,14 @@ class LoginViewModel @Inject constructor(
             try {
                 val result = loginUseCase(LoginModel(identifier, pass))
                 if (result.token != null) {
+                    tokenManager.clearToken()
                     tokenManager.saveToken(result.token)
 
                     // Agregar el prefijo "Bearer " al token
                     val authHeader = "Bearer ${result.token}"
 
                     // Llamar a getUserUseCase con el token formateado
-                    val user = getUserUseCase(authHeader, identifier)
+                    val user = getUserUseCase(authHeader)
 
                     Log.e("Usuario", user.toString())
                     userPreferences.saveUser(user)

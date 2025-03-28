@@ -7,6 +7,7 @@ import com.aitor.api_tfg.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,4 +58,14 @@ public class AuthService {
                 .token(jwtService.getToken(user))
                 .build();
     }
+
+    public ValidResponse isTokenEnable(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        boolean isValid = jwtService.isTokenValid(jwtService.getToken(userDetails), userDetails);
+
+        return ValidResponse.builder()
+                .isValid(isValid)
+                .build();
+    }
+
 }

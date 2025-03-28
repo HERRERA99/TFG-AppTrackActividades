@@ -137,8 +137,9 @@ class RegisterViewModel @Inject constructor(
                     )
                     // Si el token no es nulo, navega al feed
                     if (result.token != null) {
+                        tokenManager.clearToken()
                         tokenManager.saveToken(result.token)
-                        val user = getUserUseCase(result.token, email)
+                        val user = getUserUseCase(result.token)
                         Log.e("Usuario", user.toString())
                         userPreferences.saveUser(user)
                         _navigateToFeed.value = true

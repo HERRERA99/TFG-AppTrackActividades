@@ -75,7 +75,7 @@ class RecordActivityViewModel @Inject constructor(
     private var userWeight: Double = 70.0 // Peso por defecto
 
     // Variables para registrar la actividad
-    private lateinit var actividad: Activity
+    private var actividad: Activity? = null
     private lateinit var startTimeActivity: LocalDateTime
     private var velocidades: MutableList<Float> = mutableListOf()
     private var altitudes: MutableList<Double> = mutableListOf()
@@ -132,6 +132,7 @@ class RecordActivityViewModel @Inject constructor(
     }
 
     fun save() {
+        Log.d("Titulo", _activityTitle.value!!)
         viewModelScope.launch {
             actividad = Activity(
                 id = System.currentTimeMillis(),
@@ -148,13 +149,13 @@ class RecordActivityViewModel @Inject constructor(
                 desniveles = altitudes,
                 altitudMaxima = altitudes.maxOrNull() ?: 0.0,
                 ruta = _routeCoordinates.value!!,
-                titulo = _activityTitle.value!!,
+                titulo = if (_activityTitle.value!!.isNotEmpty()) _activityTitle.value!! else nombreAutomatico(startTimeActivity, _activityType.value!!),
                 isPublic = visibility
             )
             try {
                 saveActivityUseCase(
                     "Bearer ${tokenManager.getToken()}",
-                    actividad
+                    actividad!!
                 )
             } catch (e: HttpException) {
                 Log.e("Error", e.message())
@@ -258,7 +259,8 @@ class RecordActivityViewModel @Inject constructor(
     }
 
     fun setActivityTitle(title: String) {
-        actividad.titulo = title
+        actividad?.titulo = title
+        _activityTitle.postValue(title)
     }
 
     fun setVisibility(visibility: Boolean) {

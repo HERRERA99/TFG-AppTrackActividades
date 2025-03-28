@@ -4,10 +4,9 @@ import com.aitor.api_tfg.model.activity.ActivityDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/activities")
@@ -25,5 +24,11 @@ public class ActivityController {
         ActivityDTO savedActivity = activityService.createActivity(activityDTO, username);
 
         return ResponseEntity.ok(savedActivity);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ActivityDTO>> getActivities() {
+        List<ActivityDTO> actividades = activityService.getActivities();
+        return ResponseEntity.ok(actividades);
     }
 }

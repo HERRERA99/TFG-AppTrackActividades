@@ -210,17 +210,16 @@ fun RecordActivityScreen(
                 showSaveDialog = showSaveDialog,
                 onDismissRequest = { showSaveDialog = false },
                 onSave = { newTitle, isPublic ->
-                    // Si el usuario introduce un título, se actualiza el título de la actividad
-                    if (newTitle.isNotEmpty()) {
-                        recordActivityViewModel.setActivityTitle(newTitle)
-                    }
                     recordActivityViewModel.setVisibility(isPublic)
                     recordActivityViewModel.save()
                     navigateToFeed()
                 },
-                onDiscard = {
-                    navigateToFeed()
-                }
+                onTitleChange = {
+                    recordActivityViewModel.setActivityTitle(it)
+                },
+                recordActivityViewModel = recordActivityViewModel,
+                initialPublicState = true,
+                title = activityTitle
             )
 
             // Diálogo para descartar la actividad
@@ -243,10 +242,11 @@ fun SaveActivityDialog(
     showSaveDialog: Boolean,
     onDismissRequest: () -> Unit,
     onSave: (String, Boolean) -> Unit, // Ahora recibe título y visibilidad
-    onDiscard: () -> Unit,
-    initialPublicState: Boolean = true
+    onTitleChange: (String) -> Unit,
+    recordActivityViewModel: RecordActivityViewModel,
+    initialPublicState: Boolean = true,
+    title: String,
 ) {
-    var newTitle by remember { mutableStateOf("") }
     var isPublic by remember { mutableStateOf(initialPublicState) }
 
     if (showSaveDialog) {
@@ -277,14 +277,13 @@ fun SaveActivityDialog(
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                         OutlinedTextField(
-                            value = newTitle,
-                            onValueChange = { newTitle = it },
+                            value = title,
+                            onValueChange = { onTitleChange(it) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
                             label = { Text("Título") },
                             singleLine = true,
-                            placeholder = { Text("Ponle título a tu actividad") },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
@@ -334,7 +333,7 @@ fun SaveActivityDialog(
                             }
                             TextButton(
                                 onClick = {
-                                    onSave(newTitle, isPublic)
+                                    onSave(title, isPublic)
                                 },
                                 colors = ButtonDefaults.textButtonColors(
                                     contentColor = MaterialTheme.colorScheme.primary

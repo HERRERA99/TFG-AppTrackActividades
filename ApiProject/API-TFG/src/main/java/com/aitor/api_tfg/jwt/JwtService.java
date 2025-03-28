@@ -1,6 +1,7 @@
 package com.aitor.api_tfg.jwt;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -67,8 +68,11 @@ public class JwtService {
         return getClaim(token, Claims::getExpiration);
     }
 
-    private boolean isTokenExpired(String token)
-    {
-        return getExpiration(token).before(new Date());
+    public boolean isTokenExpired(String token) {
+        try {
+            return getClaim(token, Claims::getExpiration).before(new Date());
+        } catch (ExpiredJwtException ex) {
+            return true;
+        }
     }
 }

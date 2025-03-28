@@ -16,9 +16,32 @@ public class ActivityService {
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
 
+    public List<ActivityDTO> getActivities() {
+        return activityRepository.findAll().stream().map(a ->
+                new ActivityDTO(
+                        a.getId(),
+                        a.getStartTime(),
+                        a.getActivityType().toString(),
+                        a.getEndTime(),
+                        a.getDistance(),
+                        a.getDuration(),
+                        a.getPositiveElevation(),
+                        a.getAverageSpeed(),
+                        a.getCalories(),
+                        a.getMaxSpeed(),
+                        a.getSpeeds(),
+                        a.getElevations(),
+                        a.getMaxAltitude(),
+                        a.getRoute().stream().map(r ->
+                                new LatLngDTO(r.getLatitude(), r.getLongitude())
+                        ).collect(Collectors.toList()),
+                        a.getTitle(),
+                        a.isPublic())).collect(Collectors.toList());
+    }
+
     public ActivityDTO createActivity(ActivityDTO activityDTO, String username) {
-        User user = userRepository.findByUsername(username).orElseThrow( () -> new RuntimeException("User not found"));
-        
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+
         Activity activity = mapToEntity(activityDTO, user);
 
         Activity createdActivity = activityRepository.save(activity);
