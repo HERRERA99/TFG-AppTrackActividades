@@ -442,6 +442,27 @@ fun GoogleMapView(userLocation: Location?, modifier: Modifier, routeCoordinates:
     // Evitar múltiples ejecuciones rápidas
     val debounceScope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) {
+        if (userLocation != null) {
+            Log.d("Maps", "Se ejecuta el LaunchedEffect con localizacion")
+            cameraPositionState.move(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(userLocation.latitude, userLocation.longitude),
+                    15f // Nivel de zoom adecuado (15f es un buen valor para calles)
+                )
+            )
+        } else {
+            // Posición por defecto si no hay ubicación (opcional)
+            Log.d("Maps", "Se ejecuta el LaunchedEffect sin localizacion")
+            cameraPositionState.move(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(0.0, 0.0),
+                    2f // Zoom muy alejado
+                )
+            )
+        }
+    }
+
     LaunchedEffect(userLocation) {
         Log.d("Maps", "Se ejecuta el LaunchedEffect userLocation")
         userLocation?.let {

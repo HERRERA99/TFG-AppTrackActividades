@@ -1,6 +1,7 @@
 package com.aitor.api_tfg.config;
 
-import com.aitor.api_tfg.jwt.JwtAthentificationFilter;
+import com.aitor.api_tfg.security.JwtAthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAthentificationFilter jwtAthentificationFilter;
+    private final JwtAthenticationFilter jwtAthentificationFilter;
     private final AuthenticationProvider authProvider;
 
     @Bean
@@ -34,6 +35,13 @@ public class SecurityConfig {
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider)
                 .addFilterBefore(jwtAthentificationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            if (!response.isCommitted()) {
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+                            }
+                        })
+                )
                 .build();
     }
 }

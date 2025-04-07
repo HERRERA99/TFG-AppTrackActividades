@@ -8,6 +8,7 @@ import javax.inject.Inject
 class SaveActivityUseCase @Inject constructor(private val activitiesRepository: ActivitiesRepository) {
     suspend operator fun invoke(token: String, activity: Activity) {
         activitiesRepository.createActivity(token, ActivityRequest(
+            id = activity.id,
             startTime = activity.horaInicio.toString(),
             activityType = activity.tipoActividad.name,
             endTime = activity.horaFin.toString(),

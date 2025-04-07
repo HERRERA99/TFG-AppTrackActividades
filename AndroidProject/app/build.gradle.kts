@@ -102,6 +102,13 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.mockito.android)
 
+    // Gson
+    implementation(libs.gson)
+
+    // Paginacion
+    implementation(libs.paging.compose)
+    implementation(libs.paging.runtime)
+
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
 

@@ -7,6 +7,7 @@ import java.time.LocalDate
 @Serializable
 data class UserResponse(
     val id: Int,
+    val image: String?,
     val username: String,
     val nombre: String,
     val apellidos: String,
@@ -19,6 +20,7 @@ data class UserResponse(
         return """
             UserResponse(
                 id=$id,
+                image=$image,
                 username='$username',
                 nombre='$nombre',
                 apellidos='$apellidos',

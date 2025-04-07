@@ -26,6 +26,8 @@ maps = "2.14.0"
 playServices = "19.1.0"
 corrutines = "1.7.3"
 mockito = "4.1.0"
+gson = "2.10.1"
+pagingCompose = "3.3.5"
 
 
 [libraries]
@@ -65,7 +67,9 @@ corrutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito" }
 mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockito" }
-
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
+paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagingCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

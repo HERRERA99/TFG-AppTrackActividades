@@ -17,6 +17,7 @@ import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import com.aitor.trackactividades.recordActivity.domain.SaveActivityUseCase
+import com.aitor.trackactividades.recordActivity.domain.SavePublicationUseCase
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
 import com.aitor.trackactividades.recordActivity.presentation.utils.CaloriesManager.calculateCalories
 import com.google.android.gms.location.*
@@ -34,7 +35,8 @@ class RecordActivityViewModel @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient,
     private val userPreferences: UserPreferences,
     private val tokenManager: TokenManager,
-    private val saveActivityUseCase: SaveActivityUseCase
+    private val saveActivityUseCase: SaveActivityUseCase,
+    private val savePublicationUseCase: SavePublicationUseCase
 ) : ViewModel() {
 
     private val _userLocation = MutableLiveData<Location?>()
@@ -68,6 +70,7 @@ class RecordActivityViewModel @Inject constructor(
     private var isPaused = false
     private var startTime: Long = 0L
     private var elapsedTime: Long = 0L
+    private var startUserLocation: Location? = null
 
     private var locationCallback: LocationCallback? = null
     private var lastLocation: Location? = null // Almacena la última ubicación registrada
@@ -97,6 +100,7 @@ class RecordActivityViewModel @Inject constructor(
         startTime = SystemClock.elapsedRealtime() - elapsedTime
         startTimeActivity = LocalDateTime.now()
         _activityTitle.postValue(nombreAutomatico(startTimeActivity, _activityType.value!!))
+        startUserLocation = userLocation.value
 
         viewModelScope.launch {
             while (isRunning) {
@@ -156,6 +160,10 @@ class RecordActivityViewModel @Inject constructor(
                 saveActivityUseCase(
                     "Bearer ${tokenManager.getToken()}",
                     actividad!!
+                )
+                savePublicationUseCase(
+                    "Bearer ${tokenManager.getToken()}",
+                    actividad?.id!!
                 )
             } catch (e: HttpException) {
                 Log.e("Error", e.message())

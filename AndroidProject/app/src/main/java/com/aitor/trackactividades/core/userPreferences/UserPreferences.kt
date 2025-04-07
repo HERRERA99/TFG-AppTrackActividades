@@ -8,6 +8,7 @@ import com.aitor.trackactividades.authentication.data.response.UserResponse
 import com.aitor.trackactividades.core.model.Gender
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,6 +29,7 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         val PESO_KEY = doublePreferencesKey("peso")
         val ALTURA_KEY = intPreferencesKey("altura")
         val GENERO_KEY = stringPreferencesKey("genero")
+        val IMAGE_URL = stringPreferencesKey("image")
     }
 
     val userFlow: Flow<UserResponse?> = dataStore.data.map { preferences ->
@@ -43,14 +45,20 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
             genero = try {
                 Gender.valueOf(preferences[GENERO_KEY] ?: "NO_DEFINIDO")
             } catch (e: IllegalArgumentException) {
-                Gender.OTRO // Si hay un valor inválido, usa un valor por defecto
-            }
+                Gender.OTRO
+            },
+            image = preferences[IMAGE_URL] ?: ""
         )
     }
 
     suspend fun saveUser(user: UserResponse) {
         dataStore.edit { preferences ->
             preferences[ID_KEY] = user.id
+            user.image?.let { image ->
+                preferences[IMAGE_URL] = image
+            } ?: run {
+                preferences.remove(IMAGE_URL)
+            }
             preferences[USERNAME_KEY] = user.username
             preferences[NOMBRE_KEY] = user.nombre
             preferences[APELLIDOS_KEY] = user.apellidos
@@ -63,6 +71,18 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
 
     suspend fun clearUser() {
         dataStore.edit { it.clear() }
+    }
+
+    suspend fun getImagenPerfil(): String? {
+        return dataStore.data.map { preferences ->
+            preferences[IMAGE_URL]
+        }.first()
+    }
+
+    suspend fun getId(): Int? {
+        return dataStore.data.map { preferences ->
+            preferences[ID_KEY]
+        }.first()
     }
 }
 

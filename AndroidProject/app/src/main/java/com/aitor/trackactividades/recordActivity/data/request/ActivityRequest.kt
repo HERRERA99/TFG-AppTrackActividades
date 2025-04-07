@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 
 data class ActivityRequest(
+    @SerializedName("id") val id: Long,
     @SerializedName("startTime") val startTime: String,
     @SerializedName("activityType")val activityType: String,
     @SerializedName("endTime") val endTime: String,

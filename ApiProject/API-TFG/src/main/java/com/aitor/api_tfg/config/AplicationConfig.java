@@ -1,6 +1,6 @@
 package com.aitor.api_tfg.config;
 
-import com.aitor.api_tfg.model.user.UserRepository;
+import com.aitor.api_tfg.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
