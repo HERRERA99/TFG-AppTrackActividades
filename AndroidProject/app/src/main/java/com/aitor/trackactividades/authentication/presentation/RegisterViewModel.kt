@@ -96,7 +96,6 @@ class RegisterViewModel @Inject constructor(
         _height.value = height
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterSelected() {
         val email = _email.value
         val password1 = _password1.value
@@ -135,11 +134,12 @@ class RegisterViewModel @Inject constructor(
                             gender = gender
                         )
                     )
+                    Log.e("Result", result.toString())
                     // Si el token no es nulo, navega al feed
                     if (result.token != null) {
                         tokenManager.clearToken()
                         tokenManager.saveToken(result.token)
-                        val user = getUserUseCase(result.token)
+                        val user = getUserUseCase("Bearer ${result.token}")
                         Log.e("Usuario", user.toString())
                         userPreferences.saveUser(user)
                         _navigateToFeed.value = true
@@ -167,7 +167,6 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun chekTexts(
         email: String,
         username: String,

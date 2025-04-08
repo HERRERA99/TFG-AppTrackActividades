@@ -70,11 +70,19 @@ fun RecordActivityScreen(
                     }) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         },
         bottomBar = {
-            BottomAppBar() {
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -219,7 +227,7 @@ fun RecordActivityScreen(
                 },
                 recordActivityViewModel = recordActivityViewModel,
                 initialPublicState = true,
-                title = activityTitle
+                title = activityTitle,
             )
 
             // Diálogo para descartar la actividad
@@ -257,7 +265,7 @@ fun SaveActivityDialog(
             content = {
                 Surface(
                     shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.background,
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Column(
@@ -649,7 +657,16 @@ fun ActivityTypeInput(
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
-                    }
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = MaterialTheme.colorScheme.background,
+                        leadingIconColor = MaterialTheme.colorScheme.primary,
+                        trailingIconColor = MaterialTheme.colorScheme.onBackground,
+                        disabledTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f)
+                    )
+
                 )
             }
         }
@@ -687,7 +704,9 @@ fun DiscardActivityDialog(
                 ) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+            textContentColor = MaterialTheme.colorScheme.onBackground,
         )
     }
 }

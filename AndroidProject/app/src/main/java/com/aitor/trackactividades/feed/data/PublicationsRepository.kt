@@ -43,4 +43,9 @@ class PublicationsRepository @Inject constructor(private val publicationsApiServ
     suspend fun getComments(token: String, id: Long): List<Comment> {
         return publicationsApiService.getComments("Bearer $token", id).map { it.toPresentation() }
     }
+
+    suspend fun addComment(token: String, id: Long, userId: Int, text: String): Comment {
+        return publicationsApiService.addComment("Bearer $token", id, userId, text).toPresentation()
+    }
+
 }

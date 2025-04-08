@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
+import com.aitor.trackactividades.feed.domain.AddCommentUseCase
 import com.aitor.trackactividades.feed.domain.AddLikeUseCase
 import com.aitor.trackactividades.feed.domain.GetCommentsUseCase
 import com.aitor.trackactividades.feed.domain.GetPublicPublicationsUseCase
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,14 +32,16 @@ class FeedViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val getPublicPublications: GetPublicPublicationsUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
+    private val addCommentUseCase: AddCommentUseCase,
     private val addLike: AddLikeUseCase,
     private val removeLike: RemoveLikeUseCase,
     val userPreferences: UserPreferences
-): ViewModel() {
-    val publications:Flow<PagingData<Publication>> = getPublicPublications.execute()
+) : ViewModel() {
+    val publications: Flow<PagingData<Publication>> = getPublicPublications.execute()
 
-    private val _imagenPerfil = MutableLiveData<String>()
-    val imagenPerfil : LiveData<String> = _imagenPerfil
+    private val _imagenPerfil =
+        MutableLiveData<String>("https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp")
+    val imagenPerfil: LiveData<String> = _imagenPerfil
 
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
@@ -53,10 +58,13 @@ class FeedViewModel @Inject constructor(
     private val _isLoadingComments = MutableStateFlow(false)
     val isLoadingComments: StateFlow<Boolean> = _isLoadingComments
 
+    private val _comentario = MutableLiveData<String>()
+    val comentario: LiveData<String> = _comentario
+
 
     init {
         viewModelScope.launch {
-            _imagenPerfil.value = userPreferences.getImagenPerfil()
+            _imagenPerfil.value = userPreferences.getImagenPerfil()!!
             _userId.value = userPreferences.getId()
         }
     }
@@ -85,7 +93,7 @@ class FeedViewModel @Inject constructor(
         return if (distance < 1000) {
             "${distance.toInt()} m"
         } else {
-            "%.2f km".format(distance / 1000) 
+            "%.2f km".format(distance / 1000)
         }
     }
 
@@ -115,11 +123,14 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoadingComments.value = true
             try {
+                _comments.value = emptyList()
                 val token = tokenManager.getToken() ?: throw Exception("No hay token de sesión")
                 val comments = getCommentsUseCase(token, publicationId)
                 _comments.value = comments
+                Log.d("FeedViewModel", "Comentarios cargados: $comments")
             } catch (e: Exception) {
                 _error.value = "Error al cargar comentarios: ${e.message}"
+                Log.d("Error", "Error al cargar comentarios: ${e.message}")
             } finally {
                 _isLoadingComments.value = false
             }
@@ -128,5 +139,49 @@ class FeedViewModel @Inject constructor(
 
     fun isPublicationLiked(likes: List<Int>, publicationId: Long): Boolean {
         return _likedPublications[publicationId] ?: likes.contains(_userId.value)
+    }
+
+    fun onComentarioChange(comentario: String) {
+        _comentario.value = comentario
+    }
+
+    fun clearComentario() {
+        _comentario.value = ""
+    }
+
+    fun addComment(id: Long) {
+        viewModelScope.launch {
+            Log.d("FeedViewModel", "Agregando comentario: ${comentario.value}")
+            try {
+                val comment = addCommentUseCase.invoke(
+                    tokenManager.getToken()!!,
+                    id,
+                    _userId.value!!,
+                    comentario.value!!
+                )
+                _comments.value = _comments.value + comment
+                clearComentario()
+                Log.d("FeedViewModel", "Comentario agregado: $comment")
+                Log.d("FeedViewModel", "Comentarios actualizados: ${_comments.value}")
+            } catch (e: Exception) {
+                _error.value = "Error al agregar comentario: ${e.message}"
+            }
+        }
+    }
+
+    fun tiempoTranscurrido(fecha: LocalDateTime): String {
+        val ahora = LocalDateTime.now()
+        val duracion = Duration.between(fecha, ahora)
+
+        return when {
+            duracion.toMinutes() < 1 -> "justo ahora"
+            duracion.toMinutes() < 60 -> "hace ${duracion.toMinutes()} minuto(s)"
+            duracion.toHours() < 24 -> "hace ${duracion.toHours()} hora(s)"
+            duracion.toDays() == 1L -> "ayer"
+            duracion.toDays() < 7 -> "hace ${duracion.toDays()} día(s)"
+            duracion.toDays() < 30 -> "hace ${duracion.toDays() / 7} semana(s)"
+            duracion.toDays() < 365 -> "hace ${duracion.toDays() / 30} mes(es)"
+            else -> "hace ${duracion.toDays() / 365} año(s)"
+        }
     }
 }

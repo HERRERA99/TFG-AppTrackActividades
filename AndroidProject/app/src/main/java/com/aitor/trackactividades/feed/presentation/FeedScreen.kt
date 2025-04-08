@@ -47,6 +47,7 @@ fun FeedScreen(
     val context = LocalContext.current
     val publications = feedViewModel.publications.collectAsLazyPagingItems()
     val imagen by feedViewModel.imagenPerfil.observeAsState("")
+    val comentario by feedViewModel.comentario.observeAsState("")
 
     // Estado para rastrear si los permisos han sido concedidos
     var hasLocationPermissions by remember {
@@ -92,7 +93,6 @@ fun FeedScreen(
                     if (hasLocationPermissions) {
                         navigateToStartRecordActivity()
                     } else {
-                        // Solicitar permisos si no están concedidos
                         launcher.launch(
                             arrayOf(
                                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -148,7 +148,11 @@ fun FeedScreen(
                 }
 
                 else -> {
-                    PublicationsList(publications = publications, feedViewModel = feedViewModel)
+                    PublicationsList(
+                        publications = publications,
+                        comentario = comentario,
+                        feedViewModel = feedViewModel
+                    )
 
                     if (publications.loadState.append is LoadState.Loading) {
                         Box(
@@ -168,14 +172,16 @@ fun FeedScreen(
 }
 
 @Composable
-fun PublicationsList(publications: LazyPagingItems<Publication>, feedViewModel: FeedViewModel) {
+fun PublicationsList(
+    publications: LazyPagingItems<Publication>,
+    comentario: String,
+    feedViewModel: FeedViewModel
+) {
     LazyColumn {
         items(publications.itemCount) {
             publications[it]?.let { publication ->
                 PublicacionItem(
-                    onLikeClick = {},
-                    onCommentClick = {},
-                    onShareClick = {},
+                    comentario = comentario,
                     publication = publication,
                     feedViewModel = feedViewModel
                 )
@@ -224,13 +230,21 @@ fun FeedTopBar(
                         .clip(CircleShape)
                 )
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            actionIconContentColor = MaterialTheme.colorScheme.onBackground
+        )
     )
 }
 
 @Composable
 fun FeedBottomBar(onRegisterClick: () -> Unit) {
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground
+    ) {
         NavigationBarItem(
             icon = {
                 Icon(
@@ -327,14 +341,12 @@ fun FeedBottomBar(onRegisterClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PublicacionItem(
-    onLikeClick: () -> Unit,
-    onCommentClick: () -> Unit,
-    onShareClick: () -> Unit,
+    comentario: String,
     publication: Publication,
     feedViewModel: FeedViewModel
 ) {
     // Estado para el Bottom Sheet
-    val sheetState = rememberModalBottomSheetState( skipPartiallyExpanded = true )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     var showComments by remember { mutableStateOf(false) }
 
@@ -368,7 +380,11 @@ fun PublicacionItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onBackground
+        )
     ) {
         val color = MaterialTheme.colorScheme.primary
         val primaryColorHex = remember {
@@ -557,12 +573,18 @@ fun PublicacionItem(
                     // Bottom Sheet de comentarios
                     if (showComments) {
                         ModalBottomSheet(
-                            onDismissRequest = { showComments = false },
-                            sheetState = sheetState
+                            onDismissRequest =
+                            {
+                                feedViewModel.clearComentario()
+                                showComments = false
+                            },
+                            sheetState = sheetState,
+                            containerColor = MaterialTheme.colorScheme.background
                         ) {
                             CommentsSection(
                                 publicationId = publication.id ?: 0L,
                                 comments = comments,
+                                comentario = comentario,
                                 isLoading = isLoadingComments,
                                 viewModel = feedViewModel
                             )
@@ -582,7 +604,7 @@ fun PublicacionItem(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    IconButton(onClick = onShareClick) {
+                    IconButton(onClick = {}) {
                         Icon(
                             Icons.Default.Share,
                             contentDescription = "Share",
@@ -598,12 +620,11 @@ fun PublicacionItem(
 @Composable
 fun CommentsSection(
     publicationId: Long,
+    comentario: String,
     comments: List<Comment>,
     isLoading: Boolean,
     viewModel: FeedViewModel,
 ) {
-    var newComment by remember { mutableStateOf("") }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -645,7 +666,10 @@ fun CommentsSection(
             ) {
                 itemsIndexed(comments) { _, comment ->
                     Divider()
-                    CommentItem(comment = comment)
+                    CommentItem(
+                        comment = comment,
+                        feedViewModel = viewModel
+                    )
                     Divider()
                 }
             }
@@ -665,8 +689,8 @@ fun CommentsSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             TextField(
-                value = newComment,
-                onValueChange = { newComment = it },
+                value = comentario,
+                onValueChange = { viewModel.onComentarioChange(it) },
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp),
@@ -680,9 +704,8 @@ fun CommentsSection(
             )
             IconButton(
                 onClick = {
-                    if (newComment.isNotBlank()) {
-                        // TODO: Implementar lógica para enviar comentario
-                        newComment = ""
+                    if (comentario.isNotBlank()) {
+                        viewModel.addComment(publicationId)
                     }
                 }
             ) {
@@ -694,13 +717,15 @@ fun CommentsSection(
 
 
 @Composable
-fun CommentItem(comment: Comment) {
+fun CommentItem(comment: Comment, feedViewModel: FeedViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = comment.userImage,
+            model = if (comment.userImage.isNotEmpty()) comment.userImage else "https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp",
             contentDescription = "Avatar",
             modifier = Modifier
                 .size(40.dp)
@@ -710,9 +735,11 @@ fun CommentItem(comment: Comment) {
         Column(modifier = Modifier.weight(1f)) {
             Text(comment.userName, fontWeight = FontWeight.Bold)
             Text(comment.comment)
-        }
-        IconButton(onClick = { /* Like */ }) {
-            Icon(Icons.Default.FavoriteBorder, contentDescription = "Like")
+            Text(
+                text = feedViewModel.tiempoTranscurrido(comment.creationDate),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
         }
     }
 }

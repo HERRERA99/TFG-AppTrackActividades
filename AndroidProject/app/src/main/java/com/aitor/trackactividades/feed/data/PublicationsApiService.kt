@@ -44,4 +44,12 @@ interface PublicationsApiService {
         @Header("Authorization") token: String,
         @Path("id") publicationId: Long
     ): List<CommentResponse>
+
+    @POST("/publications/{id}/comment")
+    suspend fun addComment(
+        @Header("Authorization") token: String,
+        @Path("id") publicationId: Long,
+        @Query("userId") userId: Int,
+        @Query("text") text: String
+    ): CommentResponse
 }
