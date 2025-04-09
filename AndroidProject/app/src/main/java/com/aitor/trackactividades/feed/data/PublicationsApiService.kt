@@ -52,4 +52,10 @@ interface PublicationsApiService {
         @Query("userId") userId: Int,
         @Query("text") text: String
     ): CommentResponse
+
+    @GET("/publications/{id}")
+    suspend fun getPublication(
+        @Header("Authorization") token: String,
+        @Path("id") publicationId: Long
+    ) : PublicationResponse
 }

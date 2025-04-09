@@ -18,9 +18,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -34,6 +36,10 @@ public class PublicationService {
     private final CommentRepository commentRepository;
     private final ActivityMapper activityMapper;
     private final CommentMapper commentMapper;
+
+    public PublicationDTO getPublication(Long id) {
+        return activityMapper.mapToPublicationDTO(Objects.requireNonNull(publicationRepository.findById(id).orElse(null)));
+    }
 
     public PublicationDTO createPublication(Long activityId, String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));

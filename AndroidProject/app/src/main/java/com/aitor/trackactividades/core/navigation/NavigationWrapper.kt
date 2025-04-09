@@ -7,9 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.aitor.trackactividades.feed.presentation.FeedScreen
 import com.aitor.trackactividades.feed.presentation.FeedViewModel
 import com.aitor.trackactividades.authentication.presentation.HomeScreen
@@ -19,11 +21,12 @@ import com.aitor.trackactividades.authentication.presentation.RegisterScreen
 import com.aitor.trackactividades.authentication.presentation.RegisterViewModel
 import com.aitor.trackactividades.authentication.presentation.SplashScreen
 import com.aitor.trackactividades.authentication.presentation.SplashViewModel
+import com.aitor.trackactividades.feed.presentation.ActivityScreen
+import com.aitor.trackactividades.feed.presentation.ActivityViewModel
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityScreen
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityViewModel
 import kotlinx.coroutines.flow.collectLatest
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationWrapper() {
     val navController = rememberNavController()
@@ -91,6 +94,9 @@ fun NavigationWrapper() {
                         popUpTo(0)
                     }
                 },
+                navigateToActivity = { publicationId ->
+                    navController.navigate("activity/$publicationId")
+                },
                 feedViewModel = feedViewModel
             )
         }
@@ -99,6 +105,25 @@ fun NavigationWrapper() {
             RecordActivityScreen(
                 recordActivityViewModel = recordActivityViewModel,
                 navigateToFeed = { navController.navigate(Feed) }
+            )
+        }
+        composable(
+            route = Activity.ROUTE,
+            arguments = listOf(
+                navArgument("publicationId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val publicationId = backStackEntry.arguments?.getLong("publicationId")
+            val activityViewModel: ActivityViewModel = hiltViewModel()
+
+            // Pasa el ID al ViewModel
+            LaunchedEffect(publicationId) {
+                publicationId?.let { activityViewModel.loadPublication(it) }
+            }
+
+            ActivityScreen(
+                navigateToHome = { navController.navigate(Home) },
+                activityViewModel = activityViewModel
             )
         }
     }

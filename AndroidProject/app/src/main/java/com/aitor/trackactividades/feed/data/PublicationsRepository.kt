@@ -48,4 +48,8 @@ class PublicationsRepository @Inject constructor(private val publicationsApiServ
         return publicationsApiService.addComment("Bearer $token", id, userId, text).toPresentation()
     }
 
+    suspend fun getPublication(token: String, id: Long): Publication {
+        return publicationsApiService.getPublication("Bearer $token", id).toPresentation()
+    }
+
 }

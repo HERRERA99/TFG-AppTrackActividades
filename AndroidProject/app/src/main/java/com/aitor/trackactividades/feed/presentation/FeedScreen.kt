@@ -42,6 +42,7 @@ import kotlin.random.Random
 fun FeedScreen(
     feedViewModel: FeedViewModel,
     navigateToStartRecordActivity: () -> Unit,
+    navigateToActivity: (Long) -> Unit,
     navigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
@@ -151,7 +152,10 @@ fun FeedScreen(
                     PublicationsList(
                         publications = publications,
                         comentario = comentario,
-                        feedViewModel = feedViewModel
+                        feedViewModel = feedViewModel,
+                        navigateToActivity = { publicationId ->
+                            navigateToActivity(publicationId)
+                        }
                     )
 
                     if (publications.loadState.append is LoadState.Loading) {
@@ -174,6 +178,7 @@ fun FeedScreen(
 @Composable
 fun PublicationsList(
     publications: LazyPagingItems<Publication>,
+    navigateToActivity: (Long) -> Unit,
     comentario: String,
     feedViewModel: FeedViewModel
 ) {
@@ -183,7 +188,10 @@ fun PublicationsList(
                 PublicacionItem(
                     comentario = comentario,
                     publication = publication,
-                    feedViewModel = feedViewModel
+                    feedViewModel = feedViewModel,
+                    navigateToActivity = {
+                        publication.id?.let { id -> navigateToActivity(id) }
+                    }
                 )
             }
         }
@@ -343,6 +351,7 @@ fun FeedBottomBar(onRegisterClick: () -> Unit) {
 fun PublicacionItem(
     comentario: String,
     publication: Publication,
+    navigateToActivity : (Long) -> Unit,
     feedViewModel: FeedViewModel
 ) {
     // Estado para el Bottom Sheet
@@ -384,7 +393,12 @@ fun PublicacionItem(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground
-        )
+        ),
+        onClick = {
+            publication.id?.let { id ->
+                navigateToActivity(id)
+            }
+        }
     ) {
         val color = MaterialTheme.colorScheme.primary
         val primaryColorHex = remember {
@@ -625,6 +639,10 @@ fun CommentsSection(
     isLoading: Boolean,
     viewModel: FeedViewModel,
 ) {
+    val maxChar = 250
+    val charCount = comentario.length
+    val isOverLimit = charCount > maxChar
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -700,14 +718,23 @@ fun CommentsSection(
                     focusedContainerColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent
-                )
+                ),
+                trailingIcon = {
+                    Text(
+                        text = "$charCount/$maxChar",
+                        color = if (isOverLimit) Color.Red else Color.Gray,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             )
+
             IconButton(
                 onClick = {
                     if (comentario.isNotBlank()) {
                         viewModel.addComment(publicationId)
                     }
-                }
+                },
+                enabled = comentario.isNotBlank() && !isOverLimit
             ) {
                 Icon(Icons.Default.Send, contentDescription = "Enviar")
             }

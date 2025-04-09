@@ -31,6 +31,12 @@ public class PublicationController {
         return ResponseEntity.ok(publicacion);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PublicationDTO> getPublication(@PathVariable Long id) {
+        PublicationDTO publicacion = publicationService.getPublication(id);
+        return ResponseEntity.ok(publicacion);
+    }
+
     @GetMapping("/public")
     public ResponseEntity<PageDTO<PublicationDTO>> getPublicPublications(
             @RequestParam(defaultValue = "1") int page,
