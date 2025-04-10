@@ -30,6 +30,7 @@ data class PublicationResponse(
     @SerializedName("speeds") val speeds: List<Float> = emptyList(),
     @SerializedName("elevations") val elevations: List<Double> = emptyList(),
     @SerializedName("route") val route: List<LatLng> = emptyList(),
+    @SerializedName("distances") val distances: List<Float> = emptyList(),
     @SerializedName("maxAltitude") val maxAltitude: Double = 0.0,
     @SerializedName("likes") val likes: List<Int> = emptyList()
 ) {
@@ -50,6 +51,7 @@ data class PublicationResponse(
             speeds = speeds,
             elevations = elevations,
             route = route,
+            distances = distances,
             maxAltitude = maxAltitude,
             likes = likes
         )

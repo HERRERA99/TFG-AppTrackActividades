@@ -36,4 +36,30 @@ class ActivityViewModel @Inject constructor(
             }
         }
     }
+
+    fun calcularDistanciasAcumuladas(
+        velocidades: List<Float>,
+        distanciaTotal: Float,
+        intervaloMedicionSegundos: Int = 1 // Asume 1 segundo por defecto
+    ): List<Float> {
+        if (velocidades.isEmpty()) return emptyList()
+
+        val distancias = mutableListOf<Float>()
+        var distanciaAcumulada = 0f
+
+        // Calcular distancias parciales
+        for (velocidad in velocidades) {
+            val distanciaParcial = velocidad * intervaloMedicionSegundos / 3600
+            distanciaAcumulada += distanciaParcial
+            distancias.add(distanciaAcumulada)
+        }
+
+        // Normalizar para que la última distancia coincida con la distancia total
+        if (distanciaAcumulada > 0 && distanciaTotal > 0) {
+            val factorCorreccion = distanciaTotal / distanciaAcumulada
+            return distancias.map { it * factorCorreccion }
+        }
+
+        return distancias
+    }
 }

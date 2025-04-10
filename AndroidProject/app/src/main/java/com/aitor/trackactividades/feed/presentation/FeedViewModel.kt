@@ -73,30 +73,6 @@ class FeedViewModel @Inject constructor(
         tokenManager.clearToken()
     }
 
-    /**
-     * Tiempo en ms a formato hh:mm:ss
-     */
-    fun formatDuration(milliseconds: Long): String {
-        val secondsTotal = milliseconds / 1000
-        val hours = secondsTotal / 3600
-        val minutes = (secondsTotal % 3600) / 60
-        val seconds = secondsTotal % 60
-
-        return buildString {
-            if (hours > 0) append("${hours}h ")
-            if (minutes > 0 || hours > 0) append("${minutes}m ")
-            append("${seconds}s")
-        }.trim()
-    }
-
-    fun formatDistance(distance: Float): String {
-        return if (distance < 1000) {
-            "${distance.toInt()} m"
-        } else {
-            "%.2f km".format(distance / 1000)
-        }
-    }
-
     fun toggleLike(publicationId: Long, isLiked: Boolean) {
         viewModelScope.launch {
             try {

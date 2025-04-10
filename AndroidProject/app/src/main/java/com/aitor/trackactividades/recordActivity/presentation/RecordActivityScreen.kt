@@ -292,7 +292,7 @@ fun SaveActivityDialog(
                                 .padding(bottom = 16.dp),
                             label = { Text("Título") },
                             singleLine = true,
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                            colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
                             )

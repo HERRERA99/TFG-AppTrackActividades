@@ -17,6 +17,7 @@ data class Activity(
     val desniveles: List<Double>,
     var altitudMaxima: Double,
     val ruta: List<LatLng>,
+    val distances: List<Float>,
     var titulo: String,
     var isPublic: Boolean
 )

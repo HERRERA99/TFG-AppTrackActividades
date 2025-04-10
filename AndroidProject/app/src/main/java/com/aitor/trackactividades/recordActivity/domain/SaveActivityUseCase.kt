@@ -22,6 +22,7 @@ class SaveActivityUseCase @Inject constructor(private val activitiesRepository: 
             elevations = activity.desniveles,
             maxAltitude = activity.altitudMaxima,
             route = activity.ruta.map { LatLngRequest(it.latitude, it.longitude) },
+            distances = activity.distances,
             title = activity.titulo,
             isPublic = activity.isPublic
         ))

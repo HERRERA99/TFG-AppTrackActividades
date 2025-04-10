@@ -18,6 +18,7 @@ data class ActivityRequest(
     @SerializedName("elevations") val elevations: List<Double>,
     @SerializedName("maxAltitude") val maxAltitude: Double,
     @SerializedName("route") val route: List<LatLngRequest>,
+    @SerializedName("distances") val distances: List<Float>,
     @SerializedName("title") val title: String,
     @SerializedName("isPublic") val isPublic: Boolean
 )

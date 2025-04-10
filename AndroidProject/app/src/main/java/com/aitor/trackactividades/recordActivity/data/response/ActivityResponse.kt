@@ -21,6 +21,7 @@ data class ActivityResponse(
     @SerializedName("elevations") val elevations: List<Double>,
     @SerializedName("maxAltitude") val maxAltitude: Double,
     @SerializedName("route") val route: List<LatLngResponse>,
+    @SerializedName("distances") val distances: List<Float>,
     @SerializedName("title") val title: String,
     @SerializedName("isPublic") val isPublic: Boolean,
     @SerializedName("userId") val userId: Long
@@ -41,6 +42,7 @@ data class ActivityResponse(
             desniveles = elevations,
             altitudMaxima = maxAltitude,
             ruta = route.map { LatLng(it.latitude, it.longitude) },
+            distances = distances,
             titulo = title,
             isPublic = isPublic
         )

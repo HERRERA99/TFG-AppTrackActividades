@@ -112,6 +112,11 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
 
+    // Vico
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.views)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

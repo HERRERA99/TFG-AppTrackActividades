@@ -477,7 +477,7 @@ fun PublicacionItem(
                         )
                     )
                     Text(
-                        text = feedViewModel.formatDistance(publication.distance),
+                        text = publication.formatDistance(),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontSize = 20.sp
                         ),
@@ -509,7 +509,7 @@ fun PublicacionItem(
                         )
                     )
                     Text(
-                        text = feedViewModel.formatDuration(publication.duration),
+                        text = publication.formatDuration(),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontSize = 20.sp
                         ),

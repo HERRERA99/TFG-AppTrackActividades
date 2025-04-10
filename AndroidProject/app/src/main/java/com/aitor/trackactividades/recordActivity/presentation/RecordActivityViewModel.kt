@@ -82,6 +82,7 @@ class RecordActivityViewModel @Inject constructor(
     private lateinit var startTimeActivity: LocalDateTime
     private var velocidades: MutableList<Float> = mutableListOf()
     private var altitudes: MutableList<Double> = mutableListOf()
+    private var distances: MutableList<Float> = mutableListOf()
     private var visibility: Boolean = true
 
     init {
@@ -154,6 +155,7 @@ class RecordActivityViewModel @Inject constructor(
                 altitudMaxima = altitudes.maxOrNull() ?: 0.0,
                 ruta = _routeCoordinates.value!!,
                 titulo = if (_activityTitle.value!!.isNotEmpty()) _activityTitle.value!! else nombreAutomatico(startTimeActivity, _activityType.value!!),
+                distances = distances,
                 isPublic = visibility
             )
             try {
@@ -192,6 +194,10 @@ class RecordActivityViewModel @Inject constructor(
         lastLocation = null
         velocidades.clear()
         altitudes.clear()
+        distances.clear()
+        actividad = null
+        startTimeActivity = LocalDateTime.now()
+        visibility = true
     }
 
     fun setScreenMode(screenMode: ScreenTypes) {
@@ -262,7 +268,12 @@ class RecordActivityViewModel @Inject constructor(
         )
         lastLocation?.let { lastLoc ->
             val distanceInMeters = lastLoc.distanceTo(location)
-            _distance.postValue(_distance.value?.plus(distanceInMeters) ?: distanceInMeters)
+            val distanceAux = _distance.value?.plus(distanceInMeters)
+            _distance.postValue(distanceAux ?: distanceInMeters)
+            val distanceInKm = (distanceAux?.div(1000.0)).let {
+                String.format("%.1f", it).replace(",", ".").toFloat()
+            }
+            distances.add(distanceInKm)
         }
     }
 

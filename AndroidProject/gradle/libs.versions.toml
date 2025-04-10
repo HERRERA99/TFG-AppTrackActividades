@@ -28,6 +28,7 @@ corrutines = "1.7.3"
 mockito = "4.1.0"
 gson = "2.10.1"
 pagingCompose = "3.3.5"
+vico = "2.1.2"
 
 
 [libraries]
@@ -70,6 +71,10 @@ mockito-android = { group = "org.mockito", name = "mockito-android", version.ref
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
 paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagingCompose" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+vico-views = { group = "com.patrykandpatrick.vico", name = "views", version.ref = "vico" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
