@@ -40,6 +40,7 @@ public class ActivityService {
                         a.getRoute().stream().map(r ->
                                 new LatLngDTO(r.getLatitude(), r.getLongitude())
                         ).collect(Collectors.toList()),
+                        a.getDistances(),
                         a.getTitle(),
                         a.isPublic())).collect(Collectors.toList());
     }

@@ -28,6 +28,7 @@ public class ActivityDTO {
     private List<Double> elevations;
     private double maxAltitude;
     private List<LatLngDTO> route;
+    private List<Float> distances;
     private String title;
     @JsonProperty("isPublic")
     private boolean isPublic;

@@ -36,6 +36,7 @@ public class PublicationDTO {
     private List<Float> speeds;
     private List<Double> elevations;
     private List<LatLng> route;
+    private List<Float> distances;
     private double maxAltitude;
 
     private List<Integer> likes;

@@ -35,6 +35,7 @@ public class ActivityMapper {
                 .elevations(activityDTO.getElevations())
                 .maxAltitude(activityDTO.getMaxAltitude())
                 .route(convertLatLngDTOs(activityDTO.getRoute()))
+                .distances(activityDTO.getDistances())
                 .title(activityDTO.getTitle())
                 .isPublic(activityDTO.isPublic())
                 .user(user)
@@ -73,6 +74,7 @@ public class ActivityMapper {
                 .elevations(activity.getElevations())
                 .maxAltitude(activity.getMaxAltitude())
                 .route(convertLatLngs(activity.getRoute()))
+                .distances(activity.getDistances())
                 .title(activity.getTitle())
                 .isPublic(activity.isPublic())
                 .build();
@@ -104,6 +106,7 @@ public class ActivityMapper {
                 .speeds(publication.getActivity().getSpeeds())
                 .elevations(publication.getActivity().getElevations())
                 .route(publication.getActivity().getRoute())
+                .distances(publication.getActivity().getDistances())
                 .maxAltitude(publication.getActivity().getMaxAltitude())
                 .likes(publication.getLikes().stream().map(User::getId).collect(Collectors.toList()))
                 .build();

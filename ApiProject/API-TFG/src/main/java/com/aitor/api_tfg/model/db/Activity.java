@@ -58,6 +58,14 @@ public class Activity {
     @OrderColumn(name = "route_order") // Índice para coordenadas
     private List<LatLng> route;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "activity_distances",
+            joinColumns = @JoinColumn(name = "activity_id")
+    )
+    @OrderColumn(name = "distances_order")
+    private List<Float> distances;
+
     private double maxAltitude;
 
 

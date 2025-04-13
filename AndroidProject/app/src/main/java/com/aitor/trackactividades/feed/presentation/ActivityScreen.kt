@@ -1,7 +1,12 @@
 package com.aitor.trackactividades.feed.presentation
 
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +22,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,17 +37,42 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.core.cartesian.CartesianChart
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
+import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
+import com.patrykandpatrick.vico.core.common.Fill
+import com.patrykandpatrick.vico.core.common.component.Component
+import com.patrykandpatrick.vico.core.common.component.LineComponent
+import com.patrykandpatrick.vico.core.common.component.ShapeComponent
+import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
+import com.patrykandpatrick.vico.core.common.shape.Shape
+import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,8 +121,8 @@ fun ContenidoDetalladoActivity(publication: Publication?, modifier: Modifier = M
             )
             TituloActividad(titulo = publication.title!!)
             DetallesActividad(publication = publication)
-            GraficoAltitud(publication = publication)
             GraficoVelocidad(publication = publication)
+            GraficoAltitud(publication = publication)
         }
         Log.d("Distancias", publication?.distances.toString())
     }
@@ -109,20 +142,27 @@ fun GraficoVelocidad(publication: Publication, modifier: Modifier = Modifier) {
     }
 
     val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(Unit) {
+
+    LaunchedEffect(speeds, distances) {
         modelProducer.runTransaction {
             lineSeries {
                 series(
                     x = distances,
-                    y = speeds
+                    y = speeds,
                 )
             }
         }
     }
 
-    Text(text = "Velocidad", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-    Spacer(modifier = Modifier.height(16.dp))
-    GraficoLineas(modelProducer, modifier)
+    Column(modifier = modifier) {
+        Text(text = "Velocidad", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        GraficoLineas(
+            modelProducer= modelProducer,
+            modifier =  modifier,
+            valueStartAxisFormater = CartesianValueFormatter.decimal(DecimalFormat("#.##' km/h'")))
+    }
+
 }
 
 @Composable
@@ -139,6 +179,7 @@ fun GraficoAltitud(publication: Publication, modifier: Modifier = Modifier) {
     }
 
     val modelProducer = remember { CartesianChartModelProducer() }
+
     LaunchedEffect(Unit) {
         modelProducer.runTransaction {
             lineSeries {
@@ -149,26 +190,57 @@ fun GraficoAltitud(publication: Publication, modifier: Modifier = Modifier) {
             }
         }
     }
-
-    Text(text = "Desnivel", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-    Spacer(modifier = Modifier.height(16.dp))
-    GraficoLineas(modelProducer, modifier)
+    Column(modifier = modifier) {
+        Text(text = "Desnivel", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        GraficoLineas(
+            modelProducer = modelProducer,
+            modifier = modifier,
+            valueStartAxisFormater =  CartesianValueFormatter.decimal(DecimalFormat("#.##' m'")))
+        }
 }
 
 @Composable
 private fun GraficoLineas(
     modelProducer: CartesianChartModelProducer,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    valueStartAxisFormater: CartesianValueFormatter = CartesianValueFormatter.Default,
 ) {
+    val lineColor = MaterialTheme.colorScheme.primary
+
     CartesianChartHost(
-        chart =
         rememberCartesianChart(
-            rememberLineCartesianLayer(),
-            startAxis = VerticalAxis.rememberStart(),
-            bottomAxis = HorizontalAxis.rememberBottom(),
+            rememberLineCartesianLayer(
+                lineProvider =
+                LineCartesianLayer.LineProvider.series(
+                    LineCartesianLayer.rememberLine(
+                        fill = LineCartesianLayer.LineFill.single(fill(lineColor)),
+                        areaFill =
+                        LineCartesianLayer.AreaFill.single(
+                            fill(
+                                ShaderProvider.verticalGradient(
+                                    intArrayOf(lineColor.copy(alpha = 0.4f).toArgb(), Color.Transparent.toArgb())
+                                )
+                            )
+                        ),
+                    )
+                ),
+            ),
+            startAxis = VerticalAxis.rememberStart(valueFormatter = valueStartAxisFormater),
+            bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = CartesianValueFormatter.decimal(DecimalFormat("#.##' km'"))),
+            marker = rememberDefaultCartesianMarker(
+                label = rememberTextComponent(),
+                valueFormatter = DefaultCartesianMarker.ValueFormatter.default(DecimalFormat("#.## km/h")),
+                labelPosition = DefaultCartesianMarker.LabelPosition.Top,
+                guideline = rememberLineComponent(
+                    thickness = 1.dp,
+                    fill = fill(color = MaterialTheme.colorScheme.onBackground),
+                ),
+            ),
         ),
-        modelProducer = modelProducer,
-        modifier = modifier,
+        modelProducer,
+        scrollState = rememberVicoScrollState(scrollEnabled = false),
+        modifier = modifier
     )
 }
 
@@ -184,10 +256,14 @@ fun DetallesActividad(publication: Publication) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            ElementoActividad("Distancia", publication.formatDistance(), Modifier.weight(1f))
+            ElementoActividad(
+                "Distancia",
+                publication.formatDistance(),
+                Modifier.weight(1f)
+            )
             ElementoActividad(
                 "Desnivel positivo",
-                "${publication.positiveElevation} m",
+                "%.2f".format(publication.positiveElevation) + " m",
                 Modifier.weight(1f)
             )
         }
@@ -202,7 +278,7 @@ fun DetallesActividad(publication: Publication) {
             )
             ElementoActividad(
                 "Velocidad media",
-                "${publication.averageSpeed} km/h",
+                "%.2f".format(publication.averageSpeed) + " km/h",
                 Modifier.weight(1f)
             )
         }
@@ -210,8 +286,16 @@ fun DetallesActividad(publication: Publication) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            ElementoActividad("Calorías", "${publication.calories} kcal", Modifier.weight(1f))
-            ElementoActividad("Altitud máx.", "${publication.maxAltitude} m", Modifier.weight(1f))
+            ElementoActividad(
+                "Calorías",
+                "%.2f".format(publication.calories) + " kcal",
+                Modifier.weight(1f)
+            )
+            ElementoActividad(
+                "Altitud máx.",
+                "%.2f".format(publication.maxAltitude) + " m"
+                , Modifier.weight(1f)
+            )
         }
     }
 }
