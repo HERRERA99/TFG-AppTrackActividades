@@ -29,6 +29,7 @@ mockito = "4.1.0"
 gson = "2.10.1"
 pagingCompose = "3.3.5"
 vico = "2.1.2"
+swiperefresh = "0.30.1"
 
 
 [libraries]
@@ -74,6 +75,7 @@ paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.r
 vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 vico-views = { group = "com.patrykandpatrick.vico", name = "views", version.ref = "vico" }
+swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "swiperefresh" }
 
 
 

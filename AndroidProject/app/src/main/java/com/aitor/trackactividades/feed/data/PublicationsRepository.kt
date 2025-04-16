@@ -4,7 +4,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.token.TokenManager
-import com.aitor.trackactividades.feed.data.response.PublicationResponse
 import com.aitor.trackactividades.feed.presentation.model.Comment
 import com.aitor.trackactividades.feed.presentation.model.Publication
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +21,7 @@ class PublicationsRepository @Inject constructor(private val publicationsApiServ
         return true
     }
 
-    fun getCharacters(): Flow<PagingData<Publication>> {
+    fun getPublications(): Flow<PagingData<Publication>> {
         return Pager(config = PagingConfig(pageSize = PAGE_SIZE, prefetchDistance = PREFETCH_ITEMS),
             pagingSourceFactory = {
                 PublicationPaginSource(

@@ -63,7 +63,7 @@ class RecordActivityViewModel @Inject constructor(
     private val _activityType = MutableLiveData<Modalidades>(Modalidades.CICLISMO_CARRETERA)
     val activityType: LiveData<Modalidades> get() = _activityType
 
-    private val _activityTitle = MutableLiveData<String>()
+    private val _activityTitle = MutableLiveData<String>("")
     val activityTitle: LiveData<String> get() = _activityTitle
 
     private var isRunning = false
@@ -100,7 +100,6 @@ class RecordActivityViewModel @Inject constructor(
         isPaused = false
         startTime = SystemClock.elapsedRealtime() - elapsedTime
         startTimeActivity = LocalDateTime.now()
-        _activityTitle.postValue(nombreAutomatico(startTimeActivity, _activityType.value!!))
         startUserLocation = userLocation.value
 
         viewModelScope.launch {
@@ -138,6 +137,11 @@ class RecordActivityViewModel @Inject constructor(
 
     fun save() {
         Log.d("Titulo", _activityTitle.value!!)
+
+        if (_activityTitle.value!!.isEmpty()) {
+            _activityTitle.postValue(nombreAutomatico(startTimeActivity, _activityType.value!!))
+        }
+
         viewModelScope.launch {
             actividad = Activity(
                 id = System.currentTimeMillis(),
@@ -146,7 +150,7 @@ class RecordActivityViewModel @Inject constructor(
                 horaFin = LocalDateTime.now(),
                 distancia = _distance.value!!,
                 duracion = _stopwatch.value!!,
-                desnivelPositivo = altitudes.sumOf { if (it > 0) it else 0.0 },
+                desnivelPositivo = calcularDesnivelPositivo(altitudes),
                 velocidadMedia = velocidades.average().toFloat(),
                 calorias = _calories.value!!,
                 velocidadMaxima = velocidades.maxOrNull() ?: 0.0f,
@@ -158,6 +162,7 @@ class RecordActivityViewModel @Inject constructor(
                 distances = distances,
                 isPublic = visibility
             )
+            Log.d("Actividad", actividad.toString())
             try {
                 saveActivityUseCase(
                     "Bearer ${tokenManager.getToken()}",
@@ -297,5 +302,18 @@ class RecordActivityViewModel @Inject constructor(
             else -> ""
         }
         return "${tipoActividad.displayName} $parteDelDia"
+    }
+
+    fun calcularDesnivelPositivo(altitudes: List<Double>): Double {
+        var desnivelPositivo = 0.0
+
+        for (i in 1 until altitudes.size) {
+            val diferencia = altitudes[i] - altitudes[i - 1]
+            if (diferencia > 0) {
+                desnivelPositivo += diferencia
+            }
+        }
+
+        return desnivelPositivo
     }
 }

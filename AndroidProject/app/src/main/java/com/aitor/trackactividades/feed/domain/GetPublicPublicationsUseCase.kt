@@ -6,8 +6,8 @@ import com.aitor.trackactividades.feed.presentation.model.Publication
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetPublicPublicationsUseCase @Inject constructor(private val publcationsRepository: PublicationsRepository) {
+class GetPublicPublicationsUseCase @Inject constructor(private val publicationsRepository: PublicationsRepository) {
     fun execute(): Flow<PagingData<Publication>> {
-        return publcationsRepository.getCharacters()
+        return publicationsRepository.getPublications()
     }
 }

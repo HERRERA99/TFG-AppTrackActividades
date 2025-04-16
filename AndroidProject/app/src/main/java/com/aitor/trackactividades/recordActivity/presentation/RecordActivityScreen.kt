@@ -35,6 +35,7 @@ import com.google.maps.android.compose.*
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -291,6 +292,7 @@ fun SaveActivityDialog(
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
                             label = { Text("Título") },
+                            placeholder = { Text(recordActivityViewModel.nombreAutomatico(LocalDateTime.now(), recordActivityViewModel.activityType.value!!)) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,

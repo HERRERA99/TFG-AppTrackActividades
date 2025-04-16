@@ -36,6 +36,8 @@ import java.time.format.DateTimeFormatter
 import androidx.paging.LoadState
 import androidx.paging.compose.*
 import com.aitor.trackactividades.feed.presentation.model.Comment
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshState
 import kotlin.random.Random
 
 @Composable
@@ -79,6 +81,11 @@ fun FeedScreen(
             navigateToStartRecordActivity()
         }
     }
+
+    // Estado para el refresh
+    val isRefreshing by remember { derivedStateOf {
+        publications.loadState.refresh is LoadState.Loading
+    } }
 
     Scaffold(
         topBar = {
@@ -182,17 +189,24 @@ fun PublicationsList(
     comentario: String,
     feedViewModel: FeedViewModel
 ) {
-    LazyColumn {
-        items(publications.itemCount) {
-            publications[it]?.let { publication ->
-                PublicacionItem(
-                    comentario = comentario,
-                    publication = publication,
-                    feedViewModel = feedViewModel,
-                    navigateToActivity = {
-                        publication.id?.let { id -> navigateToActivity(id) }
-                    }
-                )
+    val isRefreshing = publications.loadState.refresh is LoadState.Loading
+
+    SwipeRefresh(
+        state = remember { SwipeRefreshState(isRefreshing) },
+        onRefresh = { publications.refresh() }
+    ) {
+        LazyColumn {
+            items(publications.itemCount) {
+                publications[it]?.let { publication ->
+                    PublicacionItem(
+                        comentario = comentario,
+                        publication = publication,
+                        feedViewModel = feedViewModel,
+                        navigateToActivity = {
+                            publication.id?.let { id -> navigateToActivity(id) }
+                        }
+                    )
+                }
             }
         }
     }

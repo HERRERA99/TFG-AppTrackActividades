@@ -1,5 +1,6 @@
 package com.aitor.trackactividades.feed.presentation
 
+import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
@@ -16,7 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,6 +52,7 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.component.shapeComponent
 import com.patrykandpatrick.vico.compose.common.fill
 import com.patrykandpatrick.vico.core.cartesian.CartesianChart
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
@@ -59,10 +63,12 @@ import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.PointConnector
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.core.common.Fill
+import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.component.Component
 import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.component.ShapeComponent
@@ -70,9 +76,8 @@ import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import java.text.DecimalFormat
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,7 +98,8 @@ fun ActivityScreen(
                 publication = publication,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                activityViewModel = activityViewModel
             )
         },
         sheetDragHandle = { BottomSheetDefaults.DragHandle() },
@@ -105,9 +111,13 @@ fun ActivityScreen(
 }
 
 @Composable
-fun ContenidoDetalladoActivity(publication: Publication?, modifier: Modifier = Modifier) {
+fun ContenidoDetalladoActivity(
+    publication: Publication?,
+    modifier: Modifier = Modifier,
+    activityViewModel: ActivityViewModel
+) {
     Column(
-        modifier = modifier,
+        modifier = modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
         if (publication == null) {
@@ -121,33 +131,31 @@ fun ContenidoDetalladoActivity(publication: Publication?, modifier: Modifier = M
             )
             TituloActividad(titulo = publication.title!!)
             DetallesActividad(publication = publication)
-            GraficoVelocidad(publication = publication)
-            GraficoAltitud(publication = publication)
+            GraficoVelocidad(publication = publication, activityViewModel = activityViewModel)
+            GraficoAltitud(publication = publication, activityViewModel = activityViewModel)
         }
         Log.d("Distancias", publication?.distances.toString())
     }
 }
 
 @Composable
-fun GraficoVelocidad(publication: Publication, modifier: Modifier = Modifier) {
+fun GraficoVelocidad(
+    publication: Publication,
+    modifier: Modifier = Modifier,
+    activityViewModel: ActivityViewModel
+) {
     val speeds = publication.speeds
-    val distances = publication.distances
+    val xValues = List(speeds.size) { index -> index.toFloat() }
 
-    if (speeds.isEmpty()) {
-        Text(
-            text = "No hay datos de elevación disponibles",
-            modifier = Modifier.padding(16.dp)
-        )
-        return
-    }
+    Log.d("xValues", xValues.toString())
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
-    LaunchedEffect(speeds, distances) {
+    LaunchedEffect(speeds, xValues) {
         modelProducer.runTransaction {
             lineSeries {
                 series(
-                    x = distances,
+                    x = xValues,
                     y = speeds,
                 )
             }
@@ -158,17 +166,28 @@ fun GraficoVelocidad(publication: Publication, modifier: Modifier = Modifier) {
         Text(text = "Velocidad", fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))
         GraficoLineas(
-            modelProducer= modelProducer,
-            modifier =  modifier,
-            valueStartAxisFormater = CartesianValueFormatter.decimal(DecimalFormat("#.##' km/h'")))
+            modelProducer = modelProducer,
+            modifier = modifier,
+            valueStartAxisFormater = CartesianValueFormatter.decimal(DecimalFormat("#.##' km/h'")),
+            valueMarkerFormatter = DefaultCartesianMarker.ValueFormatter.default(
+                decimalFormat = DecimalFormat(
+                    "#.## km/h"
+                ), colorCode = false
+            ),
+            viewModel = activityViewModel
+        )
     }
 
 }
 
 @Composable
-fun GraficoAltitud(publication: Publication, modifier: Modifier = Modifier) {
+fun GraficoAltitud(
+    publication: Publication,
+    modifier: Modifier = Modifier,
+    activityViewModel: ActivityViewModel
+) {
     val elevations = publication.elevations
-    val distances = publication.distances
+    val xValues = List(elevations.size) { index -> index.toFloat() }
 
     if (elevations.isEmpty()) {
         Text(
@@ -180,11 +199,11 @@ fun GraficoAltitud(publication: Publication, modifier: Modifier = Modifier) {
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(elevations, xValues) {
         modelProducer.runTransaction {
             lineSeries {
                 series(
-                    x = distances,
+                    x = xValues,
                     y = elevations
                 )
             }
@@ -196,8 +215,15 @@ fun GraficoAltitud(publication: Publication, modifier: Modifier = Modifier) {
         GraficoLineas(
             modelProducer = modelProducer,
             modifier = modifier,
-            valueStartAxisFormater =  CartesianValueFormatter.decimal(DecimalFormat("#.##' m'")))
-        }
+            valueStartAxisFormater = CartesianValueFormatter.decimal(DecimalFormat("#.##' m'")),
+            valueMarkerFormatter = DefaultCartesianMarker.ValueFormatter.default(
+                decimalFormat = DecimalFormat(
+                    "#.## m"
+                ), colorCode = false
+            ),
+            viewModel = activityViewModel
+        )
+    }
 }
 
 @Composable
@@ -205,11 +231,13 @@ private fun GraficoLineas(
     modelProducer: CartesianChartModelProducer,
     modifier: Modifier = Modifier,
     valueStartAxisFormater: CartesianValueFormatter = CartesianValueFormatter.Default,
+    valueMarkerFormatter: DefaultCartesianMarker.ValueFormatter,
+    viewModel: ActivityViewModel
 ) {
     val lineColor = MaterialTheme.colorScheme.primary
 
     CartesianChartHost(
-        rememberCartesianChart(
+        chart = rememberCartesianChart(
             rememberLineCartesianLayer(
                 lineProvider =
                 LineCartesianLayer.LineProvider.series(
@@ -219,18 +247,36 @@ private fun GraficoLineas(
                         LineCartesianLayer.AreaFill.single(
                             fill(
                                 ShaderProvider.verticalGradient(
-                                    intArrayOf(lineColor.copy(alpha = 0.4f).toArgb(), Color.Transparent.toArgb())
+                                    intArrayOf(
+                                        lineColor.copy(alpha = 0.4f).toArgb(),
+                                        Color.Transparent.toArgb()
+                                    )
                                 )
                             )
-                        ),
+                        )
                     )
                 ),
             ),
             startAxis = VerticalAxis.rememberStart(valueFormatter = valueStartAxisFormater),
-            bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = CartesianValueFormatter.decimal(DecimalFormat("#.##' km'"))),
+            bottomAxis = HorizontalAxis.rememberBottom(
+                valueFormatter = CartesianValueFormatter { context, x, vertical ->
+                    viewModel.formatSeconds(context, x, vertical)
+                }
+            ),
             marker = rememberDefaultCartesianMarker(
-                label = rememberTextComponent(),
-                valueFormatter = DefaultCartesianMarker.ValueFormatter.default(DecimalFormat("#.## km/h")),
+                label = rememberTextComponent(
+                    background = shapeComponent(
+                        fill = fill(MaterialTheme.colorScheme.primary),
+                        shape = viewModel.RoundedShape(24f),
+                        strokeFill = fill(MaterialTheme.colorScheme.primary),
+                        strokeThickness = 1.dp,
+                        shadow = null
+                    ),
+                    typeface = Typeface.MONOSPACE,
+                    textSize = 16.sp,
+                    padding = Insets(4f, 12f, 4f, 12f)
+                ),
+                valueFormatter = valueMarkerFormatter,
                 labelPosition = DefaultCartesianMarker.LabelPosition.Top,
                 guideline = rememberLineComponent(
                     thickness = 1.dp,
@@ -238,7 +284,7 @@ private fun GraficoLineas(
                 ),
             ),
         ),
-        modelProducer,
+        modelProducer = modelProducer,
         scrollState = rememberVicoScrollState(scrollEnabled = false),
         modifier = modifier
     )
@@ -272,7 +318,7 @@ fun DetallesActividad(publication: Publication) {
             modifier = Modifier.fillMaxWidth()
         ) {
             ElementoActividad(
-                "Tiempo en movimiento",
+                "Duración",
                 publication.formatDuration(),
                 Modifier.weight(1f)
             )
@@ -293,8 +339,7 @@ fun DetallesActividad(publication: Publication) {
             )
             ElementoActividad(
                 "Altitud máx.",
-                "%.2f".format(publication.maxAltitude) + " m"
-                , Modifier.weight(1f)
+                "%.2f".format(publication.maxAltitude) + " m", Modifier.weight(1f)
             )
         }
     }
