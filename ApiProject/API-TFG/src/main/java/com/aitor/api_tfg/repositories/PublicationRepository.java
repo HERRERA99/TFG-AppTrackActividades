@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PublicationRepository extends JpaRepository<Publication, Long> {
     Page<Publication> findByIsPublicTrue(Pageable pageable);
+    Page<Publication> findByUserIdAndIsPublicTrue(Integer userId, Pageable pageable);
 }
 

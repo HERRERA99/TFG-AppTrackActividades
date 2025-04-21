@@ -41,6 +41,13 @@ public class PublicationService {
         return activityMapper.mapToPublicationDTO(Objects.requireNonNull(publicationRepository.findById(id).orElse(null)));
     }
 
+    public Page<PublicationDTO> getPublicationsByUser(Integer userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("creationDate").descending());
+        Page<Publication> publications = publicationRepository.findByUserIdAndIsPublicTrue(userId, pageable);
+
+        return publications.map(activityMapper::mapToPublicationDTO);
+    }
+
     public PublicationDTO createPublication(Long activityId, String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
 
