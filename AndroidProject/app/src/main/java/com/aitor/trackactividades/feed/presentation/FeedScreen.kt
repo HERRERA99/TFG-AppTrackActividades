@@ -83,9 +83,11 @@ fun FeedScreen(
     }
 
     // Estado para el refresh
-    val isRefreshing by remember { derivedStateOf {
-        publications.loadState.refresh is LoadState.Loading
-    } }
+    val isRefreshing by remember {
+        derivedStateOf {
+            publications.loadState.refresh is LoadState.Loading
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -231,6 +233,18 @@ fun FeedTopBar(
             )
         },
         actions = {
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    feedViewModel.logout()
+                    navigateToHome()
+                }
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = "Logout",
+                    modifier = Modifier.size(48.dp)
+                )
+            }
             IconButton(onClick = { /* TODO: Acción de notificaciones */ }) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
@@ -239,10 +253,7 @@ fun FeedTopBar(
                 )
             }
             IconButton(onClick = {
-                coroutineScope.launch {
-                    feedViewModel.logout()
-                    navigateToHome()
-                }
+
             }) {
                 AsyncImage(
                     model = if (imagenPerfil.isNotEmpty()) imagenPerfil else "https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp",
@@ -365,7 +376,7 @@ fun FeedBottomBar(onRegisterClick: () -> Unit) {
 fun PublicacionItem(
     comentario: String,
     publication: Publication,
-    navigateToActivity : (Long) -> Unit,
+    navigateToActivity: (Long) -> Unit,
     feedViewModel: FeedViewModel
 ) {
     // Estado para el Bottom Sheet
