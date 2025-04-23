@@ -23,6 +23,9 @@ import com.aitor.trackactividades.authentication.presentation.SplashScreen
 import com.aitor.trackactividades.authentication.presentation.SplashViewModel
 import com.aitor.trackactividades.feed.presentation.ActivityScreen
 import com.aitor.trackactividades.feed.presentation.ActivityViewModel
+import com.aitor.trackactividades.perfil.presentation.PerfilScreen
+import com.aitor.trackactividades.perfil.presentation.PerfilViewModel
+import com.aitor.trackactividades.perfil.presentation.PostInteractionViewModel
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityScreen
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -87,6 +90,7 @@ fun NavigationWrapper() {
         }
         composable<Feed> {
             val feedViewModel: FeedViewModel = hiltViewModel()
+            val postInteractionViewModel: PostInteractionViewModel = hiltViewModel()
             FeedScreen(
                 navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
                 navigateToHome = {
@@ -97,7 +101,11 @@ fun NavigationWrapper() {
                 navigateToActivity = { publicationId ->
                     navController.navigate("activity/$publicationId")
                 },
-                feedViewModel = feedViewModel
+                feedViewModel = feedViewModel,
+                navigateToProfile = { profileId ->
+                    navController.navigate("profile/$profileId")
+                },
+                postInteractionViewModel = postInteractionViewModel
             )
         }
         composable<RecordActivity> {
@@ -124,6 +132,30 @@ fun NavigationWrapper() {
             ActivityScreen(
                 navigateToHome = { navController.navigate(Home) },
                 activityViewModel = activityViewModel
+            )
+        }
+        composable(
+            route = Profile.ROUTE,
+            arguments = listOf(
+                navArgument("userId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId")
+            val perfilViewModel: PerfilViewModel = hiltViewModel()
+            val postInteractionViewModel: PostInteractionViewModel = hiltViewModel()
+
+            // Pasa el ID al ViewModel
+            LaunchedEffect(userId) {
+                userId?.let { perfilViewModel.loadPerfil(it) }
+            }
+
+            PerfilScreen(
+                navigateToHome = { navController.navigate(Home) },
+                navigateToActivity = { publicationId ->
+                    navController.navigate("activity/$publicationId")
+                },
+                perfilViewModel = perfilViewModel,
+                postInteractionViewModel = postInteractionViewModel
             )
         }
     }

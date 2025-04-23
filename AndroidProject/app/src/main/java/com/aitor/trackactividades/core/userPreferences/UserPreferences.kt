@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
-import com.aitor.trackactividades.authentication.data.response.UserResponse
+import com.aitor.trackactividades.perfil.data.response.UserResponse
 import com.aitor.trackactividades.core.model.Gender
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow

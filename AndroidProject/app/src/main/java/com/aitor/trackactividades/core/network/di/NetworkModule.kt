@@ -2,6 +2,7 @@ package com.aitor.trackactividades.core.network.di
 
 import com.aitor.trackactividades.authentication.data.AuthenticationApiService
 import com.aitor.trackactividades.feed.data.PublicationsApiService
+import com.aitor.trackactividades.perfil.data.UserApiService
 import com.aitor.trackactividades.recordActivity.data.ActivitiesApiService
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -88,5 +89,11 @@ object NetworkModule {
     @Singleton
     fun providePublicationsApiService(retrofit: Retrofit): PublicationsApiService {
         return retrofit.create(PublicationsApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserApiService(retrofit: Retrofit): UserApiService {
+        return retrofit.create(UserApiService::class.java)
     }
 }

@@ -8,12 +8,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aitor.trackactividades.authentication.domain.GetUserUseCase
 import com.aitor.trackactividades.authentication.domain.RegisterUseCase
 import com.aitor.trackactividades.core.model.Gender
 import com.aitor.trackactividades.authentication.presentation.model.RegisterModel
 import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
+import com.aitor.trackactividades.perfil.domain.GetMyUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,7 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
-    private val getUserUseCase: GetUserUseCase,
+    private val getUserUseCase: GetMyUserUseCase,
     private val userPreferences: UserPreferences,
     private val tokenManager: TokenManager
 

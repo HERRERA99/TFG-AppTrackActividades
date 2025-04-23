@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,7 +37,10 @@ import com.aitor.trackactividades.feed.presentation.model.Publication
 import java.time.format.DateTimeFormatter
 import androidx.paging.LoadState
 import androidx.paging.compose.*
+import coil.compose.rememberAsyncImagePainter
+import com.aitor.trackactividades.core.compose.PublicationsList
 import com.aitor.trackactividades.feed.presentation.model.Comment
+import com.aitor.trackactividades.perfil.presentation.PostInteractionViewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import kotlin.random.Random
@@ -43,14 +48,17 @@ import kotlin.random.Random
 @Composable
 fun FeedScreen(
     feedViewModel: FeedViewModel,
+    postInteractionViewModel: PostInteractionViewModel,
     navigateToStartRecordActivity: () -> Unit,
     navigateToActivity: (Long) -> Unit,
-    navigateToHome: () -> Unit
+    navigateToHome: () -> Unit,
+    navigateToProfile: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val publications = feedViewModel.publications.collectAsLazyPagingItems()
     val imagen by feedViewModel.imagenPerfil.observeAsState("")
     val comentario by feedViewModel.comentario.observeAsState("")
+    val userId by feedViewModel.userId.observeAsState(0)
 
     // Estado para rastrear si los permisos han sido concedidos
     var hasLocationPermissions by remember {
@@ -93,8 +101,10 @@ fun FeedScreen(
         topBar = {
             FeedTopBar(
                 navigateToHome = navigateToHome,
+                navigateToProfile = navigateToProfile,
                 feedViewModel = feedViewModel,
-                imagenPerfil = imagen
+                imagenPerfil = imagen,
+                userId = userId
             )
         },
         bottomBar = {
@@ -160,11 +170,10 @@ fun FeedScreen(
                 else -> {
                     PublicationsList(
                         publications = publications,
-                        comentario = comentario,
-                        feedViewModel = feedViewModel,
                         navigateToActivity = { publicationId ->
                             navigateToActivity(publicationId)
-                        }
+                        },
+                        viewModel = postInteractionViewModel
                     )
 
                     if (publications.loadState.append is LoadState.Loading) {
@@ -184,43 +193,14 @@ fun FeedScreen(
     }
 }
 
-@Composable
-fun PublicationsList(
-    publications: LazyPagingItems<Publication>,
-    navigateToActivity: (Long) -> Unit,
-    comentario: String,
-    feedViewModel: FeedViewModel
-) {
-    val isRefreshing = publications.loadState.refresh is LoadState.Loading
-
-    SwipeRefresh(
-        state = remember { SwipeRefreshState(isRefreshing) },
-        onRefresh = { publications.refresh() }
-    ) {
-        LazyColumn {
-            items(publications.itemCount) {
-                publications[it]?.let { publication ->
-                    PublicacionItem(
-                        comentario = comentario,
-                        publication = publication,
-                        feedViewModel = feedViewModel,
-                        navigateToActivity = {
-                            publication.id?.let { id -> navigateToActivity(id) }
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedTopBar(
     navigateToHome: () -> Unit,
+    navigateToProfile: (Int) -> Unit,
     feedViewModel: FeedViewModel,
-    imagenPerfil: String
+    imagenPerfil: String,
+    userId: Int?
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -253,14 +233,22 @@ fun FeedTopBar(
                 )
             }
             IconButton(onClick = {
-
+                if (userId != null) {
+                    navigateToProfile(userId)
+                } else {
+                    Log.e("FeedTopBar", "userId es nulo")
+                }
             }) {
-                AsyncImage(
-                    model = if (imagenPerfil.isNotEmpty()) imagenPerfil else "https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp",
-                    contentDescription = "Imagen de perfil",
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        model = if (imagenPerfil.isNotEmpty()) imagenPerfil else "https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp"
+                    ),
+                    contentDescription = "Foto de perfil",
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
+                        .border(2.dp, Color.Gray, CircleShape),
+                    contentScale = ContentScale.Crop
                 )
             }
         },
@@ -368,430 +356,5 @@ fun FeedBottomBar(onRegisterClick: () -> Unit) {
             selected = false,
             onClick = { /*TODO*/ }
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PublicacionItem(
-    comentario: String,
-    publication: Publication,
-    navigateToActivity: (Long) -> Unit,
-    feedViewModel: FeedViewModel
-) {
-    // Estado para el Bottom Sheet
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-    var showComments by remember { mutableStateOf(false) }
-
-    // Usar remember con el estado del ViewModel
-    val isLiked by remember(publication.id) {
-        derivedStateOf {
-            feedViewModel.isPublicationLiked(publication.likes, publication.id!!)
-        }
-    }
-
-    // Contador de likes basado en el estado real
-    val likeCount by remember(publication.likes, isLiked) {
-        derivedStateOf {
-            val baseCount = publication.likes.size
-            if (isLiked && !publication.likes.contains(feedViewModel.userId.value)) {
-                baseCount + 1
-            } else if (!isLiked && publication.likes.contains(feedViewModel.userId.value)) {
-                baseCount - 1
-            } else {
-                baseCount
-            }
-        }
-    }
-
-    // Observar los comentarios y el estado de carga
-    val comments by feedViewModel.comments.collectAsState()
-    val isLoadingComments by feedViewModel.isLoadingComments.collectAsState()
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onBackground
-        ),
-        onClick = {
-            publication.id?.let { id ->
-                navigateToActivity(id)
-            }
-        }
-    ) {
-        val color = MaterialTheme.colorScheme.primary
-        val primaryColorHex = remember {
-            String.format(
-                "0x%06X",
-                (0xFFFFFF and color.toArgb())
-            ).replace("0x", "")
-        }
-
-        val route = publication.route
-        val mapUrl = remember(route, primaryColorHex) {
-            if (route.isEmpty()) "" else {
-                val path = route.joinToString("|") { "${it.latitude},${it.longitude}" }
-                "https://maps.googleapis.com/maps/api/staticmap?" +
-                        "size=600x300&" +
-                        "path=color:0x$primaryColorHex|weight:5|$path&" +
-                        "key=AIzaSyCdDvb7RiCnc86jlFjJ8yJzIE4xTC8Fri8"
-            }
-        }
-
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AsyncImage(
-                    model = publication.user?.imageUrl
-                        ?: "https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp",
-                    contentDescription = "Imagen de perfil",
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = publication.user?.username ?: "Usuario desconocido",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = publication.activityType?.icon
-                                ?: Icons.Default.DirectionsRun,
-                            contentDescription = publication.activityType?.name,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = publication.startTime?.format(
-                                DateTimeFormatter.ofPattern("d MMM yyyy 'a las' HH:mm")
-                            ) ?: "Fecha desconocida",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontSize = 14.sp
-                            )
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = publication.title ?: "Actividad sin título",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Distancia",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontSize = 14.sp
-                        )
-                    )
-                    Text(
-                        text = publication.formatDistance(),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 20.sp
-                        ),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Desnivel positivo",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontSize = 14.sp
-                        )
-                    )
-                    Text(
-                        text = "${publication.positiveElevation.toInt()} m",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 20.sp
-                        ),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Tiempo",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontSize = 14.sp
-                        )
-                    )
-                    Text(
-                        text = publication.formatDuration(),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 20.sp
-                        ),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (mapUrl.isNotEmpty()) {
-                Image(
-                    painter = rememberImagePainter(mapUrl),
-                    contentDescription = "Mapa de la ruta",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    IconButton(
-                        onClick = {
-                            try {
-                                feedViewModel.toggleLike(
-                                    publication.id ?: 0L,
-                                    isLiked
-                                )
-                            } catch (e: Exception) {
-                                Log.e("Publicacion", "Error al hacer like", e)
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Like",
-                            modifier = Modifier.size(28.dp),
-                            tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    Text(
-                        text = likeCount.toString(),
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    IconButton(
-                        onClick = { showComments = true }
-                    ) {
-                        Icon(
-                            Icons.Default.Comment,
-                            contentDescription = "Comment",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    // Bottom Sheet de comentarios
-                    if (showComments) {
-                        ModalBottomSheet(
-                            onDismissRequest =
-                            {
-                                feedViewModel.clearComentario()
-                                showComments = false
-                            },
-                            sheetState = sheetState,
-                            containerColor = MaterialTheme.colorScheme.background
-                        ) {
-                            CommentsSection(
-                                publicationId = publication.id ?: 0L,
-                                comments = comments,
-                                comentario = comentario,
-                                isLoading = isLoadingComments,
-                                viewModel = feedViewModel
-                            )
-                        }
-
-                        // Cargar comentarios cuando se abre el BottomSheet
-                        LaunchedEffect(showComments) {
-                            if (showComments) {
-                                feedViewModel.loadComments(publication.id ?: 0L)
-                            }
-                        }
-                    }
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            Icons.Default.Share,
-                            contentDescription = "Share",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CommentsSection(
-    publicationId: Long,
-    comentario: String,
-    comments: List<Comment>,
-    isLoading: Boolean,
-    viewModel: FeedViewModel,
-) {
-    val maxChar = 250
-    val charCount = comentario.length
-    val isOverLimit = charCount > maxChar
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Comentarios",
-                style = MaterialTheme.typography.titleLarge
-            )
-        }
-
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (comments.isEmpty()) {
-            Text(
-                text = "No hay comentarios",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                textAlign = TextAlign.Center
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxHeight(0.7f)
-                    .padding(vertical = 8.dp)
-            ) {
-                itemsIndexed(comments) { _, comment ->
-                    Divider()
-                    CommentItem(
-                        comment = comment,
-                        feedViewModel = viewModel
-                    )
-                    Divider()
-                }
-            }
-        }
-
-        // Campo para añadir nuevo comentario
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            AsyncImage(
-                model = viewModel.imagenPerfil.value,
-                contentDescription = "Avatar",
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            TextField(
-                value = comentario,
-                onValueChange = { viewModel.onComentarioChange(it) },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                placeholder = { Text("Escribe un comentario...") },
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent
-                ),
-                trailingIcon = {
-                    Text(
-                        text = "$charCount/$maxChar",
-                        color = if (isOverLimit) Color.Red else Color.Gray,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            )
-
-            IconButton(
-                onClick = {
-                    if (comentario.isNotBlank()) {
-                        viewModel.addComment(publicationId)
-                    }
-                },
-                enabled = comentario.isNotBlank() && !isOverLimit
-            ) {
-                Icon(Icons.Default.Send, contentDescription = "Enviar")
-            }
-        }
-    }
-}
-
-
-@Composable
-fun CommentItem(comment: Comment, feedViewModel: FeedViewModel) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = if (comment.userImage.isNotEmpty()) comment.userImage else "https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp",
-            contentDescription = "Avatar",
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(comment.userName, fontWeight = FontWeight.Bold)
-            Text(comment.comment)
-            Text(
-                text = feedViewModel.tiempoTranscurrido(comment.creationDate),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
-        }
     }
 }

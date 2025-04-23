@@ -26,3 +26,11 @@ data class Activity(val publicationId: Long) {
         const val ROUTE = "activity/{publicationId}"
     }
 }
+
+@Serializable
+data class Profile(val userId: Int) {
+    companion object {
+        const val ROUTE = "profile/{userId}"
+    }
+
+}

@@ -1,8 +1,8 @@
-package com.aitor.trackactividades.authentication.data.response
+package com.aitor.trackactividades.perfil.data.response
 
 import com.aitor.trackactividades.core.model.Gender
+import com.aitor.trackactividades.perfil.presentation.model.UserModel
 import kotlinx.serialization.Serializable
-import java.time.LocalDate
 
 @Serializable
 data class UserResponse(
@@ -30,6 +30,20 @@ data class UserResponse(
                 genero='$genero'
             )
         """.trimIndent()
+    }
+
+    fun toPresentation(): UserModel {
+        return UserModel(
+            id = id,
+            image = image,
+            username = username,
+            nombre = nombre,
+            apellidos = apellidos,
+            email = email,
+            peso = peso,
+            altura = altura,
+            genero = genero
+        )
     }
 }
 

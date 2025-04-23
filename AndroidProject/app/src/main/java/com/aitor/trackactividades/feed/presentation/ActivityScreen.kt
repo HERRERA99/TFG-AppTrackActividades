@@ -84,7 +84,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ActivityScreen(
     activityViewModel: ActivityViewModel,
-    navigateToHome: () -> Unit
+    navigateToHome: () -> Unit,
 ) {
     val publication by activityViewModel.publication.collectAsState()
 

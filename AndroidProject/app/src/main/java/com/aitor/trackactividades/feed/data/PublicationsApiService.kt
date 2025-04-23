@@ -25,6 +25,14 @@ interface PublicationsApiService {
         @Query("size") size: Int = 10
     ): PageResponse
 
+    @GET("/publications/user/{userId}")
+    suspend fun getUserPublications(
+        @Header("Authorization") token: String,
+        @Path("userId") userId: Int,
+        @Query("page") page: Int,
+        @Query("size") size: Int = 10
+    ): PageResponse
+
     @PUT("/publications/{id}/like")
     suspend fun addLike(
         @Header("Authorization") token: String,

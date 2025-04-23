@@ -16,6 +16,16 @@ public class UserService {
     public UserResponse getUserByName(String name) {
         Optional<User> userOptional = userRepository.findByUsername(name);
 
+        return getUserResponse(userOptional);
+    }
+
+    public UserResponse getUserById(int id) {
+        Optional<User> userOptional = userRepository.findById(id);
+
+        return getUserResponse(userOptional);
+    }
+
+    private UserResponse getUserResponse(Optional<User> userOptional) {
         if (userOptional.isEmpty()) {
             throw new RuntimeException("Usuario no encontrado");
         }

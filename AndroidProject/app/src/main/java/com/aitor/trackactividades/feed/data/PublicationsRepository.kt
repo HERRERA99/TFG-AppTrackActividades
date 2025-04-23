@@ -31,6 +31,17 @@ class PublicationsRepository @Inject constructor(private val publicationsApiServ
             }).flow
     }
 
+    fun getUserPublications(userId: Int): Flow<PagingData<Publication>> {
+        return Pager(config = PagingConfig(pageSize = PAGE_SIZE, prefetchDistance = PREFETCH_ITEMS),
+            pagingSourceFactory = {
+                UserPublicationsPaginSource(
+                    userId,
+                    publicationsApiService,
+                    tokenManager
+                )
+            }).flow
+    }
+
     suspend fun addLike(token: String, id: Long, userId: Int): Publication {
         return publicationsApiService.addLike("Bearer $token", id, userId).toPresentation()
     }

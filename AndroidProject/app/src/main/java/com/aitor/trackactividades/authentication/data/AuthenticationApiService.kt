@@ -3,13 +3,10 @@ package com.aitor.trackactividades.authentication.data
 import com.aitor.trackactividades.authentication.data.request.LoginRequest
 import com.aitor.trackactividades.authentication.data.request.RegisterRequest
 import com.aitor.trackactividades.authentication.data.response.ResponseWrapper
-import com.aitor.trackactividades.authentication.data.response.UserResponse
 import com.aitor.trackactividades.authentication.data.response.ValidResponse
 import retrofit2.http.Body
-import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.Query
 
 interface AuthenticationApiService {
 
@@ -18,11 +15,6 @@ interface AuthenticationApiService {
 
     @POST("/auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): ResponseWrapper
-
-    @GET("/user/me")
-    suspend fun getUser(
-        @Header("Authorization") token: String
-    ): UserResponse
 
     @POST("/auth/validateToken")
     suspend fun validateToken(
