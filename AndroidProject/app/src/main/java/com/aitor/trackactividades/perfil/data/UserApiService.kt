@@ -1,5 +1,6 @@
 package com.aitor.trackactividades.perfil.data
 
+import com.aitor.trackactividades.perfil.data.response.UserProfileResponse
 import com.aitor.trackactividades.perfil.data.response.UserResponse
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -15,6 +16,6 @@ interface UserApiService {
     suspend fun getUserById(
         @Header("Authorization") token: String,
         @Path("idUser") idUser: Int
-    ): UserResponse
+    ): UserProfileResponse
 
 }

@@ -31,19 +31,5 @@ data class UserResponse(
             )
         """.trimIndent()
     }
-
-    fun toPresentation(): UserModel {
-        return UserModel(
-            id = id,
-            image = image,
-            username = username,
-            nombre = nombre,
-            apellidos = apellidos,
-            email = email,
-            peso = peso,
-            altura = altura,
-            genero = genero
-        )
-    }
 }
 

@@ -1,5 +1,6 @@
 package com.aitor.api_tfg.controllers;
 
+import com.aitor.api_tfg.model.dto.UserProfileDTO;
 import com.aitor.api_tfg.model.response.UserResponse;
 import com.aitor.api_tfg.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,11 @@ public class UserController {
     }
 
     @GetMapping("/{idUser}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable int idUser) {
-        UserResponse user = userService.getUserById(idUser);
+    public ResponseEntity<UserProfileDTO> getUserById(@PathVariable int idUser, Authentication authentication) {
+        String currentUsername = authentication.getName();
+        UserProfileDTO user = userService.getUserById(idUser, currentUsername);
         return ResponseEntity.ok(user);
     }
+
 
 }

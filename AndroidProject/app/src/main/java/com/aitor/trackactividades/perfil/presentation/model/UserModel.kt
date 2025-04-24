@@ -11,5 +11,8 @@ data class UserModel(
     val email: String,
     val peso: Double,
     val altura: Int,
-    val genero: Gender
+    val genero: Gender,
+    val followersCount: Int,
+    val followingCount: Int,
+    val isFollowing: Boolean
 )

@@ -30,8 +30,7 @@ import javax.inject.Inject
 class PerfilViewModel @Inject constructor(
     private val getUserPublicationsUseCase: GetUserPublicationsUseCase,
     private val getUserByIdUserCase: GetUserByIdUserCase,
-    private val tokenManager: TokenManager,
-    private val postHandler: PostInteractionHandler
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _userId = MutableStateFlow<Int?>(null)
@@ -45,17 +44,8 @@ class PerfilViewModel @Inject constructor(
         .filterNotNull()
         .flatMapLatest { getUserPublicationsUseCase.execute(userId = it) }
 
-    private val _likedPublications = mutableStateMapOf<Long, Boolean>()
-    val likedPublications: SnapshotStateMap<Long, Boolean> = _likedPublications
-
     private val _comments = MutableStateFlow<List<Comment>>(emptyList())
     val comments: StateFlow<List<Comment>> = _comments
-
-    private val _isLoadingComments = MutableStateFlow(false)
-    val isLoadingComments: StateFlow<Boolean> = _isLoadingComments
-
-    private val _comentario = MutableLiveData<String>()
-    val comentario: LiveData<String> = _comentario
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
@@ -71,58 +61,7 @@ class PerfilViewModel @Inject constructor(
         }
     }
 
-    fun toggleLike(publicationId: Long, isLiked: Boolean) {
-        viewModelScope.launch {
-            val result = postHandler.toggleLike(publicationId, isLiked)
-            result
-                .onSuccess { _likedPublications[publicationId] = it }
-                .onFailure {
-                    _error.value = "Error al dar like: ${it.message}"
-                    _likedPublications[publicationId] = !isLiked
-                }
-        }
-    }
-
-    fun loadComments(publicationId: Long) {
-        viewModelScope.launch {
-            _isLoadingComments.value = true
-            val result = postHandler.getComments(publicationId)
-            result
-                .onSuccess { _comments.value = it }
-                .onFailure { _error.value = "Error al cargar comentarios: ${it.message}" }
-            _isLoadingComments.value = false
-        }
-    }
-
-    fun addComment(publicationId: Long) {
-        viewModelScope.launch {
-            val result = postHandler.addComment(publicationId, _comentario.value ?: "")
-            result
-                .onSuccess {
-                    _comments.value += it
-                    clearComentario()
-                }
-                .onFailure { _error.value = "Error al agregar comentario: ${it.message}" }
-        }
-    }
-
-    fun onComentarioChange(value: String) {
-        _comentario.value = value
-    }
-
-    fun clearComentario() {
-        _comentario.value = ""
-    }
-
-    fun isPublicationLiked(likes: List<Int>, publicationId: Long): Boolean {
-        return _likedPublications[publicationId] ?: likes.contains(_userId.value)
-    }
-
-    suspend fun logout() {
-        tokenManager.clearToken()
-    }
-
-    fun tiempoTranscurrido(fecha: LocalDateTime): String {
-        return postHandler.tiempoTranscurrido(fecha)
+    fun isCurrentUser(idPerfil: Int): Boolean {
+        return _userId.value == idPerfil
     }
 }
