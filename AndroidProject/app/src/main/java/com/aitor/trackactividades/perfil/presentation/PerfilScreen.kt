@@ -200,18 +200,7 @@ fun PerfilContainer(
                         ProfileStatItem(count = user.followersCount, label = "Seguidores")
                         Spacer(modifier = Modifier.width(16.dp))
                         ProfileStatItem(count = user.followingCount, label = "Seguidos")
-                    }
-
-                    Row {
-                        CompactOutlinedButton(
-                            onClick = onShareClick,
-                            icon = Icons.Default.Share,
-                            text = "Compartir",
-                            contentDescription = "Compartir"
-                        )
-
-                        Spacer(modifier = Modifier.width(6.dp))
-
+                        Spacer(modifier = Modifier.width(16.dp))
                         if (isCurrentUser) {
                             CompactOutlinedButton(
                                 onClick = onEditClick,
@@ -236,9 +225,7 @@ fun PerfilContainer(
                                 )
                             }
                         }
-
                     }
-
                 }
             }
         }
