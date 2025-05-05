@@ -3,6 +3,7 @@ package com.aitor.trackactividades.core.compose
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,7 +54,8 @@ fun PublicationItem(
     publication: Publication,
     navigateToActivity: (Long) -> Unit,
     viewModel: PostInteractionViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigateToProfile: (Int) -> Unit
 ) {
     // Estado para el Bottom Sheet
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -131,7 +133,10 @@ fun PublicationItem(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .border(2.dp, Color.Gray, CircleShape),
+                        .border(2.dp, Color.Gray, CircleShape)
+                        .clickable {
+                            navigateToProfile(publication.user?.id ?: 0)
+                        },
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.width(12.dp))

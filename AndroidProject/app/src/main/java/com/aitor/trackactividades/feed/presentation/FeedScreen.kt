@@ -173,7 +173,8 @@ fun FeedScreen(
                         navigateToActivity = { publicationId ->
                             navigateToActivity(publicationId)
                         },
-                        viewModel = postInteractionViewModel
+                        viewModel = postInteractionViewModel,
+                        navigateToProfile = navigateToProfile
                     )
 
                     if (publications.loadState.append is LoadState.Loading) {

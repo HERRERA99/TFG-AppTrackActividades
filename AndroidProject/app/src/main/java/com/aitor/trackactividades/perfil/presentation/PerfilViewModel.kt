@@ -30,7 +30,8 @@ import javax.inject.Inject
 class PerfilViewModel @Inject constructor(
     private val getUserPublicationsUseCase: GetUserPublicationsUseCase,
     private val getUserByIdUserCase: GetUserByIdUserCase,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val _userId = MutableStateFlow<Int?>(null)
@@ -52,7 +53,7 @@ class PerfilViewModel @Inject constructor(
 
     fun loadPerfil(idPerfil: Int) {
         viewModelScope.launch {
-            _userId.value = idPerfil
+            _userId.value = userPreferences.getId()
             _user.value = getUserByIdUserCase(
                 token = tokenManager.getToken() ?: "",
                 idUser = idPerfil
@@ -61,7 +62,9 @@ class PerfilViewModel @Inject constructor(
         }
     }
 
-    fun isCurrentUser(idPerfil: Int): Boolean {
-        return _userId.value == idPerfil
+    fun isCurrentUser(): Boolean {
+        Log.d("Perfil", "Usuario Perfil: ${_userId.value}")
+        Log.d("Perfil", "Usuario App: ${_user.value?.id}")
+        return _userId.value == _user.value?.id
     }
 }

@@ -16,7 +16,8 @@ fun PublicationsList(
     publications: LazyPagingItems<Publication>,
     navigateToActivity: (Long) -> Unit,
     viewModel: PostInteractionViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigateToProfile: (Int) -> Unit
 ) {
     val isRefreshing = publications.loadState.refresh is LoadState.Loading
 
@@ -30,7 +31,8 @@ fun PublicationsList(
                     PublicationItem(
                         publication = publication,
                         navigateToActivity = navigateToActivity,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        navigateToProfile = navigateToProfile
                     )
                 }
             }
