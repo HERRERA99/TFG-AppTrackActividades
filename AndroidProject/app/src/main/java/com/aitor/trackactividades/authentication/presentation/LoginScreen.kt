@@ -76,9 +76,6 @@ fun LoginScreen(
                 if (isLoading) {
                     CircularProgressIndicator(Modifier)
                 } else {
-                    Button(onClick = { navigateToFeed() }) {
-                        Text(text = "Ir a Feed")
-                    }
                     LoginHeader(Modifier)
                     LoginBody(
                         Modifier,

@@ -92,7 +92,7 @@ public class ActivityMapper {
     public PublicationDTO mapToPublicationDTO(Publication publication) {
         return PublicationDTO.builder()
                 .id(publication.getId())
-                .user(new UserDTO(publication.getUser().getUsername(), publication.getUser().getImageUrl()))
+                .user(new UserDTO(publication.getUser().getId(), publication.getUser().getUsername(), publication.getUser().getImageUrl()))
                 .title(publication.getActivity().getTitle())
                 .startTime(publication.getActivity().getStartTime())
                 .endTime(publication.getActivity().getEndTime())

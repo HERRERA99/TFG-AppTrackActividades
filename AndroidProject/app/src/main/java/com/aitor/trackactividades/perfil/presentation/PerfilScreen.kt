@@ -83,7 +83,7 @@ fun PerfilScreen(
     postInteractionViewModel: PostInteractionViewModel
 ) {
     val publications = perfilViewModel.publications.collectAsLazyPagingItems()
-    val user by perfilViewModel.user.observeAsState()
+    val user by perfilViewModel.user.collectAsState()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 

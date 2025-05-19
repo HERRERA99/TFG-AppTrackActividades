@@ -37,13 +37,13 @@ class PerfilViewModel @Inject constructor(
     private val _userId = MutableStateFlow<Int?>(null)
     val userId: StateFlow<Int?> = _userId
 
-    private val _user = MutableLiveData<UserModel>()
-    val user: LiveData<UserModel> = _user
+    private val _user = MutableStateFlow<UserModel?>(null)
+    val user: StateFlow<UserModel?> = _user
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val publications: Flow<PagingData<Publication>> = _userId
+    val publications: Flow<PagingData<Publication>> = _user
         .filterNotNull()
-        .flatMapLatest { getUserPublicationsUseCase.execute(userId = it) }
+        .flatMapLatest { getUserPublicationsUseCase.execute(userId = it.id) }
 
     private val _comments = MutableStateFlow<List<Comment>>(emptyList())
     val comments: StateFlow<List<Comment>> = _comments
@@ -54,10 +54,11 @@ class PerfilViewModel @Inject constructor(
     fun loadPerfil(idPerfil: Int) {
         viewModelScope.launch {
             _userId.value = userPreferences.getId()
-            _user.value = getUserByIdUserCase(
+            val userLoaded = getUserByIdUserCase(
                 token = tokenManager.getToken() ?: "",
                 idUser = idPerfil
             )
+            _user.value = userLoaded
             Log.d("Perfil", user.value.toString())
         }
     }
