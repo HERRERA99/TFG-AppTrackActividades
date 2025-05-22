@@ -1,5 +1,6 @@
 package com.aitor.trackactividades.recordActivity.domain
 
+import Activity
 import com.aitor.trackactividades.recordActivity.data.ActivitiesRepository
 import com.aitor.trackactividades.recordActivity.data.request.ActivityRequest
 import com.aitor.trackactividades.recordActivity.data.request.LatLngRequest

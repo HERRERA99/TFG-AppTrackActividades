@@ -51,7 +51,7 @@ fun FeedScreen(
     postInteractionViewModel: PostInteractionViewModel,
     navigateToStartRecordActivity: () -> Unit,
     navigateToActivity: (Long) -> Unit,
-    navigateToHome: () -> Unit,
+    navigateToSearch: () -> Unit,
     navigateToProfile: (Int) -> Unit
 ) {
     val context = LocalContext.current
@@ -100,8 +100,8 @@ fun FeedScreen(
     Scaffold(
         topBar = {
             FeedTopBar(
-                navigateToHome = navigateToHome,
                 navigateToProfile = navigateToProfile,
+                navigateToSearch = navigateToSearch,
                 feedViewModel = feedViewModel,
                 imagenPerfil = imagen,
                 userId = userId
@@ -197,8 +197,8 @@ fun FeedScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedTopBar(
-    navigateToHome: () -> Unit,
     navigateToProfile: (Int) -> Unit,
+    navigateToSearch: () -> Unit,
     feedViewModel: FeedViewModel,
     imagenPerfil: String,
     userId: Int?
@@ -215,14 +215,11 @@ fun FeedTopBar(
         },
         actions = {
             IconButton(onClick = {
-                coroutineScope.launch {
-                    feedViewModel.logout()
-                    navigateToHome()
-                }
+                navigateToSearch()
             }) {
                 Icon(
-                    imageVector = Icons.Default.Logout,
-                    contentDescription = "Logout",
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Buscar",
                     modifier = Modifier.size(48.dp)
                 )
             }

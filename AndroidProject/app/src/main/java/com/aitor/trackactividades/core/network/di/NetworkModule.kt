@@ -1,6 +1,7 @@
 package com.aitor.trackactividades.core.network.di
 
 import com.aitor.trackactividades.authentication.data.AuthenticationApiService
+import com.aitor.trackactividades.buscarUsuario.data.SearchUserApiService
 import com.aitor.trackactividades.feed.data.PublicationsApiService
 import com.aitor.trackactividades.perfil.data.UserApiService
 import com.aitor.trackactividades.recordActivity.data.ActivitiesApiService
@@ -95,5 +96,11 @@ object NetworkModule {
     @Singleton
     fun provideUserApiService(retrofit: Retrofit): UserApiService {
         return retrofit.create(UserApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchUserApiService(retrofit: Retrofit): SearchUserApiService {
+        return retrofit.create(SearchUserApiService::class.java)
     }
 }

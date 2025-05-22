@@ -21,6 +21,8 @@ import com.aitor.trackactividades.authentication.presentation.RegisterScreen
 import com.aitor.trackactividades.authentication.presentation.RegisterViewModel
 import com.aitor.trackactividades.authentication.presentation.SplashScreen
 import com.aitor.trackactividades.authentication.presentation.SplashViewModel
+import com.aitor.trackactividades.buscarUsuario.presentation.SearchScreen
+import com.aitor.trackactividades.buscarUsuario.presentation.SearchViewModel
 import com.aitor.trackactividades.feed.presentation.ActivityScreen
 import com.aitor.trackactividades.feed.presentation.ActivityViewModel
 import com.aitor.trackactividades.perfil.presentation.PerfilScreen
@@ -93,11 +95,6 @@ fun NavigationWrapper() {
             val postInteractionViewModel: PostInteractionViewModel = hiltViewModel()
             FeedScreen(
                 navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
-                navigateToHome = {
-                    navController.navigate(Home) {
-                        popUpTo(0)
-                    }
-                },
                 navigateToActivity = { publicationId ->
                     navController.navigate("activity/$publicationId")
                 },
@@ -105,6 +102,7 @@ fun NavigationWrapper() {
                 navigateToProfile = { profileId ->
                     navController.navigate("profile/$profileId")
                 },
+                navigateToSearch = { navController.navigate(Search) },
                 postInteractionViewModel = postInteractionViewModel
             )
         }
@@ -150,12 +148,26 @@ fun NavigationWrapper() {
             }
 
             PerfilScreen(
-                navigateToHome = { navController.navigate(Home) },
+                navigateToHome = {
+                    navController.navigate(Home) {
+                        popUpTo(0)
+                    }
+                },
                 navigateToActivity = { publicationId ->
                     navController.navigate("activity/$publicationId")
                 },
                 perfilViewModel = perfilViewModel,
                 postInteractionViewModel = postInteractionViewModel
+            )
+        }
+        composable<Search> {
+            val searchViewModel: SearchViewModel = hiltViewModel()
+            SearchScreen(
+                searchViewModel = searchViewModel,
+                navigateToProfile = { profileId ->
+                    navController.navigate("profile/$profileId")
+                },
+                navigateToFeed = { navController.navigate(Feed) }
             )
         }
     }

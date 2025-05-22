@@ -21,6 +21,9 @@ object Feed
 object RecordActivity
 
 @Serializable
+object Search
+
+@Serializable
 data class Activity(val publicationId: Long) {
     companion object {
         const val ROUTE = "activity/{publicationId}"

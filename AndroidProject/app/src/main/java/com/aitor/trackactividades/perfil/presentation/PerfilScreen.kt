@@ -174,8 +174,8 @@ fun PerfilTopBar(
         actions = {
             IconButton(onClick = navigateToHome) {
                 Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home",
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = "Logout",
                     modifier = Modifier.size(48.dp)
                 )
             }
