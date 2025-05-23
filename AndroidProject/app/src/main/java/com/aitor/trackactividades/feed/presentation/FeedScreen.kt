@@ -9,10 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -22,28 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import coil.compose.AsyncImage
-import coil.compose.rememberImagePainter
-import kotlinx.coroutines.launch
-import com.aitor.trackactividades.feed.presentation.model.Publication
-import java.time.format.DateTimeFormatter
 import androidx.paging.LoadState
 import androidx.paging.compose.*
 import coil.compose.rememberAsyncImagePainter
 import com.aitor.trackactividades.core.compose.PublicationsList
-import com.aitor.trackactividades.feed.presentation.model.Comment
 import com.aitor.trackactividades.perfil.presentation.PostInteractionViewModel
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshState
-import kotlin.random.Random
 
 @Composable
 fun FeedScreen(
@@ -52,7 +38,8 @@ fun FeedScreen(
     navigateToStartRecordActivity: () -> Unit,
     navigateToActivity: (Long) -> Unit,
     navigateToSearch: () -> Unit,
-    navigateToProfile: (Int) -> Unit
+    navigateToProfile: (Int) -> Unit,
+    navigateToHistorial: () -> Unit
 ) {
     val context = LocalContext.current
     val publications = feedViewModel.publications.collectAsLazyPagingItems()
@@ -120,7 +107,9 @@ fun FeedScreen(
                             )
                         )
                     }
-                }
+                },
+                onHistorialClick = navigateToHistorial,
+                onFeedClick = null
             )
         }
     ) { innerPadding ->
@@ -259,7 +248,11 @@ fun FeedTopBar(
 }
 
 @Composable
-fun FeedBottomBar(onRegisterClick: () -> Unit) {
+fun FeedBottomBar(
+    onRegisterClick: () -> Unit,
+    onHistorialClick: (() -> Unit)?,
+    onFeedClick: (() -> Unit)?
+) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground
@@ -279,8 +272,8 @@ fun FeedBottomBar(onRegisterClick: () -> Unit) {
                     fontWeight = FontWeight.Medium
                 )
             },
-            selected = false,
-            onClick = { /*TODO*/ }
+            selected = if (onFeedClick != null) false else true,
+            onClick = { onFeedClick?.invoke() }
         )
         NavigationBarItem(
             icon = {
@@ -351,8 +344,8 @@ fun FeedBottomBar(onRegisterClick: () -> Unit) {
                     fontWeight = FontWeight.Medium
                 )
             },
-            selected = false,
-            onClick = { /*TODO*/ }
+            selected = if (onHistorialClick != null) false else true,
+            onClick = { onHistorialClick?.invoke() }
         )
     }
 }

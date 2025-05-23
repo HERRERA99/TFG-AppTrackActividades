@@ -25,6 +25,8 @@ import com.aitor.trackactividades.buscarUsuario.presentation.SearchScreen
 import com.aitor.trackactividades.buscarUsuario.presentation.SearchViewModel
 import com.aitor.trackactividades.feed.presentation.ActivityScreen
 import com.aitor.trackactividades.feed.presentation.ActivityViewModel
+import com.aitor.trackactividades.historialActividades.presentation.HistorialScreen
+import com.aitor.trackactividades.historialActividades.presentation.HistorialViewModel
 import com.aitor.trackactividades.perfil.presentation.PerfilScreen
 import com.aitor.trackactividades.perfil.presentation.PerfilViewModel
 import com.aitor.trackactividades.perfil.presentation.PostInteractionViewModel
@@ -103,7 +105,8 @@ fun NavigationWrapper() {
                     navController.navigate("profile/$profileId")
                 },
                 navigateToSearch = { navController.navigate(Search) },
-                postInteractionViewModel = postInteractionViewModel
+                postInteractionViewModel = postInteractionViewModel,
+                navigateToHistorial = { navController.navigate(Historial) }
             )
         }
         composable<RecordActivity> {
@@ -167,6 +170,17 @@ fun NavigationWrapper() {
                 navigateToProfile = { profileId ->
                     navController.navigate("profile/$profileId")
                 },
+                navigateToFeed = { navController.navigate(Feed) }
+            )
+        }
+        composable<Historial> {
+            val historialViewModel: HistorialViewModel = hiltViewModel()
+            HistorialScreen(
+                historialViewModel = historialViewModel,
+                navigateToActivity = { publicationId ->
+                    navController.navigate("activity/$publicationId")
+                },
+                navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
                 navigateToFeed = { navController.navigate(Feed) }
             )
         }

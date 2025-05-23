@@ -53,7 +53,7 @@ import kotlin.collections.contains
 fun PublicationItem(
     publication: Publication,
     navigateToActivity: (Long) -> Unit,
-    viewModel: PostInteractionViewModel,
+    viewModel: PostInteractionViewModel?,
     modifier: Modifier = Modifier,
     navigateToProfile: (Int) -> Unit
 ) {
@@ -65,27 +65,30 @@ fun PublicationItem(
     // Observar el estado del ViewModel
     val isLiked by remember(publication.id) {
         derivedStateOf {
-            viewModel.isPublicationLiked(publication.likes, publication.id ?: 0L)
+            viewModel?.isPublicationLiked(publication.likes, publication.id ?: 0L) ?: false
         }
     }
+
 
     // Contador de likes basado en el estado real
     val likeCount by remember(publication.likes, isLiked) {
         derivedStateOf {
             val baseCount = publication.likes.size
-            if (isLiked && !publication.likes.contains(viewModel.userId.value)) {
+            if (isLiked && !publication.likes.contains(viewModel?.userId?.value)) {
                 baseCount + 1
-            } else if (!isLiked && publication.likes.contains(viewModel.userId.value)) {
+            } else if (!isLiked && publication.likes.contains(viewModel?.userId?.value)) {
                 baseCount - 1
             } else {
                 baseCount
             }
         }
     }
+    if (viewModel != null) {
+        // Observar los comentarios y el estado de carga
 
-    // Observar los comentarios y el estado de carga
-    val comments by viewModel.comments.collectAsState()
-    val isLoadingComments by viewModel.isLoadingComments.collectAsState()
+        val comments by viewModel.comments.collectAsState()
+        val isLoadingComments by viewModel.isLoadingComments.collectAsState()
+    }
 
     Card(
         modifier = Modifier
@@ -242,95 +245,97 @@ fun PublicationItem(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (viewModel != null) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        onClick = {
-                            try {
-                                viewModel.toggleLike(
-                                    publication.id ?: 0L,
-                                    isLiked
-                                )
-                            } catch (e: Exception) {
-                                Log.e("Publicacion", "Error al hacer like", e)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                try {
+                                    viewModel.toggleLike(
+                                        publication.id ?: 0L,
+                                        isLiked
+                                    )
+                                } catch (e: Exception) {
+                                    Log.e("Publicacion", "Error al hacer like", e)
+                                }
                             }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Like",
-                            modifier = Modifier.size(28.dp),
-                            tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    Text(
-                        text = likeCount.toString(),
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    IconButton(
-                        onClick = { showComments = true }
-                    ) {
-                        Icon(
-                            Icons.Default.Comment,
-                            contentDescription = "Comment",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    // Bottom Sheet de comentarios
-                    if (showComments) {
-                        ModalBottomSheet(
-                            onDismissRequest =
-                            {
-                                viewModel.clearComentario()
-                                showComments = false
-                            },
-                            sheetState = sheetState,
-                            containerColor = MaterialTheme.colorScheme.background
                         ) {
-                            CommentsSection(
-                                publicationId = publication.id ?: 0L,
-                                viewModel = viewModel
+                            Icon(
+                                imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Like",
+                                modifier = Modifier.size(28.dp),
+                                tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Text(
+                            text = likeCount.toString(),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        IconButton(
+                            onClick = { showComments = true }
+                        ) {
+                            Icon(
+                                Icons.Default.Comment,
+                                contentDescription = "Comment",
+                                modifier = Modifier.size(28.dp)
                             )
                         }
 
-                        // Cargar comentarios cuando se abre el BottomSheet
-                        LaunchedEffect(showComments) {
-                            if (showComments) {
-                                viewModel.loadComments(publication.id ?: 0L)
+                        // Bottom Sheet de comentarios
+                        if (showComments) {
+                            ModalBottomSheet(
+                                onDismissRequest =
+                                    {
+                                        viewModel.clearComentario()
+                                        showComments = false
+                                    },
+                                sheetState = sheetState,
+                                containerColor = MaterialTheme.colorScheme.background
+                            ) {
+                                CommentsSection(
+                                    publicationId = publication.id ?: 0L,
+                                    viewModel = viewModel
+                                )
+                            }
+
+                            // Cargar comentarios cuando se abre el BottomSheet
+                            LaunchedEffect(showComments) {
+                                if (showComments) {
+                                    viewModel.loadComments(publication.id ?: 0L)
+                                }
                             }
                         }
                     }
-                }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            Icons.Default.Share,
-                            contentDescription = "Share",
-                            modifier = Modifier.size(28.dp)
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                Icons.Default.Share,
+                                contentDescription = "Share",
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
                 }
             }

@@ -4,6 +4,7 @@ import com.aitor.api_tfg.model.dto.CommentDTO;
 import com.aitor.api_tfg.model.dto.PageDTO;
 import com.aitor.api_tfg.model.dto.PageInfoDTO;
 import com.aitor.api_tfg.model.dto.PublicationDTO;
+import com.aitor.api_tfg.model.request.FiltroRequest;
 import com.aitor.api_tfg.services.PublicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -83,6 +84,20 @@ public class PublicationController {
 
         return getPageDTOResponseEntity(page, request, publications);
     }
+
+    @GetMapping("/user/{id}/filtro")
+    public ResponseEntity<PageDTO<PublicationDTO>> getFilteredUserPublications(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestBody FiltroRequest filtro,
+            HttpServletRequest request) {
+
+        Page<PublicationDTO> publications = publicationService.getFilteredPublicationsByUser(id, filtro, page - 1, size);
+
+        return getPageDTOResponseEntity(page, request, publications);
+    }
+
 
     private ResponseEntity<PageDTO<PublicationDTO>> getPageDTOResponseEntity(@RequestParam(defaultValue = "1") int page, HttpServletRequest request, Page<PublicationDTO> publications) {
         String baseUrl = request.getRequestURL().toString();

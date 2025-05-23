@@ -15,7 +15,7 @@ import com.google.accompanist.swiperefresh.SwipeRefreshState
 fun PublicationsList(
     publications: LazyPagingItems<Publication>,
     navigateToActivity: (Long) -> Unit,
-    viewModel: PostInteractionViewModel,
+    viewModel: PostInteractionViewModel?,
     modifier: Modifier = Modifier,
     navigateToProfile: (Int) -> Unit
 ) {

@@ -7,6 +7,7 @@ import com.aitor.api_tfg.model.db.Comment;
 import com.aitor.api_tfg.model.db.Publication;
 import com.aitor.api_tfg.model.dto.CommentDTO;
 import com.aitor.api_tfg.model.dto.PublicationDTO;
+import com.aitor.api_tfg.model.request.FiltroRequest;
 import com.aitor.api_tfg.repositories.CommentRepository;
 import com.aitor.api_tfg.repositories.PublicationRepository;
 import com.aitor.api_tfg.model.db.User;
@@ -119,4 +120,26 @@ public class PublicationService {
 
         return coments.stream().map(commentMapper::toDTO).collect(Collectors.toList());
     }
+
+    public Page<PublicationDTO> getFilteredPublicationsByUser(Integer userId, FiltroRequest filtro, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("creationDate").descending());
+
+        Page<Publication> publications = publicationRepository.findAllFilteredByUserId(
+                userId,
+                filtro.getNombre(),
+                filtro.getActivityType(),
+                filtro.getDistanciaMin(),
+                filtro.getDistanciaMax(),
+                filtro.getPositiveElevationMin(),
+                filtro.getPositiveElevationMax(),
+                filtro.getDurationMin(),
+                filtro.getDurationMax(),
+                filtro.getAverageSpeedMin(),
+                filtro.getAverageSpeedMax(),
+                pageable
+        );
+
+        return publications.map(activityMapper::mapToPublicationDTO);
+    }
+
 }
