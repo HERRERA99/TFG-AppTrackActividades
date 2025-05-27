@@ -1,11 +1,17 @@
 package com.aitor.trackactividades.perfil.data
 
+import com.aitor.trackactividades.core.token.TokenManager
+import com.aitor.trackactividades.perfil.data.response.FollowResponse
+import com.aitor.trackactividades.perfil.data.response.UnfollowResponse
 import com.aitor.trackactividades.perfil.data.response.UserProfileResponse
 import com.aitor.trackactividades.perfil.data.response.UserResponse
+import com.aitor.trackactividades.perfil.presentation.model.FollowModel
+import com.aitor.trackactividades.perfil.presentation.model.UnfollowModel
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
-    private val userApiService: UserApiService
+    private val userApiService: UserApiService,
+    private val tokenManager: TokenManager
 ) {
     suspend fun getMyUser(token: String): UserResponse {
         return userApiService.getMyUser(token)
@@ -14,4 +20,13 @@ class UserRepository @Inject constructor(
     suspend fun getUserById(token: String, idUser: Int): UserProfileResponse {
         return userApiService.getUserById("Bearer $token", idUser)
     }
+
+    suspend fun followUser(followedId: Int): FollowResponse {
+        return userApiService.followUser("Bearer ${tokenManager.getToken()}", followedId)
+    }
+
+    suspend fun unfollowUser(followedId: Int): UnfollowResponse {
+        return userApiService.unfollowUser("Bearer ${tokenManager.getToken()}", followedId)
+    }
+
 }

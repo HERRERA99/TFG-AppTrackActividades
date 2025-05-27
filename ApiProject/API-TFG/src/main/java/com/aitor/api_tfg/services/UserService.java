@@ -117,7 +117,7 @@ public class UserService {
 
         followRepository.save(follow);
 
-        return new FollowDTO(follower.getId(), followed.getId(), follow.getFollowedAt());
+        return new FollowDTO(follower.getId(), followed.getId());
     }
 
     @Transactional
@@ -132,6 +132,6 @@ public class UserService {
 
         followRepository.delete(follow);
 
-        return new UnfollowDTO(follower.getId(), followed.getId(), follow.getFollowedAt());
+        return new UnfollowDTO(follower.getId(), followed.getId());
     }
 }

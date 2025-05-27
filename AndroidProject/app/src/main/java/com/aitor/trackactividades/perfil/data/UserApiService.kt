@@ -1,9 +1,13 @@
 package com.aitor.trackactividades.perfil.data
 
+import com.aitor.trackactividades.perfil.data.response.FollowResponse
+import com.aitor.trackactividades.perfil.data.response.UnfollowResponse
 import com.aitor.trackactividades.perfil.data.response.UserProfileResponse
 import com.aitor.trackactividades.perfil.data.response.UserResponse
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface UserApiService {
@@ -18,4 +22,15 @@ interface UserApiService {
         @Path("idUser") idUser: Int
     ): UserProfileResponse
 
+    @POST("/user/{followedId}/follow")
+    suspend fun followUser(
+        @Header("Authorization") token: String,
+        @Path("followedId") followedId: Int
+    ): FollowResponse
+
+    @DELETE("/user/{followedId}/unfollow")
+    suspend fun unfollowUser(
+        @Header("Authorization") token: String,
+        @Path("followedId") followedId: Int
+    ): UnfollowResponse
 }

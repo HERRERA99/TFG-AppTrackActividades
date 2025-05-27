@@ -15,7 +15,7 @@ data class UserProfileResponse(
     val genero: Gender,
     val followersCount: Int,
     val followingCount: Int,
-    val isFollowing: Boolean
+    val following: Boolean
 ) {
     fun toPresentation(): UserModel {
         return UserModel(
@@ -30,7 +30,7 @@ data class UserProfileResponse(
             genero = genero,
             followersCount = followersCount,
             followingCount = followingCount,
-            isFollowing = isFollowing
+            isFollowing = following
         )
     }
 }

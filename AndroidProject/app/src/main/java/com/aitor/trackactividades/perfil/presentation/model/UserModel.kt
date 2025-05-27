@@ -15,4 +15,8 @@ data class UserModel(
     val followersCount: Int,
     val followingCount: Int,
     val isFollowing: Boolean
-)
+) {
+    override fun toString(): String {
+        return "UserModel(id=$id, image=$image, username='$username', nombre='$nombre', apellidos='$apellidos', email='$email', peso=$peso, altura=$altura, genero=$genero, followersCount=$followersCount, followingCount=$followingCount, isFollowing=$isFollowing)"
+    }
+}

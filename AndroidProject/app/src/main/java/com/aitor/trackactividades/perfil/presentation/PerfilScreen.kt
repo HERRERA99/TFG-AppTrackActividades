@@ -91,7 +91,8 @@ fun PerfilScreen(
         topBar = {
             PerfilTopBar(
                 navigateToHome = navigateToHome,
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                perfilViewModel = perfilViewModel
             )
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -106,7 +107,7 @@ fun PerfilScreen(
                     user = user,
                     onEditClick = {},
                     isCurrentUser = perfilViewModel.isCurrentUser(),
-                    onFollowClick = {}
+                    onFollowClick = { perfilViewModel.onFollowClick() }
                 )
             }
 
@@ -161,7 +162,8 @@ fun PerfilScreen(
 @Composable
 fun PerfilTopBar(
     navigateToHome: () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    perfilViewModel: PerfilViewModel
 ) {
     TopAppBar(
         title = {
@@ -172,12 +174,14 @@ fun PerfilTopBar(
             )
         },
         actions = {
-            IconButton(onClick = navigateToHome) {
-                Icon(
-                    imageVector = Icons.Default.Logout,
-                    contentDescription = "Logout",
-                    modifier = Modifier.size(48.dp)
-                )
+            if (!perfilViewModel.isCurrentUser()) {
+                IconButton(onClick = navigateToHome) {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = "Logout",
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             }
         },
         scrollBehavior = scrollBehavior,
@@ -290,7 +294,7 @@ fun PerfilContainer(
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
                         color = Color.Gray
                     )
-                    Row (horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(
                             imageVector = genderIcon,
                             contentDescription = "Genero",

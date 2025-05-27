@@ -12,8 +12,10 @@ import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import com.aitor.trackactividades.feed.presentation.model.Comment
 import com.aitor.trackactividades.feed.presentation.model.Publication
+import com.aitor.trackactividades.perfil.domain.AddFollowUseCase
 import com.aitor.trackactividades.perfil.domain.GetUserByIdUserCase
 import com.aitor.trackactividades.perfil.domain.GetUserPublicationsUseCase
+import com.aitor.trackactividades.perfil.domain.RemoveFollowUseCase
 import com.aitor.trackactividades.perfil.presentation.model.UserModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,6 +32,8 @@ import javax.inject.Inject
 class PerfilViewModel @Inject constructor(
     private val getUserPublicationsUseCase: GetUserPublicationsUseCase,
     private val getUserByIdUserCase: GetUserByIdUserCase,
+    private val addFollowUseCase: AddFollowUseCase,
+    private val removeFollowUseCase: RemoveFollowUseCase,
     private val tokenManager: TokenManager,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
@@ -67,5 +71,25 @@ class PerfilViewModel @Inject constructor(
         Log.d("Perfil", "Usuario Perfil: ${_userId.value}")
         Log.d("Perfil", "Usuario App: ${_user.value?.id}")
         return _userId.value == _user.value?.id
+    }
+
+    fun onFollowClick() {
+        viewModelScope.launch {
+            if (user.value != null) {
+                if (user.value!!.isFollowing) {
+                    removeFollowUseCase(user.value!!.id)
+                    _user.value = user.value!!.copy(
+                        isFollowing = false,
+                        followersCount = user.value!!.followersCount - 1
+                    )
+                } else {
+                    addFollowUseCase(user.value!!.id)
+                    _user.value = user.value!!.copy(
+                        isFollowing = true,
+                        followersCount = user.value!!.followersCount + 1
+                    )
+                }
+            }
+        }
     }
 }

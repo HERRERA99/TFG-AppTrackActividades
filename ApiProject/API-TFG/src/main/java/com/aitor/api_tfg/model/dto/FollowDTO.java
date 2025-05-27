@@ -14,5 +14,4 @@ import java.time.LocalDateTime;
 public class FollowDTO {
     private int followedId;
     private int followerId;
-    private LocalDateTime followedAt;
 }
