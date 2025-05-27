@@ -1,8 +1,10 @@
 package com.aitor.trackactividades.feed.data
 
+import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.feed.data.response.CommentResponse
 import com.aitor.trackactividades.feed.data.response.PageResponse
 import com.aitor.trackactividades.feed.data.response.PublicationResponse
+import com.aitor.trackactividades.historialActividades.data.request.FiltroRequest
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -66,4 +68,28 @@ interface PublicationsApiService {
         @Header("Authorization") token: String,
         @Path("id") publicationId: Long
     ) : PublicationResponse
+
+    @GET("/publications/user/{id}/filtro")
+    suspend fun getPublicationsByFilter(
+        @Header("Authorization") token: String,
+        @Path("id") userId: Int,
+        @Query("page") page: Int,
+        @Query("size") size: Int = 10,
+
+        @Query("nombre") nombre: String? = null,
+        @Query("activityType") activityType: Modalidades? = null,
+
+        @Query("distanciaMin") distanciaMin: Float = 0f,
+        @Query("distanciaMax") distanciaMax: Float = 0f,
+
+        @Query("positiveElevationMin") positiveElevationMin: Double = 0.0,
+        @Query("positiveElevationMax") positiveElevationMax: Double = 0.0,
+
+        @Query("durationMin") durationMin: Long = 0L,
+        @Query("durationMax") durationMax: Long = 0L,
+
+        @Query("averageSpeedMin") averageSpeedMin: Float = 0f,
+        @Query("averageSpeedMax") averageSpeedMax: Float = 0f
+    ): PageResponse
+
 }

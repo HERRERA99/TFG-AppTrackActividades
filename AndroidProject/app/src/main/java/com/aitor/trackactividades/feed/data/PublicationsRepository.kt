@@ -4,12 +4,19 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.token.TokenManager
+import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import com.aitor.trackactividades.feed.presentation.model.Comment
 import com.aitor.trackactividades.feed.presentation.model.Publication
+import com.aitor.trackactividades.historialActividades.data.PublicationsFilterPaginSource
+import com.aitor.trackactividades.historialActividades.data.request.FiltroRequest
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class PublicationsRepository @Inject constructor(private val publicationsApiService: PublicationsApiService, private val tokenManager: TokenManager) {
+class PublicationsRepository @Inject constructor(
+    private val publicationsApiService: PublicationsApiService,
+    private val tokenManager: TokenManager,
+    private val userPreferences: UserPreferences
+) {
 
     companion object {
         const val PAGE_SIZE = 4
@@ -19,6 +26,18 @@ class PublicationsRepository @Inject constructor(private val publicationsApiServ
     suspend fun createPublication(token: String, id: Long): Boolean {
         publicationsApiService.createPublication(token, id)
         return true
+    }
+
+    fun getPublicationsFiltered(filtro: FiltroRequest): Flow<PagingData<Publication>> {
+        return Pager(config = PagingConfig(pageSize = PAGE_SIZE, prefetchDistance = PREFETCH_ITEMS),
+            pagingSourceFactory = {
+                PublicationsFilterPaginSource(
+                    publicationsApiService,
+                    tokenManager,
+                    userPreferences,
+                    filtro
+                )
+            }).flow
     }
 
     fun getPublications(): Flow<PagingData<Publication>> {

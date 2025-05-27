@@ -1,5 +1,6 @@
 package com.aitor.api_tfg.controllers;
 
+import com.aitor.api_tfg.model.db.Modalidades;
 import com.aitor.api_tfg.model.dto.CommentDTO;
 import com.aitor.api_tfg.model.dto.PageDTO;
 import com.aitor.api_tfg.model.dto.PageInfoDTO;
@@ -90,13 +91,42 @@ public class PublicationController {
             @PathVariable Integer id,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestBody FiltroRequest filtro,
+
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Modalidades activityType,
+
+            @RequestParam(defaultValue = "0") float distanciaMin,
+            @RequestParam(defaultValue = "0") float distanciaMax,
+
+            @RequestParam(defaultValue = "0") double positiveElevationMin,
+            @RequestParam(defaultValue = "0") double positiveElevationMax,
+
+            @RequestParam(defaultValue = "0") long durationMin,
+            @RequestParam(defaultValue = "0") long durationMax,
+
+            @RequestParam(defaultValue = "0") float averageSpeedMin,
+            @RequestParam(defaultValue = "0") float averageSpeedMax,
+
             HttpServletRequest request) {
+
+        // Construir el filtro a partir de estos params:
+        FiltroRequest filtro = new FiltroRequest();
+        filtro.setNombre(nombre);
+        filtro.setActivityType(activityType);
+        filtro.setDistanciaMin(distanciaMin);
+        filtro.setDistanciaMax(distanciaMax);
+        filtro.setPositiveElevationMin(positiveElevationMin);
+        filtro.setPositiveElevationMax(positiveElevationMax);
+        filtro.setDurationMin(durationMin);
+        filtro.setDurationMax(durationMax);
+        filtro.setAverageSpeedMin(averageSpeedMin);
+        filtro.setAverageSpeedMax(averageSpeedMax);
 
         Page<PublicationDTO> publications = publicationService.getFilteredPublicationsByUser(id, filtro, page - 1, size);
 
         return getPageDTOResponseEntity(page, request, publications);
     }
+
 
 
     private ResponseEntity<PageDTO<PublicationDTO>> getPageDTOResponseEntity(@RequestParam(defaultValue = "1") int page, HttpServletRequest request, Page<PublicationDTO> publications) {
