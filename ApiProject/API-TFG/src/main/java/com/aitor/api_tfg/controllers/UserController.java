@@ -1,9 +1,6 @@
 package com.aitor.api_tfg.controllers;
 
-import com.aitor.api_tfg.model.dto.PageDTO;
-import com.aitor.api_tfg.model.dto.PageInfoDTO;
-import com.aitor.api_tfg.model.dto.UserProfileDTO;
-import com.aitor.api_tfg.model.dto.UserSearchDTO;
+import com.aitor.api_tfg.model.dto.*;
 import com.aitor.api_tfg.model.response.UserResponse;
 import com.aitor.api_tfg.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -78,4 +75,18 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+
+    @PostMapping("{followedId}/follow")
+    public ResponseEntity<FollowDTO> followUser(@PathVariable int followedId, Authentication authentication) {
+        String followerUsername = authentication.getName();
+        FollowDTO dto = userService.followUser(followedId, followerUsername);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("{followedId}/unfollow")
+    public ResponseEntity<UnfollowDTO> unfollowUser(@PathVariable int followedId, Authentication authentication) {
+        String followerUsername = authentication.getName();
+        UnfollowDTO dto = userService.unfollowUser(followedId, followerUsername);
+        return ResponseEntity.ok(dto);
+    }
 }

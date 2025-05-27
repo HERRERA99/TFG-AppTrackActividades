@@ -62,17 +62,6 @@ public class User implements UserDetails {
     @Column(name = "gender", nullable = false)
     Gender gender;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_following",
-            joinColumns = @JoinColumn(name = "follower_id"),
-            inverseJoinColumns = @JoinColumn(name = "following_id")
-    )
-    private List<User> following = new ArrayList<>();
-
-    @ManyToMany(mappedBy = "following")
-    private List<User> followers = new ArrayList<>();
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
