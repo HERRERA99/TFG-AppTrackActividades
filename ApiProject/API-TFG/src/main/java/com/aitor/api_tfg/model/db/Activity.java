@@ -38,7 +38,6 @@ public class Activity {
             joinColumns = @JoinColumn(name = "activity_id")
     )
     @OrderColumn(name = "speed_order") // Columna para el índice
-    @Column(name = "speed_value")
     private List<Float> speeds;
 
     @ElementCollection
@@ -47,7 +46,6 @@ public class Activity {
             joinColumns = @JoinColumn(name = "activity_id")
     )
     @OrderColumn(name = "elevation_order")
-    @Column(name = "elevation_value")
     private List<Double> elevations;
 
     @ElementCollection
