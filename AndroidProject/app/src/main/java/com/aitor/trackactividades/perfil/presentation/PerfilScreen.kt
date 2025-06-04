@@ -1,44 +1,33 @@
 package com.aitor.trackactividades.perfil.presentation
 
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Female
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Male
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,7 +40,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,20 +47,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberAsyncImagePainter
 import com.aitor.trackactividades.core.compose.PublicationItem
-import com.aitor.trackactividades.core.compose.PublicationsList
-import com.aitor.trackactividades.feed.presentation.model.Publication
 import com.aitor.trackactividades.perfil.presentation.model.UserModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +67,7 @@ fun PerfilScreen(
 ) {
     val publications = perfilViewModel.publications.collectAsLazyPagingItems()
     val user by perfilViewModel.user.collectAsState()
+    val isCurrentUser by perfilViewModel.isCurrentUser.collectAsState()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -92,7 +76,7 @@ fun PerfilScreen(
             PerfilTopBar(
                 navigateToHome = navigateToHome,
                 scrollBehavior = scrollBehavior,
-                perfilViewModel = perfilViewModel
+                isCurrentUser = isCurrentUser
             )
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -106,7 +90,7 @@ fun PerfilScreen(
                 PerfilContainer(
                     user = user,
                     onEditClick = {},
-                    isCurrentUser = perfilViewModel.isCurrentUser(),
+                    isCurrentUser = isCurrentUser,
                     onFollowClick = { perfilViewModel.onFollowClick() }
                 )
             }
@@ -163,7 +147,7 @@ fun PerfilScreen(
 fun PerfilTopBar(
     navigateToHome: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
-    perfilViewModel: PerfilViewModel
+    isCurrentUser: Boolean
 ) {
     TopAppBar(
         title = {
@@ -174,7 +158,7 @@ fun PerfilTopBar(
             )
         },
         actions = {
-            if (!perfilViewModel.isCurrentUser()) {
+            if (isCurrentUser) {
                 IconButton(onClick = navigateToHome) {
                     Icon(
                         imageVector = Icons.Default.Logout,

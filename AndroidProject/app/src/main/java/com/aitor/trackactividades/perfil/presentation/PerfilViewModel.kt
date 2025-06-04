@@ -22,6 +22,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
@@ -55,6 +56,10 @@ class PerfilViewModel @Inject constructor(
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
+    private val _isCurrentUser = MutableStateFlow<Boolean>(false)
+    val isCurrentUser: StateFlow<Boolean> = _isCurrentUser.asStateFlow()
+
+
     fun loadPerfil(idPerfil: Int) {
         viewModelScope.launch {
             _userId.value = userPreferences.getId()
@@ -63,14 +68,9 @@ class PerfilViewModel @Inject constructor(
                 idUser = idPerfil
             )
             _user.value = userLoaded
+            _isCurrentUser.value = _userId.value == userLoaded.id
             Log.d("Perfil", user.value.toString())
         }
-    }
-
-    fun isCurrentUser(): Boolean {
-        Log.d("Perfil", "Usuario Perfil: ${_userId.value}")
-        Log.d("Perfil", "Usuario App: ${_user.value?.id}")
-        return _userId.value == _user.value?.id
     }
 
     fun onFollowClick() {
