@@ -66,7 +66,8 @@ fun HistorialScreen(
     historialViewModel: HistorialViewModel,
     navigateToStartRecordActivity: () -> Unit,
     navigateToActivity: (Long) -> Unit,
-    navigateToFeed: () -> Unit
+    navigateToFeed: () -> Unit,
+    navigateToQuedadas: () -> Unit
 ) {
     val context = LocalContext.current
     val filtered by historialViewModel.isFiltered.collectAsState()
@@ -158,7 +159,8 @@ fun HistorialScreen(
                 onHistorialClick = null,
                 onFeedClick = {
                     navigateToFeed()
-                }
+                },
+                onQuedadasClick = navigateToQuedadas
             )
         }
     ) { innerPadding ->

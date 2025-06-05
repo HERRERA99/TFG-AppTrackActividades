@@ -1,8 +1,6 @@
 package com.aitor.trackactividades.core.navigation
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,11 +23,15 @@ import com.aitor.trackactividades.buscarUsuario.presentation.SearchScreen
 import com.aitor.trackactividades.buscarUsuario.presentation.SearchViewModel
 import com.aitor.trackactividades.feed.presentation.ActivityScreen
 import com.aitor.trackactividades.feed.presentation.ActivityViewModel
+import com.aitor.trackactividades.historialActividades.presentation.FormularioQuedadaScreen
+import com.aitor.trackactividades.historialActividades.presentation.FormularioQuedadaViewModel
 import com.aitor.trackactividades.historialActividades.presentation.HistorialScreen
 import com.aitor.trackactividades.historialActividades.presentation.HistorialViewModel
 import com.aitor.trackactividades.perfil.presentation.PerfilScreen
 import com.aitor.trackactividades.perfil.presentation.PerfilViewModel
 import com.aitor.trackactividades.perfil.presentation.PostInteractionViewModel
+import com.aitor.trackactividades.quedadas.presentation.QuedadasScreen
+import com.aitor.trackactividades.quedadas.presentation.QuedadasViewModel
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityScreen
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -106,7 +108,8 @@ fun NavigationWrapper() {
                 },
                 navigateToSearch = { navController.navigate(Search) },
                 postInteractionViewModel = postInteractionViewModel,
-                navigateToHistorial = { navController.navigate(Historial) }
+                navigateToHistorial = { navController.navigate(Historial) },
+                navigateToQuedadas = { navController.navigate(Quedadas) }
             )
         }
         composable<RecordActivity> {
@@ -181,7 +184,25 @@ fun NavigationWrapper() {
                     navController.navigate("activity/$publicationId")
                 },
                 navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
-                navigateToFeed = { navController.navigate(Feed) }
+                navigateToFeed = { navController.navigate(Feed) },
+                navigateToQuedadas = { navController.navigate(Quedadas) }
+            )
+        }
+        composable<Quedadas> {
+            val quedadasViewModel: QuedadasViewModel = hiltViewModel()
+            QuedadasScreen(
+                QuedadasViewModel = quedadasViewModel,
+                navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
+                navigateToFeed = { navController.navigate(Feed) },
+                navigateToHistorial = { navController.navigate(Historial) },
+                navigateToFormularioQuedada = { navController.navigate(FormularioQuedada) }
+            )
+        }
+        composable<FormularioQuedada> {
+            val formularioQuedadaViewModel: FormularioQuedadaViewModel = hiltViewModel()
+            FormularioQuedadaScreen(
+                formularioQuedadaViewModel = formularioQuedadaViewModel,
+                navigateToQuedadas = { navController.navigate(Quedadas) }
             )
         }
     }

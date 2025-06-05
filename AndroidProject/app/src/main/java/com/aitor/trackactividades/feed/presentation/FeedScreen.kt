@@ -39,7 +39,8 @@ fun FeedScreen(
     navigateToActivity: (Long) -> Unit,
     navigateToSearch: () -> Unit,
     navigateToProfile: (Int) -> Unit,
-    navigateToHistorial: () -> Unit
+    navigateToHistorial: () -> Unit,
+    navigateToQuedadas: () -> Unit
 ) {
     val context = LocalContext.current
     val publications = feedViewModel.publications.collectAsLazyPagingItems()
@@ -109,7 +110,8 @@ fun FeedScreen(
                     }
                 },
                 onHistorialClick = navigateToHistorial,
-                onFeedClick = null
+                onFeedClick = null,
+                onQuedadasClick = navigateToQuedadas
             )
         }
     ) { innerPadding ->
@@ -251,7 +253,8 @@ fun FeedTopBar(
 fun FeedBottomBar(
     onRegisterClick: () -> Unit,
     onHistorialClick: (() -> Unit)?,
-    onFeedClick: (() -> Unit)?
+    onFeedClick: (() -> Unit)?,
+    onQuedadasClick: (() -> Unit)?
 ) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.background,
@@ -314,20 +317,20 @@ fun FeedBottomBar(
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Group,
-                    contentDescription = "Grupos",
+                    Icons.Default.Event,
+                    contentDescription = "Quedadas",
                     modifier = Modifier.size(32.dp)
                 )
             },
             label = {
                 Text(
-                    "Grupos",
+                    "Quedadas",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
             },
-            selected = false,
-            onClick = { /*TODO*/ }
+            selected = if (onQuedadasClick != null) false else true,
+            onClick = { onQuedadasClick?.invoke() }
         )
         NavigationBarItem(
             icon = {

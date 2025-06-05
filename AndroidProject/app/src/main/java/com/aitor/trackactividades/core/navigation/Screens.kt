@@ -27,6 +27,12 @@ object Search
 object Historial
 
 @Serializable
+object Quedadas
+
+@Serializable
+object FormularioQuedada
+
+@Serializable
 data class Activity(val publicationId: Long) {
     companion object {
         const val ROUTE = "activity/{publicationId}"
