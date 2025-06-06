@@ -1,10 +1,10 @@
-package com.aitor.trackactividades.historialActividades.presentation
+package com.aitor.trackactividades.quedadas.presentation
 
 import android.content.Context
 import android.location.Geocoder
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.net.Uri
+import android.provider.OpenableColumns
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -41,6 +41,9 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
     private val _mostrarMapa = MutableLiveData(false)
     val mostrarMapa: LiveData<Boolean> = _mostrarMapa
 
+    private val _gpxFile = MutableLiveData<Uri?>(null)
+    val gpxFile: LiveData<Uri?> = _gpxFile
+
     // Función para mostrar/ocultar el mapa
     fun toggleMostrarMapa(mostrar: Boolean) {
         _mostrarMapa.value = mostrar
@@ -73,8 +76,25 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
         _modalidad.value = nuevaModalidad
     }
 
-    fun guardarQuedada() {
+    fun selectGpxFile(uri: Uri?) {
+        _gpxFile.value = uri
+    }
 
+    fun guardarQuedada() {
+        val datosFormulario = """
+        ===== DATOS DEL FORMULARIO =====
+        Título: ${_titulo.value}
+        Descripción: ${_descripcion.value}
+        Fecha y Hora: ${_fechaHora.value}
+        Ubicación: ${_localizacion.value}
+        Coordenadas: ${_latLng.value}
+        Modalidad: ${_modalidad.value?.displayName}
+        Máx. Participantes: ${_maxParticipantes.value}
+        Archivo GPX: ${_gpxFile.value}
+        ================================
+    """.trimIndent()
+
+        Log.d("FORMULARIO_QUEDADA", datosFormulario)
     }
 
     // Función en el ViewModel para obtener la dirección
@@ -83,7 +103,8 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
         try {
             val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
             addresses?.firstOrNull()?.let { address ->
-                val direccion = address.getAddressLine(0) ?: "${latLng.latitude}, ${latLng.longitude}"
+                val direccion =
+                    address.getAddressLine(0) ?: "${latLng.latitude}, ${latLng.longitude}"
                 actualizarUbicacionSeleccionada(latLng, direccion)
             }
         } catch (e: Exception) {
@@ -96,4 +117,9 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
         _localizacion.value = ""
     }
 
+    fun camposObligatoriosCompletos(): Boolean {
+        return !_titulo.value.isNullOrEmpty() &&
+                _fechaHora.value != null &&
+                !_localizacion.value.isNullOrEmpty()
+    }
 }

@@ -23,8 +23,8 @@ import com.aitor.trackactividades.buscarUsuario.presentation.SearchScreen
 import com.aitor.trackactividades.buscarUsuario.presentation.SearchViewModel
 import com.aitor.trackactividades.feed.presentation.ActivityScreen
 import com.aitor.trackactividades.feed.presentation.ActivityViewModel
-import com.aitor.trackactividades.historialActividades.presentation.FormularioQuedadaScreen
-import com.aitor.trackactividades.historialActividades.presentation.FormularioQuedadaViewModel
+import com.aitor.trackactividades.quedadas.presentation.FormularioQuedadaScreen
+import com.aitor.trackactividades.quedadas.presentation.FormularioQuedadaViewModel
 import com.aitor.trackactividades.historialActividades.presentation.HistorialScreen
 import com.aitor.trackactividades.historialActividades.presentation.HistorialViewModel
 import com.aitor.trackactividades.perfil.presentation.PerfilScreen
