@@ -24,6 +24,8 @@ public class Meetup {
     private String description;
     private LocalDateTime dateTime;
     private String location;
+    private Double distance;
+    private Double elevationGain;
     private Integer maxParticipants;
     @AttributeOverrides({
             @AttributeOverride(name = "latitude", column = @Column(name = "latPuntoQuedada")),
