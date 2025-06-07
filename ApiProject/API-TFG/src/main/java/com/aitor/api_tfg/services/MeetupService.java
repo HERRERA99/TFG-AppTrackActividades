@@ -30,7 +30,7 @@ public class MeetupService {
     private final MeetupRepository meetupRepository;
     private final UserRepository userRepository;
 
-    public Meetup createMeerup(String organizerName, MeetupCreateDTO meetup, MultipartFile gpxFile) {
+    public MeetupResponseDTO createMeerup(String organizerName, MeetupCreateDTO meetup, MultipartFile gpxFile) {
         Optional<User> user = userRepository.findByUsername(organizerName);
         if (user.isEmpty()) throw new IllegalArgumentException("Usuario no encontrado");
 
@@ -46,6 +46,10 @@ public class MeetupService {
                         .parse(is);
                 doc.getDocumentElement().normalize();
                 NodeList trkpts = doc.getElementsByTagName("trkpt");
+
+                if (trkpts.getLength() == 0) {
+                    throw new IllegalArgumentException("El archivo GPX no contiene puntos de ruta válidos");
+                }
 
                 // Extraer puntos y alturas
                 for (int i = 0; i < trkpts.getLength(); i++) {
@@ -63,17 +67,7 @@ public class MeetupService {
                 elevationGain = GpxCalculationUtils.calculateElevationGain(elevations);
 
             } catch (Exception e) {
-                return meetupRepository.save(Meetup.builder()
-                        .title(meetup.getTitle())
-                        .description(meetup.getDescription())
-                        .dateTime(meetup.getDateTime())
-                        .location(meetup.getLocation())
-                        .maxParticipants(meetup.getMaxParticipants())
-                        .locationCoordinates(meetup.getLocationCoordinates())
-                        .sportType(meetup.getSportType())
-                        .organizerId(user.get())
-                        .build()
-                );
+                throw new IllegalArgumentException("Error al procesar el archivo GPX: " + e.getMessage());
             }
         }
 
@@ -92,7 +86,9 @@ public class MeetupService {
                 .route(routePoints)
                 .build();
 
-        return meetupRepository.save(meetupEntity);
+        meetupRepository.save(meetupEntity);
+
+        return convertToDto(meetupEntity);
     }
 
     public Optional<MeetupResponseDTO> getMeetupById(Long id) {

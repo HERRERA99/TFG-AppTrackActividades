@@ -4,6 +4,7 @@ import com.aitor.trackactividades.authentication.data.AuthenticationApiService
 import com.aitor.trackactividades.buscarUsuario.data.SearchUserApiService
 import com.aitor.trackactividades.feed.data.PublicationsApiService
 import com.aitor.trackactividades.perfil.data.UserApiService
+import com.aitor.trackactividades.quedadas.data.QuedadasApiService
 import com.aitor.trackactividades.recordActivity.data.ActivitiesApiService
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -102,5 +103,11 @@ object NetworkModule {
     @Singleton
     fun provideSearchUserApiService(retrofit: Retrofit): SearchUserApiService {
         return retrofit.create(SearchUserApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideQuedadasApiService(retrofit: Retrofit): QuedadasApiService {
+        return retrofit.create(QuedadasApiService::class.java)
     }
 }

@@ -22,6 +22,7 @@ public class Meetup {
 
     private String title;
     private String description;
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime dateTime;
     private String location;
     private Double distance;

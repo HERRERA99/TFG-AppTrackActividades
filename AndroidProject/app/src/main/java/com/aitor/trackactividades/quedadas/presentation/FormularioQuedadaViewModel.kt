@@ -5,18 +5,26 @@ import android.location.Geocoder
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.core.model.Modalidades
+import com.aitor.trackactividades.quedadas.domain.CreateMeetupUseCase
+import com.aitor.trackactividades.quedadas.presentation.Meetup.Meetup
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
-class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
+class FormularioQuedadaViewModel @Inject constructor(
+    private val createMeetupUseCase: CreateMeetupUseCase
+) : ViewModel() {
     private var _titulo = MutableLiveData<String>()
     val titulo: LiveData<String> = _titulo
 
@@ -32,8 +40,8 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
     private var _latLng = MutableLiveData<LatLng?>(null)
     val latLng: LiveData<LatLng?> = _latLng
 
-    private var _maxParticipantes = MutableLiveData<String>()
-    val maxParticipantes: LiveData<String> = _maxParticipantes
+    private var _maxParticipantes = MutableLiveData<Int?>()
+    val maxParticipantes: LiveData<Int?> = _maxParticipantes
 
     private var _modalidad = MutableLiveData(Modalidades.CICLISMO_CARRETERA)
     val modalidad: LiveData<Modalidades> = _modalidad
@@ -53,7 +61,6 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
     fun actualizarUbicacionSeleccionada(latLng: LatLng, direccion: String) {
         _latLng.value = latLng
         _localizacion.value = direccion
-        // No cerramos el mapa aquí
     }
 
     fun actualizarTitulo(nuevoTitulo: String) {
@@ -68,7 +75,7 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
         _fechaHora.value = nuevaFechaHora
     }
 
-    fun actualizarMaxParticipantes(nuevoMaxParticipantes: String) {
+    fun actualizarMaxParticipantes(nuevoMaxParticipantes: Int?) {
         _maxParticipantes.value = nuevoMaxParticipantes
     }
 
@@ -80,21 +87,36 @@ class FormularioQuedadaViewModel @Inject constructor() : ViewModel() {
         _gpxFile.value = uri
     }
 
-    fun guardarQuedada() {
-        val datosFormulario = """
-        ===== DATOS DEL FORMULARIO =====
-        Título: ${_titulo.value}
-        Descripción: ${_descripcion.value}
-        Fecha y Hora: ${_fechaHora.value}
-        Ubicación: ${_localizacion.value}
-        Coordenadas: ${_latLng.value}
-        Modalidad: ${_modalidad.value?.displayName}
-        Máx. Participantes: ${_maxParticipantes.value}
-        Archivo GPX: ${_gpxFile.value}
-        ================================
-    """.trimIndent()
+    fun guardarQuedada(context: Context) {
+        viewModelScope.launch {
+            val result = createMeetupUseCase(
+                title = _titulo.value!!,
+                description = _descripcion.value!!,
+                dateTime = _fechaHora.value!!,
+                location = _localizacion.value!!,
+                maxParticipants = _maxParticipantes.value,
+                locationCoordinates = _latLng.value!!,
+                sportType = _modalidad.value!!,
+                gpxUri = _gpxFile.value,
+                context = context
+            )
 
-        Log.d("FORMULARIO_QUEDADA", datosFormulario)
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(context, "Quedada creada con éxito ✅", Toast.LENGTH_LONG).show()
+                },
+                onFailure = { exception ->
+                    val errorMessage = when {
+                        exception.message?.contains("El archivo GPX no es válido") == true ->
+                            "❌ El archivo GPX no es válido. Por favor, sube un archivo correcto."
+                        exception.message?.contains("Token no disponible") == true ->
+                            "🔒 Sesión expirada. Vuelve a iniciar sesión."
+                        else -> "⚠️ Error al crear la quedada: ${exception.message}"
+                    }
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            )
+        }
     }
 
     // Función en el ViewModel para obtener la dirección

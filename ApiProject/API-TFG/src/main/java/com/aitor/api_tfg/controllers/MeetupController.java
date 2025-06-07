@@ -2,6 +2,7 @@ package com.aitor.api_tfg.controllers;
 
 import com.aitor.api_tfg.model.db.Meetup;
 import com.aitor.api_tfg.model.dto.MeetupCreateDTO;
+import com.aitor.api_tfg.model.dto.MeetupResponseDTO;
 import com.aitor.api_tfg.model.response.ErrorResponse;
 import com.aitor.api_tfg.services.MeetupService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.TimeZone;
 
 @RestController
 @RequestMapping("/meetups")
@@ -26,10 +28,12 @@ public class MeetupController {
     private final MeetupService meetupService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createMeetup(@RequestPart("meetup") String meetupJson,
-                                          @RequestPart(value = "gpxFile", required = false) MultipartFile gpxFile,
-                                          Authentication authentication,
-                                          HttpServletRequest request) {
+    public ResponseEntity<?> createMeetup(
+            @RequestPart("meetup") String meetupJson,
+            @RequestPart(value = "gpxFile", required = false) MultipartFile gpxFile,
+            Authentication authentication,
+            HttpServletRequest request
+    ) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
@@ -37,9 +41,9 @@ public class MeetupController {
             MeetupCreateDTO meetup = objectMapper.readValue(meetupJson, MeetupCreateDTO.class);
 
             String organizerName = authentication.getName();
-            Meetup meetupResponse = meetupService.createMeerup(organizerName, meetup, gpxFile);
+            MeetupResponseDTO createdMeetup = meetupService.createMeerup(organizerName, meetup, gpxFile);
 
-            return new ResponseEntity<>(meetupResponse, HttpStatus.CREATED);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdMeetup);
         } catch (IllegalArgumentException ex) {
             ErrorResponse error = new ErrorResponse(
                     LocalDateTime.now(),
@@ -48,16 +52,16 @@ public class MeetupController {
                     ex.getMessage(),
                     request.getRequestURI()
             );
-            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(error);
         } catch (Exception ex) {
             ErrorResponse error = new ErrorResponse(
                     LocalDateTime.now(),
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     "Internal Server Error",
-                    "Se ha producido un error inesperado.",
+                    "Error inesperado: " + ex.getMessage(),
                     request.getRequestURI()
             );
-            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(error);
         }
     }
 

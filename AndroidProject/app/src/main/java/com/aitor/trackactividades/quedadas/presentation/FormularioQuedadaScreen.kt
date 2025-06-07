@@ -88,7 +88,7 @@ fun FormularioQuedadaScreen(
     val descripcion by formularioQuedadaViewModel.descripcion.observeAsState("")
     val fechaHora by formularioQuedadaViewModel.fechaHora.observeAsState(null)
     val localizacion by formularioQuedadaViewModel.localizacion.observeAsState("")
-    val maxParticipantes by formularioQuedadaViewModel.maxParticipantes.observeAsState("")
+    val maxParticipantes by formularioQuedadaViewModel.maxParticipantes.observeAsState()
     val modalidad by formularioQuedadaViewModel.modalidad.observeAsState(Modalidades.CICLISMO_CARRETERA)
     val mostrarMapa by formularioQuedadaViewModel.mostrarMapa.observeAsState(false)
 
@@ -119,7 +119,7 @@ fun FormularioQuedadaScreen(
                 FechaHoraInput(formularioQuedadaViewModel, fechaHora)
                 LocalizacionInput(formularioQuedadaViewModel, localizacion)
                 GpxFileUpload(formularioQuedadaViewModel)
-                ParticipantesInput(formularioQuedadaViewModel, maxParticipantes)
+                ParticipantesInput(formularioQuedadaViewModel)
                 BotonCrearQuedada(formularioQuedadaViewModel) {
                     navigateToQuedadas()
                 }
@@ -132,6 +132,7 @@ fun FormularioQuedadaScreen(
 @Composable
 fun BotonCrearQuedada(
     viewModel: FormularioQuedadaViewModel,
+    context: Context = LocalContext.current,
     navigateToQuedadas: () -> Unit
 ) {
     val camposCompletos by remember {
@@ -140,7 +141,7 @@ fun BotonCrearQuedada(
 
     Button(
         onClick = {
-            viewModel.guardarQuedada()
+            viewModel.guardarQuedada(context)
             navigateToQuedadas()
         },
         modifier = Modifier
@@ -243,9 +244,9 @@ fun ModalidadDropdown(viewModel: FormularioQuedadaViewModel, modalidad: Modalida
 
 
 @Composable
-fun ParticipantesInput(viewModel: FormularioQuedadaViewModel, maxParticipantes: String) {
+fun ParticipantesInput(viewModel: FormularioQuedadaViewModel) {
     var sliderEnabled by remember { mutableStateOf(false) }
-    var sliderValue by remember { mutableStateOf(5f) } // Valor inicial
+    var sliderValue by remember { mutableStateOf(5f) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -262,9 +263,9 @@ fun ParticipantesInput(viewModel: FormularioQuedadaViewModel, maxParticipantes: 
                 onCheckedChange = {
                     sliderEnabled = it
                     if (!it) {
-                        viewModel.actualizarMaxParticipantes("")
+                        viewModel.actualizarMaxParticipantes(null)
                     } else {
-                        viewModel.actualizarMaxParticipantes(sliderValue.toInt().toString())
+                        viewModel.actualizarMaxParticipantes(sliderValue.toInt())
                     }
                 }
             )
@@ -275,7 +276,8 @@ fun ParticipantesInput(viewModel: FormularioQuedadaViewModel, maxParticipantes: 
                 value = sliderValue,
                 onValueChange = {
                     sliderValue = it
-                    viewModel.actualizarMaxParticipantes(it.toInt().toString())
+                    viewModel.actualizarMaxParticipantes(it.toInt())
+                    viewModel.actualizarMaxParticipantes(it.toInt())
                 },
                 valueRange = 1f..50f,
                 steps = 49,
@@ -452,6 +454,8 @@ fun MapaSeleccionUbicacion(
 fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTime?) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
+    val currentDateTime = LocalDateTime.now()
+    val minDateTime = currentDateTime.plusHours(1) // Fecha/hora mínima permitida (1 hora después de ahora)
 
     // Formatear la fecha y hora para mostrarla
     val fechaHoraText = remember(fechaHora) {
@@ -477,24 +481,44 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTi
 
         Card(
             onClick = {
-                DatePickerDialog(
+                // Configurar el DatePickerDialog con fecha mínima
+                val datePicker = DatePickerDialog(
                     context,
                     { _, year, month, day ->
+                        // Configurar el TimePickerDialog después de seleccionar la fecha
+                        val selectedDate = LocalDateTime.of(year, month + 1, day, 0, 0)
+
+                        // Verificar si la fecha seleccionada es hoy
+                        val isToday = selectedDate.toLocalDate() == currentDateTime.toLocalDate()
+
                         TimePickerDialog(
                             context,
                             { _, hour, minute ->
-                                val fechaHora = LocalDateTime.of(year, month + 1, day, hour, minute)
-                                viewModel.actualizarFechaHora(fechaHora)
+                                val selectedDateTime = LocalDateTime.of(year, month + 1, day, hour, minute)
+
+                                if (selectedDateTime.isBefore(minDateTime)) {
+                                    Toast.makeText(
+                                        context,
+                                        "Debes seleccionar una fecha/hora al menos 1 hora después de ahora",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    viewModel.actualizarFechaHora(selectedDateTime)
+                                }
                             },
-                            calendar.get(Calendar.HOUR_OF_DAY),
-                            calendar.get(Calendar.MINUTE),
+                            // Si es hoy, establecer hora mínima (hora actual + 1)
+                            if (isToday) currentDateTime.plusHours(1).hour else 0,
+                            // Si es hoy, establecer minutos mínimos
+                            if (isToday) currentDateTime.plusHours(1).minute else 0,
                             true
                         ).show()
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
                     calendar.get(Calendar.DAY_OF_MONTH)
-                ).show()
+                ).apply {
+                    datePicker.minDate = System.currentTimeMillis()
+                }.show()
             },
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -522,6 +546,14 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTi
                 )
             }
         }
+
+        // Mostrar mensaje informativo
+        Text(
+            text = "La quedada debe programarse al menos 1 hora después de ahora",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }
 
