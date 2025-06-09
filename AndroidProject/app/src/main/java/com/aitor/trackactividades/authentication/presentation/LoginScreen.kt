@@ -170,7 +170,7 @@ fun EmailInput(email: String, register: Boolean, onTextChange: (String) -> Unit)
             Icon(
                 imageVector = Icons.Default.Email,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         },
         label = { Text(text = if (register) "Email" else "Usuario o Email") },
@@ -205,7 +205,7 @@ fun PasswordInput(text: String, password: String, info: Boolean, onTextChange: (
             Icon(
                 imageVector = Icons.Default.Lock,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

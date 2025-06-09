@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,21 +22,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerColors
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +55,11 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -59,12 +70,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aitor.trackactividades.R
 import com.aitor.trackactividades.core.model.Modalidades
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -73,7 +86,11 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,22 +123,27 @@ fun FormularioQuedadaScreen(
         if (mostrarMapa) {
             MapaSeleccionUbicacion(formularioQuedadaViewModel, modifier = Modifier.padding(padding))
         } else {
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .padding(16.dp)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                TituloInput(formularioQuedadaViewModel, titulo)
-                DescripcionInput(formularioQuedadaViewModel, descripcion)
-                ModalidadDropdown(formularioQuedadaViewModel, modalidad)
-                FechaHoraInput(formularioQuedadaViewModel, fechaHora)
-                LocalizacionInput(formularioQuedadaViewModel, localizacion)
-                GpxFileUpload(formularioQuedadaViewModel)
-                ParticipantesInput(formularioQuedadaViewModel)
-                BotonCrearQuedada(formularioQuedadaViewModel) {
-                    navigateToQuedadas()
+            Box (modifier = Modifier.fillMaxSize()) {
+                val scrollState = rememberScrollState()
+
+                Column(
+                    modifier = Modifier
+                        .padding(padding)
+                        .padding(16.dp)
+                        .fillMaxSize()
+                        .verticalScroll(scrollState),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TituloInput(formularioQuedadaViewModel, titulo)
+                    DescripcionInput(formularioQuedadaViewModel, descripcion)
+                    ModalidadDropdown(formularioQuedadaViewModel, modalidad)
+                    FechaHoraInput(formularioQuedadaViewModel, fechaHora)
+                    LocalizacionInput(formularioQuedadaViewModel, localizacion)
+                    GpxFileUpload(formularioQuedadaViewModel)
+                    ParticipantesInput(formularioQuedadaViewModel)
+                    BotonCrearQuedada(formularioQuedadaViewModel) {
+                        navigateToQuedadas()
+                    }
                 }
             }
         }
@@ -218,7 +240,7 @@ fun ModalidadDropdown(viewModel: FormularioQuedadaViewModel, modalidad: Modalida
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                Modalidades.values().forEach { modalidad ->
+                Modalidades.entries.forEach { modalidad ->
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -450,26 +472,23 @@ fun MapaSeleccionUbicacion(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTime?) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    var tempDate by remember { mutableStateOf<LocalDate?>(null) }
+
     val context = LocalContext.current
-    val calendar = Calendar.getInstance()
     val currentDateTime = LocalDateTime.now()
-    val minDateTime = currentDateTime.plusHours(1) // Fecha/hora mínima permitida (1 hora después de ahora)
+    val minDateTime = currentDateTime.plusHours(1)
 
     // Formatear la fecha y hora para mostrarla
     val fechaHoraText = remember(fechaHora) {
-        if (fechaHora != null) {
-            "${fechaHora.dayOfMonth}/${fechaHora.monthValue}/${fechaHora.year} - " +
-                    "${String.format("%02d", fechaHora.hour)}:${
-                        String.format(
-                            "%02d",
-                            fechaHora.minute
-                        )
-                    }"
-        } else {
-            "Seleccionar fecha y hora"
-        }
+        fechaHora?.let {
+            "${it.dayOfMonth}/${it.monthValue}/${it.year} - " +
+                    "${String.format("%02d", it.hour)}:${String.format("%02d", it.minute)}"
+        } ?: "Seleccionar fecha y hora"
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -480,46 +499,7 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTi
         )
 
         Card(
-            onClick = {
-                // Configurar el DatePickerDialog con fecha mínima
-                val datePicker = DatePickerDialog(
-                    context,
-                    { _, year, month, day ->
-                        // Configurar el TimePickerDialog después de seleccionar la fecha
-                        val selectedDate = LocalDateTime.of(year, month + 1, day, 0, 0)
-
-                        // Verificar si la fecha seleccionada es hoy
-                        val isToday = selectedDate.toLocalDate() == currentDateTime.toLocalDate()
-
-                        TimePickerDialog(
-                            context,
-                            { _, hour, minute ->
-                                val selectedDateTime = LocalDateTime.of(year, month + 1, day, hour, minute)
-
-                                if (selectedDateTime.isBefore(minDateTime)) {
-                                    Toast.makeText(
-                                        context,
-                                        "Debes seleccionar una fecha/hora al menos 1 hora después de ahora",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    viewModel.actualizarFechaHora(selectedDateTime)
-                                }
-                            },
-                            // Si es hoy, establecer hora mínima (hora actual + 1)
-                            if (isToday) currentDateTime.plusHours(1).hour else 0,
-                            // Si es hoy, establecer minutos mínimos
-                            if (isToday) currentDateTime.plusHours(1).minute else 0,
-                            true
-                        ).show()
-                    },
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
-                ).apply {
-                    datePicker.minDate = System.currentTimeMillis()
-                }.show()
-            },
+            onClick = { showDatePicker = true },
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -547,16 +527,126 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTi
             }
         }
 
-        // Mostrar mensaje informativo
-        Text(
-            text = "La quedada debe programarse al menos 1 hora después de ahora",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+        // DatePicker Dialog
+        if (showDatePicker) {
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = fechaHora?.atZone(ZoneId.systemDefault())?.toInstant()
+                    ?.toEpochMilli()
+                    ?: System.currentTimeMillis()
+            )
+
+            AlertDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    Button(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            tempDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            showDatePicker = false
+                            showTimePicker = true
+                        }
+                    }) {
+                        Text("Seleccionar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDatePicker = false }) {
+                        Text("Cancelar")
+                    }
+                },
+                text = {
+                    BoxWithConstraints {
+                        val scale = remember(this.maxWidth) {
+                            if (this.maxWidth > 360.dp) 1f else (this.maxWidth / 360.dp)
+                        }
+                        Box(modifier = Modifier.requiredWidthIn(min = 360.dp)) {
+                            DatePicker(
+                                modifier = Modifier.scale(scale),
+                                state = datePickerState,
+                                title = null,
+                                headline = null,
+                                showModeToggle = false,
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
+        // TimePicker Dialog
+        if (showTimePicker && tempDate != null) {
+            val timePickerState = rememberTimePickerState(
+                initialHour = fechaHora?.hour ?: minDateTime.hour,
+                initialMinute = fechaHora?.minute ?: 0
+            )
+
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                confirmButton = {
+                    Button(onClick = {
+                        val selectedDateTime = LocalDateTime.of(
+                            tempDate!!,
+                            LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        )
+
+                        if (selectedDateTime.isAfter(minDateTime)) {
+                            viewModel.actualizarFechaHora(selectedDateTime)
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "La quedada debe programarse al menos 1 hora después de ahora",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        showTimePicker = false
+                    }) {
+                        Text("Confirmar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showTimePicker = false }) {
+                        Text("Cancelar")
+                    }
+                },
+                text = {
+                    TimePicker(
+                        state = timePickerState,
+                        colors = TimePickerDefaults.colors(
+                            // Fondo del reloj analógico
+                            clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
+
+                            // Elementos del reloj seleccionados/no seleccionados
+                            clockDialSelectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            clockDialUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                            // Selector circular
+                            selectorColor = MaterialTheme.colorScheme.primary,
+
+                            // Color de fondo general
+                            containerColor = MaterialTheme.colorScheme.background,
+
+                            // Selector de periodo (AM/PM)
+                            periodSelectorBorderColor = MaterialTheme.colorScheme.outline,
+                            periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary,
+                            periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
+                            periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                            periodSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
+
+                            // Selector de tiempo digital
+                            timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.12f
+                            ),
+                            timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
+                            timeSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
+                            timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+            )
+        }
     }
 }
-
 
 @Composable
 fun DescripcionInput(viewModel: FormularioQuedadaViewModel, descripcion: String) {
