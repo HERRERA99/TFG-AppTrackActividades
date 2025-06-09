@@ -29,6 +29,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
 
+    public User findUserByUsername(String username) {
+        return userRepository.getUserByUsername(username);
+    }
+
     public UserResponse getUserByName(String name) {
         Optional<User> userOptional = userRepository.findByUsername(name);
 

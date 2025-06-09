@@ -3,14 +3,20 @@ package com.aitor.trackactividades.quedadas.data
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.core.network.LocalDateTimeAdapter
 import com.aitor.trackactividades.core.network.LocalDateTimeQuedadasAdapter
 import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
+import com.aitor.trackactividades.quedadas.data.QuedadasPaginSource
 import com.aitor.trackactividades.quedadas.data.request.MeetupCreateDTO
+import com.aitor.trackactividades.quedadas.presentation.Meetup.ItemMeetupList
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.GsonBuilder
+import kotlinx.coroutines.flow.Flow
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -22,6 +28,12 @@ class QuedadasRepository @Inject constructor(
     private val quedadasApiService: QuedadasApiService,
     private val tokenManager: TokenManager
 ) {
+
+    companion object {
+        const val PAGE_SIZE = 10
+        const val PREFETCH_ITEMS = 3
+    }
+
     suspend fun createMeetup(
         title: String,
         description: String,
@@ -84,5 +96,21 @@ class QuedadasRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun getAllMeetups(lat: Double, lng: Double): Flow<PagingData<ItemMeetupList>> {
+        val token = tokenManager.getToken() ?: ""
+        return Pager(
+            config = PagingConfig(pageSize = PAGE_SIZE, prefetchDistance = PREFETCH_ITEMS),
+            pagingSourceFactory = {
+                QuedadasPaginSource(
+                    quedadasApiService,
+                    lat = lat,
+                    lng = lng,
+                    token = "Bearer $token",
+                    pageSize = PAGE_SIZE
+                )
+            }
+        ).flow
     }
 }

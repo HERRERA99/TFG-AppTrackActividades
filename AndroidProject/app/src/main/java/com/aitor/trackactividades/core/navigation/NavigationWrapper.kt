@@ -191,7 +191,7 @@ fun NavigationWrapper() {
         composable<Quedadas> {
             val quedadasViewModel: QuedadasViewModel = hiltViewModel()
             QuedadasScreen(
-                QuedadasViewModel = quedadasViewModel,
+                quedadasViewModel = quedadasViewModel,
                 navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
                 navigateToFeed = { navController.navigate(Feed) },
                 navigateToHistorial = { navController.navigate(Historial) },

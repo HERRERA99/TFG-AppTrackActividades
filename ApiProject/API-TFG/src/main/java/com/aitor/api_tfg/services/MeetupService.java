@@ -4,12 +4,15 @@ import com.aitor.api_tfg.model.db.LatLng;
 import com.aitor.api_tfg.model.db.Meetup;
 import com.aitor.api_tfg.model.db.User;
 import com.aitor.api_tfg.model.dto.MeetupCreateDTO;
+import com.aitor.api_tfg.model.dto.MeetupItemListDTO;
 import com.aitor.api_tfg.model.dto.MeetupResponseDTO;
 import com.aitor.api_tfg.model.dto.UserSearchDTO;
 import com.aitor.api_tfg.repositories.MeetupRepository;
 import com.aitor.api_tfg.repositories.UserRepository;
 import com.aitor.api_tfg.utils.GpxCalculationUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -107,7 +110,7 @@ public class MeetupService {
                 .maxParticipants(meetup.getMaxParticipants())
                 .locationCoordinates(meetup.getLocationCoordinates())
                 .sportType(meetup.getSportType())
-                .organizerId(meetup.getOrganizerId().getId()) // Asume que organizerId es User
+                .organizerId(meetup.getOrganizerId().getId())
                 .participants(convertParticipantsToDto(meetup.getParticipants()))
                 .route(meetup.getRoute())
                 .build();
@@ -125,5 +128,9 @@ public class MeetupService {
                         .image(user.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public Page<Meetup> getMeetupsOrderedByDistance(double lat, double lng, Pageable pageable) {
+        return meetupRepository.findMeetupsOrderedByDistance(lat, lng, pageable);
     }
 }

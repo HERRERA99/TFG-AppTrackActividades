@@ -1,23 +1,30 @@
 package com.aitor.api_tfg.controllers;
 
 import com.aitor.api_tfg.model.db.Meetup;
-import com.aitor.api_tfg.model.dto.MeetupCreateDTO;
-import com.aitor.api_tfg.model.dto.MeetupResponseDTO;
+import com.aitor.api_tfg.model.db.User;
+import com.aitor.api_tfg.model.dto.*;
 import com.aitor.api_tfg.model.response.ErrorResponse;
+import com.aitor.api_tfg.model.response.UserResponse;
 import com.aitor.api_tfg.services.MeetupService;
+import com.aitor.api_tfg.services.UserService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.TimeZone;
 
 @RestController
@@ -26,6 +33,7 @@ import java.util.TimeZone;
 public class MeetupController {
 
     private final MeetupService meetupService;
+    private final UserService userService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createMeetup(
@@ -70,5 +78,67 @@ public class MeetupController {
         return meetupService.getMeetupById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<PageDTO<MeetupItemListDTO>> getNearbyMeetups(
+            Authentication authentication,
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Meetup> meetupPage = meetupService.getMeetupsOrderedByDistance(lat, lng, pageable);
+
+        String username = authentication.getName();
+        User currentUser = userService.findUserByUsername(username);
+
+        List<MeetupItemListDTO> content = meetupPage.getContent().stream()
+                .map(meetup -> convertToItemListDto(meetup, currentUser))
+                .toList();
+
+        String baseUrl = request.getRequestURL().toString();
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("lat", lat)
+                .queryParam("lng", lng)
+                .queryParam("size", size);
+
+        String nextUrl = null;
+        if (page < meetupPage.getTotalPages()) {
+            nextUrl = uriBuilder.replaceQueryParam("page", page + 1).toUriString();
+        }
+
+        String prevUrl = null;
+        if (page > 1) {
+            prevUrl = uriBuilder.replaceQueryParam("page", page - 1).toUriString();
+        }
+
+        PageInfoDTO pageInfo = new PageInfoDTO(
+                (int) meetupPage.getTotalElements(),
+                meetupPage.getTotalPages(),
+                nextUrl,
+                prevUrl
+        );
+
+        PageDTO<MeetupItemListDTO> response = new PageDTO<>(pageInfo, content);
+        return ResponseEntity.ok(response);
+    }
+
+    private MeetupItemListDTO convertToItemListDto(Meetup meetup, User currentUser) {
+        boolean isParticipating = meetup.getParticipants().contains(currentUser);
+
+        return MeetupItemListDTO.builder()
+                .id(meetup.getId())
+                .title(meetup.getTitle())
+                .dateTime(meetup.getDateTime())
+                .location(meetup.getLocation())
+                .sportType(meetup.getSportType())
+                .isParticipating(isParticipating)
+                .build();
     }
 }

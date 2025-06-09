@@ -23,4 +23,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "LOWER(u.lastname) LIKE LOWER(CONCAT('%', :text, '%')) OR " +
             "LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE LOWER(CONCAT('%', :text, '%'))")
     Page<User> searchUsersByText(@Param("text") String text, Pageable pageable);
+
+    User getUserByUsername(String username);
 }
