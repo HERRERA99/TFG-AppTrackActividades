@@ -5,15 +5,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.location.LocationRepository
 import com.aitor.trackactividades.quedadas.domain.GetAllMeetupsUseCase
-import com.aitor.trackactividades.quedadas.presentation.Meetup.ItemMeetupList
+import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch

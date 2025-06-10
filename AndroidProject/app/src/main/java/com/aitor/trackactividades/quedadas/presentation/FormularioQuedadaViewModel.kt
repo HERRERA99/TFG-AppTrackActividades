@@ -3,17 +3,13 @@ package com.aitor.trackactividades.quedadas.presentation
 import android.content.Context
 import android.location.Geocoder
 import android.net.Uri
-import android.provider.OpenableColumns
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.quedadas.domain.CreateMeetupUseCase
-import com.aitor.trackactividades.quedadas.presentation.Meetup.Meetup
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

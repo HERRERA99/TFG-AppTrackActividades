@@ -1,4 +1,4 @@
-package com.aitor.trackactividades.quedadas.presentation.Meetup
+package com.aitor.trackactividades.quedadas.presentation.model
 
 import com.aitor.trackactividades.core.model.Modalidades
 import java.time.LocalDateTime

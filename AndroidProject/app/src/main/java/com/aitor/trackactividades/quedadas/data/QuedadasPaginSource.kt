@@ -2,7 +2,7 @@ package com.aitor.trackactividades.quedadas.data
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.aitor.trackactividades.quedadas.presentation.Meetup.ItemMeetupList
+import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import javax.inject.Inject
 
 class QuedadasPaginSource @Inject constructor(

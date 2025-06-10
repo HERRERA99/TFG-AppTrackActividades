@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.quedadas.data.QuedadasRepository
-import com.aitor.trackactividades.quedadas.presentation.Meetup.Meetup
 import com.google.android.gms.maps.model.LatLng
 import java.time.LocalDateTime
 import javax.inject.Inject

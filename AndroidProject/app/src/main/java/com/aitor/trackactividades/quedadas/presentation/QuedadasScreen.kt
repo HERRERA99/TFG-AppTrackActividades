@@ -2,11 +2,9 @@ package com.aitor.trackactividades.quedadas.presentation
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,7 +34,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -60,7 +57,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,7 +65,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.aitor.trackactividades.feed.presentation.FeedBottomBar
-import com.aitor.trackactividades.quedadas.presentation.Meetup.ItemMeetupList
+import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -79,7 +75,8 @@ fun QuedadasScreen(
     navigateToStartRecordActivity: () -> Unit,
     navigateToFeed: () -> Unit,
     navigateToHistorial: () -> Unit,
-    navigateToFormularioQuedada: () -> Unit
+    navigateToFormularioQuedada: () -> Unit,
+    navigateToDetallesQuedada: (Long) -> Unit
 ) {
     val context = LocalContext.current
     val meetups = quedadasViewModel.meetups.collectAsLazyPagingItems()
@@ -197,7 +194,8 @@ fun QuedadasScreen(
                 Box(modifier = Modifier.padding(innerPadding)) {
                     QuedadasTapScreen(
                         quedadasViewModel = quedadasViewModel,
-                        meetups = meetups
+                        meetups = meetups,
+                        navigateToDetallesQuedada = navigateToDetallesQuedada
                     )
                 }
             }
@@ -209,7 +207,8 @@ fun QuedadasScreen(
 @Composable
 fun QuedadasTapScreen(
     quedadasViewModel: QuedadasViewModel,
-    meetups: LazyPagingItems<ItemMeetupList>
+    meetups: LazyPagingItems<ItemMeetupList>,
+    navigateToDetallesQuedada: (Long) -> Unit
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Quedadas", "Mis Quedadas")
@@ -267,7 +266,8 @@ fun QuedadasTapScreen(
             when (page) {
                 0 -> QuedadasBody(
                     viewModel = quedadasViewModel,
-                    meetups = meetups
+                    meetups = meetups,
+                    navigateToDetallesQuedada = navigateToDetallesQuedada
                 )
 
                 1 -> MisQuedadasBody()
@@ -290,7 +290,8 @@ fun MisQuedadasBody() {
 @Composable
 fun QuedadasBody(
     viewModel: QuedadasViewModel,
-    meetups: LazyPagingItems<ItemMeetupList>
+    meetups: LazyPagingItems<ItemMeetupList>,
+    navigateToDetallesQuedada: (Long) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -300,7 +301,8 @@ fun QuedadasBody(
                 MeetupItem(
                     meetup = meetup,
                     viewModel = viewModel,
-                    onParticipateClick = {}
+                    onParticipateClick = {},
+                    navigateToDetallesQuedada = navigateToDetallesQuedada
                 )
             }
         }
@@ -322,13 +324,14 @@ fun QuedadasBody(
 fun MeetupItem(
     meetup: ItemMeetupList,
     viewModel: QuedadasViewModel,
-    onParticipateClick: () -> Unit
+    onParticipateClick: () -> Unit,
+    navigateToDetallesQuedada: (Long) -> Unit,
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { /* Navegar o mostrar detalles */ },
+            .clickable { navigateToDetallesQuedada(meetup.id) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -338,7 +341,6 @@ fun MeetupItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { /* Navegar o mostrar detalles */ }
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

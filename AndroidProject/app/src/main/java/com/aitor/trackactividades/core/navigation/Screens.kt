@@ -33,6 +33,15 @@ object Quedadas
 object FormularioQuedada
 
 @Serializable
+data class DetallesQuedada(val quedadaId: Long) {
+    companion object {
+        const val ROUTE = "detallesQuedada/{quedadaId}"
+        fun createRoute(quedadaId: Long) = "detallesQuedada/$quedadaId"
+    }
+}
+
+
+@Serializable
 data class Activity(val publicationId: Long) {
     companion object {
         const val ROUTE = "activity/{publicationId}"

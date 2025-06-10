@@ -30,6 +30,8 @@ import com.aitor.trackactividades.historialActividades.presentation.HistorialVie
 import com.aitor.trackactividades.perfil.presentation.PerfilScreen
 import com.aitor.trackactividades.perfil.presentation.PerfilViewModel
 import com.aitor.trackactividades.perfil.presentation.PostInteractionViewModel
+import com.aitor.trackactividades.quedadas.presentation.DetallesQuedadaScreen
+import com.aitor.trackactividades.quedadas.presentation.DetallesQuedadaViewModel
 import com.aitor.trackactividades.quedadas.presentation.QuedadasScreen
 import com.aitor.trackactividades.quedadas.presentation.QuedadasViewModel
 import com.aitor.trackactividades.recordActivity.presentation.RecordActivityScreen
@@ -166,6 +168,25 @@ fun NavigationWrapper() {
                 postInteractionViewModel = postInteractionViewModel
             )
         }
+        composable(
+            route = DetallesQuedada.ROUTE,
+            arguments = listOf(
+                navArgument("quedadaId") { type = NavType.LongType }
+            )
+        ){ backStackEntry ->
+            val quedadaId = backStackEntry.arguments?.getLong("quedadaId")
+            val detallesQuedadaViewModel: DetallesQuedadaViewModel = hiltViewModel()
+
+            // Pasa el ID al ViewModel
+            LaunchedEffect(quedadaId) {
+                quedadaId?.let { detallesQuedadaViewModel.loadQuedada(it) }
+            }
+
+            DetallesQuedadaScreen(
+                detallesQuedadaViewModel = detallesQuedadaViewModel,
+                navigateToQuedadas = { navController.navigate(Quedadas) }
+            )
+        }
         composable<Search> {
             val searchViewModel: SearchViewModel = hiltViewModel()
             SearchScreen(
@@ -195,7 +216,10 @@ fun NavigationWrapper() {
                 navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
                 navigateToFeed = { navController.navigate(Feed) },
                 navigateToHistorial = { navController.navigate(Historial) },
-                navigateToFormularioQuedada = { navController.navigate(FormularioQuedada) }
+                navigateToFormularioQuedada = { navController.navigate(FormularioQuedada) },
+                navigateToDetallesQuedada = { quedadaId ->
+                    navController.navigate(DetallesQuedada.createRoute(quedadaId))
+                }
             )
         }
         composable<FormularioQuedada> {

@@ -1,7 +1,7 @@
 package com.aitor.trackactividades.quedadas.data.response
 
 import com.aitor.trackactividades.core.model.Modalidades
-import com.aitor.trackactividades.quedadas.presentation.Meetup.ItemMeetupList
+import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 

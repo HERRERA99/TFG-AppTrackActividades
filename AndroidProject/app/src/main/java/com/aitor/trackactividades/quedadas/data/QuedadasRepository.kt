@@ -2,18 +2,15 @@ package com.aitor.trackactividades.quedadas.data
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.model.Modalidades
-import com.aitor.trackactividades.core.network.LocalDateTimeAdapter
 import com.aitor.trackactividades.core.network.LocalDateTimeQuedadasAdapter
 import com.aitor.trackactividades.core.token.TokenManager
-import com.aitor.trackactividades.core.userPreferences.UserPreferences
-import com.aitor.trackactividades.quedadas.data.QuedadasPaginSource
 import com.aitor.trackactividades.quedadas.data.request.MeetupCreateDTO
-import com.aitor.trackactividades.quedadas.presentation.Meetup.ItemMeetupList
+import com.aitor.trackactividades.quedadas.data.request.MeetupResponse
+import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.flow.Flow
@@ -112,5 +109,10 @@ class QuedadasRepository @Inject constructor(
                 )
             }
         ).flow
+    }
+
+    suspend fun getMeetup(id: Long): MeetupResponse {
+        val token = tokenManager.getToken() ?: ""
+        return quedadasApiService.getMeetup("Bearer $token", id)
     }
 }
