@@ -27,4 +27,5 @@ public class MeetupResponseDTO {
     private Integer organizerId;
     private List<UserSearchDTO> participants;
     private List<LatLng> route;
+    private boolean isParticipating;
 }

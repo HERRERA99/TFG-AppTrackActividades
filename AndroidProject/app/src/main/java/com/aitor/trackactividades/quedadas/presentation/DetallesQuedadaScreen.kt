@@ -3,6 +3,7 @@ package com.aitor.trackactividades.quedadas.presentation
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,6 +57,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.aitor.trackactividades.buscarUsuario.presentation.UserSearchItem
 import com.aitor.trackactividades.quedadas.presentation.model.Meetup
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,24 +130,32 @@ fun DetallesQuedadaScreen(
             if (meetup != null) {
                 QuedadaBody(meetup = meetup!!, detallesQuedadaViewModel) { navigateToProfile(it) }
             } else {
-                CircularProgressIndicator()
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
         }
     }
 }
 
 @Composable
-fun QuedadaBody(meetup: Meetup, detallesQuedadaViewModel: DetallesQuedadaViewModel, onUserClick: (Int) -> Unit) {
+fun QuedadaBody(
+    meetup: Meetup,
+    detallesQuedadaViewModel: DetallesQuedadaViewModel,
+    onUserClick: (Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         DetallesQuedadaBody(meetup, meetup.route.isNotEmpty(), detallesQuedadaViewModel)
         Spacer(modifier = Modifier.height(16.dp))
         if (meetup.route.isNotEmpty()) {
-            RutaQuedada(meetup)
+            MiniMapaRuta(meetup)
         }
         ParticipantesQuedada(meetup) {
             onUserClick(it)
@@ -148,41 +164,61 @@ fun QuedadaBody(meetup: Meetup, detallesQuedadaViewModel: DetallesQuedadaViewMod
 }
 
 @Composable
-fun RutaQuedada(meetup: Meetup) {
-    val context = LocalContext.current
-    val color = MaterialTheme.colorScheme.primary
-    val primaryColorHex = remember(color) {
-        String.format("0x%06X", (0xFFFFFF and color.toArgb())).replace("0x", "")
-    }
-
-    val route = meetup.route
-    val mapUrl = remember(route, primaryColorHex) {
-        if (route.isEmpty()) "" else {
-            val path = route.joinToString("|") { "${it.latitude},${it.longitude}" }
-            "https://maps.googleapis.com/maps/api/staticmap?" +
-                    "size=600x300&" +
-                    "path=color:0x$primaryColorHex|weight:5|$path&" +
-                    "markers=color:red|${route.first().latitude},${route.first().longitude}&" +
-                    "markers=color:green|${route.last().latitude},${route.last().longitude}&" +
-                    "key=AIzaSyAmTzpoTJ8HnqJCNAhR2UID4IAX94lqvKY"
+fun MiniMapaRuta(meetup: Meetup) {
+    val route  = meetup.route
+    val cameraPositionState = rememberCameraPositionState {
+        if (route.isNotEmpty()) {
+            position = CameraPosition.fromLatLngZoom(route.first(), 14f)
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxWidth().background(Color.Red),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    GoogleMap(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable {
+                // Navegar a otra pantalla de mapa completo
+            },
+        cameraPositionState = cameraPositionState
     ) {
-        if (mapUrl.isNotEmpty()) {
-            AsyncImage(
-                model = mapUrl,
-                contentDescription = "Mapa de la ruta",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.FillWidth
-            )
-        }
+        Polyline(
+            points = route,
+            color = Color.Red,
+            width = 5f
+        )
+        Marker(state = rememberMarkerState(position = route.first()), title = "Inicio")
+        Marker(state = rememberMarkerState(position = route.last()), title = "Fin")
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // Altitud y distancia
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.TrendingUp,
+            contentDescription = "Altitud",
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "${"%.2f".format(meetup.elevationGain)} m",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Icon(
+            imageVector = Icons.Default.Route,
+            contentDescription = "Distancia",
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "${"%.2f".format(meetup.distance)} km",
+            style = MaterialTheme.typography.bodyMedium
+        )
+
     }
 }
 
@@ -238,12 +274,7 @@ fun DetallesQuedadaBody(meetup: Meetup, tieneRuta: Boolean, viewModel: DetallesQ
                 text = meetup.dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 style = MaterialTheme.typography.bodyMedium
             )
-        }
-
-        // Hora
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            Spacer(modifier = Modifier.width(16.dp))
             Icon(
                 imageVector = Icons.Default.AccessTime,
                 contentDescription = "Hora",
@@ -275,7 +306,7 @@ fun DetallesQuedadaBody(meetup: Meetup, tieneRuta: Boolean, viewModel: DetallesQ
                     text = meetup.location,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f),
-                    maxLines = Int.MAX_VALUE, // para que haga wrap en todas las líneas necesarias
+                    maxLines = Int.MAX_VALUE,
                     overflow = TextOverflow.Clip
                 )
             }
@@ -297,43 +328,6 @@ fun DetallesQuedadaBody(meetup: Meetup, tieneRuta: Boolean, viewModel: DetallesQ
                 Icon(Icons.Default.Directions, contentDescription = "Ir")
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("Ir")
-            }
-        }
-
-
-        // Altitud
-        if (tieneRuta) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.TrendingUp,
-                    contentDescription = "Altitud",
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "${"%.2f".format(meetup.elevationGain)} m",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-
-        // Distancia
-        if (tieneRuta) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Route,
-                    contentDescription = "Distancia",
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "${"%.2f".format(meetup.distance)} km",
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
         }
     }

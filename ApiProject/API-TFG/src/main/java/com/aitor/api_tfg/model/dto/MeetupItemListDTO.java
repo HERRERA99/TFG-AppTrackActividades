@@ -19,4 +19,6 @@ public class MeetupItemListDTO {
     private String location;
     private Modalidades sportType;
     private boolean isParticipating;
+    private int maxParticipants;
+    private int numParticipants;
 }
