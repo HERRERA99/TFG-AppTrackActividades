@@ -18,5 +18,6 @@ data class Meetup(
     val sportType: Modalidades,
     val organizerId: Int,
     val participants: List<UserSearchModel>,
-    val route: List<LatLng>
+    val route: List<LatLng>,
+    val isParticipating: Boolean
 )

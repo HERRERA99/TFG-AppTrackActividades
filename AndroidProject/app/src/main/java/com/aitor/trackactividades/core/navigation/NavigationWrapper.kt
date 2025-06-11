@@ -184,7 +184,10 @@ fun NavigationWrapper() {
 
             DetallesQuedadaScreen(
                 detallesQuedadaViewModel = detallesQuedadaViewModel,
-                navigateToQuedadas = { navController.navigate(Quedadas) }
+                navigateToQuedadas = { navController.navigate(Quedadas) },
+                navigateToProfile = { profileId ->
+                    navController.navigate("profile/$profileId")
+                }
             )
         }
         composable<Search> {

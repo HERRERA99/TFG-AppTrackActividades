@@ -301,7 +301,6 @@ fun QuedadasBody(
                 MeetupItem(
                     meetup = meetup,
                     viewModel = viewModel,
-                    onParticipateClick = {},
                     navigateToDetallesQuedada = navigateToDetallesQuedada
                 )
             }
@@ -324,7 +323,6 @@ fun QuedadasBody(
 fun MeetupItem(
     meetup: ItemMeetupList,
     viewModel: QuedadasViewModel,
-    onParticipateClick: () -> Unit,
     navigateToDetallesQuedada: (Long) -> Unit,
 ) {
     Card(
@@ -341,100 +339,85 @@ fun MeetupItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Contenido principal (texto + botón)
             Column(
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Título
                 Text(
                     text = meetup.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
 
-                // Fila para la modalidad (icono + nombre)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                // Modalidad
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = meetup.sportType.icon,
                         contentDescription = "Modalidad deportiva",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = meetup.sportType.displayName,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
 
                 // Fecha
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.CalendarMonth,
                         contentDescription = "Fecha",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = meetup.dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
 
                 // Hora
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.AccessTime,
                         contentDescription = "Hora",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = meetup.dateTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
 
                 // Ubicación
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Ubicación",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = viewModel.extraerPuebloProvinciaPaisSinNumeros(meetup.location),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
                 }
-            }
 
-            // Botón de participación
-            Button(
-                onClick = onParticipateClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (meetup.isParticipating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (meetup.isParticipating) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                modifier = Modifier.fillMaxHeight()
-            ) {
+                // Estado de participación
                 Text(
-                    text = if (meetup.isParticipating) "Desapuntarse" else "Apuntarse"
+                    text = if (meetup.isParticipating) "Te has apuntado" else "No estás apuntado",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (meetup.isParticipating) Color(0xFF388E3C) else Color.Gray
                 )
             }
         }
     }
 }
+

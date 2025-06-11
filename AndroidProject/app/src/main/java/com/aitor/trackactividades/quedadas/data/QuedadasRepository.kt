@@ -53,7 +53,7 @@ class QuedadasRepository @Inject constructor(
                 location = location,
                 maxParticipants = maxParticipants,
                 locationCoordinates = locationCoordinates,
-                sportType = sportType
+                sportType = sportType,
             )
 
             val meetupJson = GsonBuilder()

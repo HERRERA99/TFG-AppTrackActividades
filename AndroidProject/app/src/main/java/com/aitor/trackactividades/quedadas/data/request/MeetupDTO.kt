@@ -11,5 +11,5 @@ data class MeetupCreateDTO(
     val location: String,
     val maxParticipants: Int?,
     val locationCoordinates: LatLng,
-    val sportType: Modalidades
+    val sportType: Modalidades,
 )

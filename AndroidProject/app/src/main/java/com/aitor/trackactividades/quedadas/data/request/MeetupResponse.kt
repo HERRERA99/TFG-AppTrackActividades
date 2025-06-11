@@ -19,7 +19,8 @@ data class MeetupResponse(
     @SerializedName("sportType") val sportType: Modalidades,
     @SerializedName("organizerId") val organizerId: Int,
     @SerializedName("participants") val participants: List<UserSearchResponse>,
-    @SerializedName("route") val route: List<LatLng>
+    @SerializedName("route") val route: List<LatLng>,
+    @SerializedName("isParticipating") val isParticipating: Boolean
 ) {
     fun toPresentation(): Meetup {
         return Meetup(
@@ -29,12 +30,13 @@ data class MeetupResponse(
             location = this.location,
             distance = this.distance,
             elevationGain = this.elevationGain,
-            maxParticipants = this.maxParticipants,
+            maxParticipants = if (this.maxParticipants == 0) null else this.maxParticipants.toInt(),
             locationCoordinates = this.locationCoordinates,
             sportType = this.sportType,
             organizerId = this.organizerId,
             participants = this.participants.map { it.toPresentation() },
-            route = this.route
+            route = this.route,
+            isParticipating = this.isParticipating
         )
     }
 }
