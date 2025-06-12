@@ -33,10 +33,9 @@ class QuedadasRepository @Inject constructor(
 
     suspend fun createMeetup(
         title: String,
-        description: String,
+        description: String?,
         dateTime: LocalDateTime,
         location: String,
-        maxParticipants: Int?,
         locationCoordinates: LatLng,
         sportType: Modalidades,
         gpxUri: Uri?,
@@ -51,7 +50,6 @@ class QuedadasRepository @Inject constructor(
                 description = description,
                 dateTime = dateTime,
                 location = location,
-                maxParticipants = maxParticipants,
                 locationCoordinates = locationCoordinates,
                 sportType = sportType,
             )

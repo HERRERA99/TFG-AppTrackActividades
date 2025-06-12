@@ -82,12 +82,14 @@ public class MeetupService {
                 .location(meetup.getLocation())
                 .distance(totalDistance)
                 .elevationGain(elevationGain)
-                .maxParticipants(meetup.getMaxParticipants())
                 .locationCoordinates(meetup.getLocationCoordinates())
                 .sportType(meetup.getSportType())
                 .organizerId(user.get())
+                .participants(new ArrayList<>())
                 .route(routePoints)
                 .build();
+
+        meetupEntity.addParticipant(user.get());
 
         meetupRepository.save(meetupEntity);
 
@@ -107,7 +109,6 @@ public class MeetupService {
                 .location(meetup.getLocation())
                 .distance(meetup.getDistance())
                 .elevationGain(meetup.getElevationGain())
-                .maxParticipants(meetup.getMaxParticipants())
                 .locationCoordinates(meetup.getLocationCoordinates())
                 .sportType(meetup.getSportType())
                 .organizerId(meetup.getOrganizerId().getId())

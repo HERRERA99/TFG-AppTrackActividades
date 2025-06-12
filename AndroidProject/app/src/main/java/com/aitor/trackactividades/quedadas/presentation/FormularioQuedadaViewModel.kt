@@ -36,9 +36,6 @@ class FormularioQuedadaViewModel @Inject constructor(
     private var _latLng = MutableLiveData<LatLng?>(null)
     val latLng: LiveData<LatLng?> = _latLng
 
-    private var _maxParticipantes = MutableLiveData<Int?>()
-    val maxParticipantes: LiveData<Int?> = _maxParticipantes
-
     private var _modalidad = MutableLiveData(Modalidades.CICLISMO_CARRETERA)
     val modalidad: LiveData<Modalidades> = _modalidad
 
@@ -71,10 +68,6 @@ class FormularioQuedadaViewModel @Inject constructor(
         _fechaHora.value = nuevaFechaHora
     }
 
-    fun actualizarMaxParticipantes(nuevoMaxParticipantes: Int?) {
-        _maxParticipantes.value = nuevoMaxParticipantes
-    }
-
     fun actualizarModalidad(nuevaModalidad: Modalidades) {
         _modalidad.value = nuevaModalidad
     }
@@ -87,10 +80,9 @@ class FormularioQuedadaViewModel @Inject constructor(
         viewModelScope.launch {
             val result = createMeetupUseCase(
                 title = _titulo.value!!,
-                description = _descripcion.value!!,
+                description = _descripcion.value,
                 dateTime = _fechaHora.value!!,
                 location = _localizacion.value!!,
-                maxParticipants = _maxParticipantes.value,
                 locationCoordinates = _latLng.value!!,
                 sportType = _modalidad.value!!,
                 gpxUri = _gpxFile.value,

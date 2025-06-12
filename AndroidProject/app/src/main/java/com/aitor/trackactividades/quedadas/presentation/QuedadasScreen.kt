@@ -66,6 +66,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.aitor.trackactividades.feed.presentation.FeedBottomBar
 import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshState
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -293,27 +295,34 @@ fun QuedadasBody(
     meetups: LazyPagingItems<ItemMeetupList>,
     navigateToDetallesQuedada: (Long) -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        items(count = meetups.itemCount) { index ->
-            meetups[index]?.let { meetup ->
-                MeetupItem(
-                    meetup = meetup,
-                    viewModel = viewModel,
-                    navigateToDetallesQuedada = navigateToDetallesQuedada
-                )
-            }
-        }
+    val isRefreshing = meetups.loadState.refresh is LoadState.Loading
 
-        if (meetups.loadState.append is LoadState.Loading) {
-            item {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .wrapContentWidth(Alignment.CenterHorizontally)
-                )
+    SwipeRefresh(
+        state = remember { SwipeRefreshState(isRefreshing) },
+        onRefresh = { meetups.refresh() }
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(count = meetups.itemCount) { index ->
+                meetups[index]?.let { meetup ->
+                    MeetupItem(
+                        meetup = meetup,
+                        viewModel = viewModel,
+                        navigateToDetallesQuedada = navigateToDetallesQuedada
+                    )
+                }
+            }
+
+            if (meetups.loadState.append is LoadState.Loading) {
+                item {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    )
+                }
             }
         }
     }

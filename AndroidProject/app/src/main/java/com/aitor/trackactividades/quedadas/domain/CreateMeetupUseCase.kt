@@ -11,10 +11,9 @@ import javax.inject.Inject
 class CreateMeetupUseCase @Inject constructor(private val quedadasRepository: QuedadasRepository) {
     suspend operator fun invoke(
         title: String,
-        description: String,
+        description: String?,
         dateTime: LocalDateTime,
         location: String,
-        maxParticipants: Int?,
         locationCoordinates: LatLng,
         sportType: Modalidades,
         gpxUri: Uri?,
@@ -44,7 +43,6 @@ class CreateMeetupUseCase @Inject constructor(private val quedadasRepository: Qu
                 description,
                 dateTime,
                 location,
-                maxParticipants,
                 locationCoordinates,
                 sportType,
                 gpxUri,

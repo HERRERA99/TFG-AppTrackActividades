@@ -58,4 +58,10 @@ public class Publication {
     public boolean isLiked(User user) {
         return likes.contains(user);
     }
+
+    @PreRemove
+    private void removeLikeAssociations() {
+        likes.clear();
+    }
+
 }

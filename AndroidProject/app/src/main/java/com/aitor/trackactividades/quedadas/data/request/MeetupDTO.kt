@@ -6,10 +6,9 @@ import java.time.LocalDateTime
 
 data class MeetupCreateDTO(
     val title: String,
-    val description: String,
+    val description: String?,
     val dateTime: LocalDateTime,
     val location: String,
-    val maxParticipants: Int?,
     val locationCoordinates: LatLng,
     val sportType: Modalidades,
 )

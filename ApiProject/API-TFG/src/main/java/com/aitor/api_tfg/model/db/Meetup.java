@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Cascade;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,12 +23,11 @@ public class Meetup {
 
     private String title;
     private String description;
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime dateTime;
     private String location;
     private Double distance;
     private Double elevationGain;
-    private Integer maxParticipants;
+
     @AttributeOverrides({
             @AttributeOverride(name = "latitude", column = @Column(name = "latPuntoQuedada")),
             @AttributeOverride(name = "longitude", column = @Column(name = "lngPuntoQuedada"))
@@ -52,8 +52,18 @@ public class Meetup {
     @ElementCollection
     @CollectionTable(
             name = "meetup_route",
-            joinColumns = @JoinColumn(name = "activity_id")
+            joinColumns = @JoinColumn(name = "meetup_id")
     )
     @OrderColumn(name = "route_order")
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
     private List<LatLng> route;
+
+    @PreRemove
+    private void removeParticipantsAssociations() {
+        this.participants.clear();
+    }
+
+    public void addParticipant(User user) {
+        this.participants.add(user);
+    }
 }

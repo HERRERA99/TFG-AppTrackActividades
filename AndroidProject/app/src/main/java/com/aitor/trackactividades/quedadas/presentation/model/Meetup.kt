@@ -8,12 +8,11 @@ import java.time.LocalDateTime
 
 data class Meetup(
     val title: String,
-    val description: String,
+    val description: String?,
     val dateTime: LocalDateTime,
     val location: String,
     val distance: Double?,
     val elevationGain: Double?,
-    val maxParticipants: Int?,
     val locationCoordinates: LatLng,
     val sportType: Modalidades,
     val organizerId: Int,

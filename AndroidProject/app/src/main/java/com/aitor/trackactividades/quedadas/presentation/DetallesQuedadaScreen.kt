@@ -165,7 +165,7 @@ fun QuedadaBody(
 
 @Composable
 fun MiniMapaRuta(meetup: Meetup) {
-    val route  = meetup.route
+    val route = meetup.route
     val cameraPositionState = rememberCameraPositionState {
         if (route.isNotEmpty()) {
             position = CameraPosition.fromLatLngZoom(route.first(), 14f)
@@ -218,6 +218,18 @@ fun MiniMapaRuta(meetup: Meetup) {
             text = "${"%.2f".format(meetup.distance)} km",
             style = MaterialTheme.typography.bodyMedium
         )
+        Spacer(modifier = Modifier.width(16.dp))
+        // Fila para la modalidad (icono + nombre)
+        Icon(
+            imageVector = meetup.sportType.icon,
+            contentDescription = "Modalidad deportiva",
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = meetup.sportType.displayName,
+            style = MaterialTheme.typography.bodyMedium
+        )
 
     }
 }
@@ -239,24 +251,10 @@ fun DetallesQuedadaBody(meetup: Meetup, tieneRuta: Boolean, viewModel: DetallesQ
         )
 
         // Descripción
-        Text(
-            text = meetup.description,
-            style = MaterialTheme.typography.bodyLarge
-        )
-
-        // Fila para la modalidad (icono + nombre)
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = meetup.sportType.icon,
-                contentDescription = "Modalidad deportiva",
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
+        if (meetup.description != null) {
             Text(
-                text = meetup.sportType.displayName,
-                style = MaterialTheme.typography.bodyMedium
+                text = meetup.description,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
 
@@ -337,7 +335,8 @@ fun DetallesQuedadaBody(meetup: Meetup, tieneRuta: Boolean, viewModel: DetallesQ
 fun ParticipantesQuedada(meetup: Meetup, onUserClick: (Int) -> Unit) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -347,14 +346,17 @@ fun ParticipantesQuedada(meetup: Meetup, onUserClick: (Int) -> Unit) {
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "${meetup.participants.size}/${meetup.maxParticipants ?: "∞"}",
+            text = "Participantes: ${meetup.participants.size}",
             style = MaterialTheme.typography.bodyMedium
         )
     }
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
         meetup.participants.forEachIndexed { index, user ->
             UserSearchItem(
                 user = user,

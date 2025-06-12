@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @HiltViewModel
 class DetallesQuedadaViewModel @Inject constructor(
@@ -47,7 +48,7 @@ class DetallesQuedadaViewModel @Inject constructor(
     }
 
     fun abrirGoogleMaps(context: Context, lat: Double, lng: Double) {
-        val uri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$lat,$lng")
+        val uri = "https://www.google.com/maps/dir/?api=1&destination=$lat,$lng".toUri()
         val intent = Intent(Intent.ACTION_VIEW, uri)
         intent.setPackage("com.google.android.apps.maps")
 

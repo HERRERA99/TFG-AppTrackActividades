@@ -105,7 +105,6 @@ fun FormularioQuedadaScreen(
     val descripcion by formularioQuedadaViewModel.descripcion.observeAsState("")
     val fechaHora by formularioQuedadaViewModel.fechaHora.observeAsState(null)
     val localizacion by formularioQuedadaViewModel.localizacion.observeAsState("")
-    val maxParticipantes by formularioQuedadaViewModel.maxParticipantes.observeAsState()
     val modalidad by formularioQuedadaViewModel.modalidad.observeAsState(Modalidades.CICLISMO_CARRETERA)
     val mostrarMapa by formularioQuedadaViewModel.mostrarMapa.observeAsState(false)
 
@@ -140,7 +139,6 @@ fun FormularioQuedadaScreen(
                     FechaHoraInput(formularioQuedadaViewModel, fechaHora)
                     LocalizacionInput(formularioQuedadaViewModel, localizacion)
                     GpxFileUpload(formularioQuedadaViewModel)
-                    ParticipantesInput(formularioQuedadaViewModel)
                     BotonCrearQuedada(formularioQuedadaViewModel) {
                         navigateToQuedadas()
                     }
@@ -260,68 +258,6 @@ fun ModalidadDropdown(viewModel: FormularioQuedadaViewModel, modalidad: Modalida
                     )
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun ParticipantesInput(viewModel: FormularioQuedadaViewModel) {
-    var sliderEnabled by remember { mutableStateOf(false) }
-    var sliderValue by remember { mutableStateOf(5f) }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "Límite de participantes",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f)
-            )
-            Switch(
-                checked = sliderEnabled,
-                onCheckedChange = {
-                    sliderEnabled = it
-                    if (!it) {
-                        viewModel.actualizarMaxParticipantes(null)
-                    } else {
-                        viewModel.actualizarMaxParticipantes(sliderValue.toInt())
-                    }
-                }
-            )
-        }
-
-        if (sliderEnabled) {
-            Slider(
-                value = sliderValue,
-                onValueChange = {
-                    sliderValue = it
-                    viewModel.actualizarMaxParticipantes(it.toInt())
-                    viewModel.actualizarMaxParticipantes(it.toInt())
-                },
-                valueRange = 1f..50f,
-                steps = 49,
-                modifier = Modifier.padding(vertical = 8.dp),
-                colors = SliderDefaults.colors(
-                    activeTickColor = Color.Transparent,
-                    inactiveTickColor = Color.Transparent
-                )
-            )
-
-            Text(
-                text = "Máximo: ${sliderValue.toInt()} participantes",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-        } else {
-            Text(
-                text = "Sin límite de participantes",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
         }
     }
 }

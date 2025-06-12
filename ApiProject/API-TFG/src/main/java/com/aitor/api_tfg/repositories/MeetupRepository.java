@@ -1,6 +1,5 @@
 package com.aitor.api_tfg.repositories;
 
-import com.aitor.api_tfg.model.db.Follow;
 import com.aitor.api_tfg.model.db.Meetup;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,12 +15,14 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long> {
                POINT(m.lng_punto_quedada, m.lat_punto_quedada)
            ) AS distanceToStart
     FROM meetup m
+    WHERE m.date_time > NOW()
     ORDER BY distanceToStart
     """,
-            countQuery = "SELECT COUNT(*) FROM meetup m",
+            countQuery = "SELECT COUNT(*) FROM meetup m WHERE m.date_time > NOW()",
             nativeQuery = true)
     Page<Meetup> findMeetupsOrderedByDistance(
             @Param("userLat") double userLat,
             @Param("userLng") double userLng,
             Pageable pageable);
+
 }

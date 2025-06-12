@@ -21,7 +21,6 @@ public class MeetupResponseDTO {
     private String location;
     private Double distance;
     private Double elevationGain;
-    private Integer maxParticipants;
     private LatLng locationCoordinates;
     private Modalidades sportType;
     private Integer organizerId;
