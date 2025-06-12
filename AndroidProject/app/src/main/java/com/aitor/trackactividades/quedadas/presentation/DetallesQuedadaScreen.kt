@@ -99,7 +99,13 @@ fun DetallesQuedadaScreen(
                             }
                         } else {
                             Button(
-                                onClick = {},
+                                onClick = {
+                                    if (meetup!!.isParticipating) {
+                                        // Acción para cancelar la quedada
+                                    } else {
+                                        detallesQuedadaViewModel.onJoinClick(meetup!!.id)
+                                    }
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (meetup!!.isParticipating) Color.Gray else MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary

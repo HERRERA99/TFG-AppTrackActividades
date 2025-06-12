@@ -17,11 +17,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.aitor.trackactividades.quedadas.domain.JoinMeetupUseCase
 
 @HiltViewModel
 class DetallesQuedadaViewModel @Inject constructor(
     private val getMeetupUseCase: GetMeetupUseCase,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val joinMeetupUseCase: JoinMeetupUseCase
 ) : ViewModel() {
 
     private val _meetup = MutableStateFlow<Meetup?>(null)
@@ -59,5 +61,11 @@ class DetallesQuedadaViewModel @Inject constructor(
         }
     }
 
-
+    fun onJoinClick(id: Long) {
+        viewModelScope.launch {
+            val updatedMeetup = joinMeetupUseCase(id)
+            Log.d("DetallesQuedadaScreen", "Recomposición: isParticipating = ${updatedMeetup.isParticipating}")
+            _meetup.value = updatedMeetup.copy()
+        }
+    }
 }

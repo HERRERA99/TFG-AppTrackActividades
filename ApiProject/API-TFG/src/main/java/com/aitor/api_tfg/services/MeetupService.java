@@ -10,6 +10,7 @@ import com.aitor.api_tfg.model.dto.UserSearchDTO;
 import com.aitor.api_tfg.repositories.MeetupRepository;
 import com.aitor.api_tfg.repositories.UserRepository;
 import com.aitor.api_tfg.utils.GpxCalculationUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,16 +94,19 @@ public class MeetupService {
 
         meetupRepository.save(meetupEntity);
 
-        return convertToDto(meetupEntity);
+        return convertToDto(meetupEntity, user.get());
     }
 
-    public Optional<MeetupResponseDTO> getMeetupById(Long id) {
-        return meetupRepository.findById(id)
-                .map(this::convertToDto);
+    public MeetupResponseDTO getMeetupById(Long id, User user) {
+        Meetup meetup = meetupRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Meetup not found with ID: " + id));
+        return convertToDto(meetup, user);
     }
 
-    private MeetupResponseDTO convertToDto(Meetup meetup) {
+    private MeetupResponseDTO convertToDto(Meetup meetup, User currentUser) {
+        boolean isParticipating = meetup.getParticipants().contains(currentUser);
+
         return MeetupResponseDTO.builder()
+                .id(meetup.getId())
                 .title(meetup.getTitle())
                 .description(meetup.getDescription())
                 .dateTime(meetup.getDateTime())
@@ -114,6 +118,7 @@ public class MeetupService {
                 .organizerId(meetup.getOrganizerId().getId())
                 .participants(convertParticipantsToDto(meetup.getParticipants()))
                 .route(meetup.getRoute())
+                .isParticipating(isParticipating)
                 .build();
     }
 
@@ -133,5 +138,20 @@ public class MeetupService {
 
     public Page<Meetup> getMeetupsOrderedByDistance(double lat, double lng, Pageable pageable) {
         return meetupRepository.findMeetupsOrderedByDistance(lat, lng, pageable);
+    }
+
+    public MeetupResponseDTO joinMeetup(Long meetupId, User user) {
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() -> new EntityNotFoundException("Meetup not found with ID: " + meetupId));
+
+        if (meetup.getParticipants().contains(user)) {
+            throw new IllegalStateException("User is already joined to this meetup.");
+        }
+
+        meetup.addParticipant(user);
+
+        Meetup updatedMeetup = meetupRepository.save(meetup);
+
+        return convertToDto(updatedMeetup, user);
     }
 }

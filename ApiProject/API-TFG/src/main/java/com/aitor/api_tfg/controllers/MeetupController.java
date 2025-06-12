@@ -74,10 +74,9 @@ public class MeetupController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getMeetupById(@PathVariable Long id) {
-        return meetupService.getMeetupById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getMeetupById(@PathVariable Long id, Authentication authentication) {
+        User user = userService.findUserByUsername(authentication.getName());
+        return ResponseEntity.ok(meetupService.getMeetupById(id, user));
     }
 
     @GetMapping("/all")
@@ -141,4 +140,13 @@ public class MeetupController {
                 .isParticipating(isParticipating)
                 .build();
     }
+
+
+    @PostMapping("/{id}/join")
+    public ResponseEntity<?> joinMeetup(@PathVariable Long id, Authentication authentication) {
+        User user = userService.findUserByUsername(authentication.getName());
+        MeetupResponseDTO response = meetupService.joinMeetup(id, user);
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -8,6 +8,7 @@ import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 
 data class MeetupResponse(
+    @SerializedName("id") val id: Long,
     @SerializedName("title") val title: String,
     @SerializedName("description") val description: String,
     @SerializedName("dateTime") val date: String,
@@ -19,10 +20,11 @@ data class MeetupResponse(
     @SerializedName("organizerId") val organizerId: Int,
     @SerializedName("participants") val participants: List<UserSearchResponse>,
     @SerializedName("route") val route: List<LatLng>,
-    @SerializedName("isParticipating") val isParticipating: Boolean
+    @SerializedName("participating") val isParticipating: Boolean
 ) {
     fun toPresentation(): Meetup {
         return Meetup(
+            id = this.id,
             title = this.title,
             description = this.description,
             dateTime = LocalDateTime.parse(this.date),

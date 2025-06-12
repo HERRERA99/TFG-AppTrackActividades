@@ -7,6 +7,7 @@ import com.google.android.gms.maps.model.LatLng
 import java.time.LocalDateTime
 
 data class Meetup(
+    val id: Long,
     val title: String,
     val description: String?,
     val dateTime: LocalDateTime,
