@@ -43,4 +43,10 @@ interface QuedadasApiService {
         @Header("Authorization") token: String,
         @Path("id") id: Long
     ): MeetupResponse
+
+    @POST("/meetups/{id}/leave")
+    suspend fun leaveMeetup(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    ): MeetupResponse
 }

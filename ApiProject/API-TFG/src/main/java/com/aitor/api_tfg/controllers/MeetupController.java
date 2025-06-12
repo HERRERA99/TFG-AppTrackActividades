@@ -149,4 +149,10 @@ public class MeetupController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/{id}/leave")
+    public ResponseEntity<?> leaveMeetup(@PathVariable Long id, Authentication authentication) {
+        User user = userService.findUserByUsername(authentication.getName());
+        MeetupResponseDTO response = meetupService.leaveMeetup(id, user);
+        return ResponseEntity.ok(response);
+    }
 }

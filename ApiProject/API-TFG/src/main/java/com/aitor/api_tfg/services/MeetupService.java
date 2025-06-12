@@ -154,4 +154,19 @@ public class MeetupService {
 
         return convertToDto(updatedMeetup, user);
     }
+
+    public MeetupResponseDTO leaveMeetup(Long meetupId, User user) {
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() -> new EntityNotFoundException("Meetup not found with ID: " + meetupId));
+
+        if (!meetup.getParticipants().contains(user)) {
+            throw new IllegalStateException("User is not joined to this meetup.");
+        }
+
+        meetup.removeParticipant(user);
+
+        Meetup updatedMeetup = meetupRepository.save(meetup);
+
+        return convertToDto(updatedMeetup, user);
+    }
 }

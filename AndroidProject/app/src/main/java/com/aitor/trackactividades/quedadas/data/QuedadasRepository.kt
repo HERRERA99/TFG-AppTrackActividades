@@ -118,4 +118,9 @@ class QuedadasRepository @Inject constructor(
         val token = tokenManager.getToken() ?: ""
         return quedadasApiService.joinMeetup("Bearer $token", id)
     }
+
+    suspend fun leaveMeetup(id: Long): MeetupResponse {
+        val token = tokenManager.getToken() ?: ""
+        return quedadasApiService.leaveMeetup("Bearer $token", id)
+    }
 }

@@ -101,7 +101,7 @@ fun DetallesQuedadaScreen(
                             Button(
                                 onClick = {
                                     if (meetup!!.isParticipating) {
-                                        // Acción para cancelar la quedada
+                                        detallesQuedadaViewModel.onLeaveClick(meetup!!.id)
                                     } else {
                                         detallesQuedadaViewModel.onJoinClick(meetup!!.id)
                                     }
@@ -111,7 +111,7 @@ fun DetallesQuedadaScreen(
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 )
                             ) {
-                                Text(text = if (meetup!!.isParticipating) "Cancelar" else "Apuntarse")
+                                Text(text = if (meetup!!.isParticipating) "Desapuntarse" else "Apuntarse")
                             }
                         }
                     }
