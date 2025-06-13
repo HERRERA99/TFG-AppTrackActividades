@@ -10,7 +10,8 @@ data class ItemMeetupList(
     val dateTime: LocalDateTime,
     val location: String,
     val sportType: Modalidades,
-    val isParticipating: Boolean
+    val isParticipating: Boolean,
+    val isOrganizer: Boolean
 ) {
     override fun toString(): String {
         val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")

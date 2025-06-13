@@ -5,6 +5,7 @@ import com.aitor.trackactividades.quedadas.data.response.ListaQuedadasPageRespon
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
@@ -49,4 +50,10 @@ interface QuedadasApiService {
         @Header("Authorization") token: String,
         @Path("id") id: Long
     ): MeetupResponse
+
+    @DELETE("/meetups/{id}")
+    suspend fun deleteMeetup(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    )
 }

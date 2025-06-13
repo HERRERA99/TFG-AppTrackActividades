@@ -26,6 +26,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
@@ -57,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,6 +67,7 @@ import androidx.core.content.ContextCompat
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.aitor.trackactividades.R
 import com.aitor.trackactividades.feed.presentation.FeedBottomBar
 import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -248,15 +252,16 @@ fun QuedadasTapScreen(
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
-                    text = { Text(title) },
+                    text = {
+                        Text(
+                            text = title,
+                            color = if (tabIndex == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+                            fontWeight = if (tabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 16.sp
+                        )
+                    },
                     selected = tabIndex == index,
-                    onClick = { tabIndex = index },
-                    icon = {
-                        when (index) {
-                            0 -> Icon(imageVector = Icons.Default.Home, contentDescription = null)
-                            1 -> Icon(imageVector = Icons.Default.List, contentDescription = null)
-                        }
-                    }
+                    onClick = { tabIndex = index }
                 )
             }
         }
@@ -420,11 +425,38 @@ fun MeetupItem(
                 }
 
                 // Estado de participación
-                Text(
-                    text = if (meetup.isParticipating) "Te has apuntado" else "No estás apuntado",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (meetup.isParticipating) Color(0xFF388E3C) else Color.Gray
-                )
+                Row {
+                    if (meetup.isOrganizer) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.crown_icon),
+                            contentDescription = "Estado de participación",
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Eres el creador",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Icon(
+                            imageVector =
+                                if (meetup.isParticipating) Icons.Default.Check else Icons.Default.Close,
+                            contentDescription = "Estado de participación",
+                            modifier = Modifier.size(20.dp),
+                            tint = if (meetup.isParticipating) Color(0xFF388E3C) else Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text =
+                                if (meetup.isParticipating) "Te has apuntado" else "No estás apuntado",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color =
+                                if (meetup.isParticipating) Color(0xFF388E3C) else Color.Gray
+                        )
+                    }
+                }
             }
         }
     }

@@ -3,10 +3,7 @@ package com.aitor.api_tfg.services;
 import com.aitor.api_tfg.model.db.LatLng;
 import com.aitor.api_tfg.model.db.Meetup;
 import com.aitor.api_tfg.model.db.User;
-import com.aitor.api_tfg.model.dto.MeetupCreateDTO;
-import com.aitor.api_tfg.model.dto.MeetupItemListDTO;
-import com.aitor.api_tfg.model.dto.MeetupResponseDTO;
-import com.aitor.api_tfg.model.dto.UserSearchDTO;
+import com.aitor.api_tfg.model.dto.*;
 import com.aitor.api_tfg.repositories.MeetupRepository;
 import com.aitor.api_tfg.repositories.UserRepository;
 import com.aitor.api_tfg.utils.GpxCalculationUtils;
@@ -17,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.w3c.dom.*;
@@ -168,5 +166,22 @@ public class MeetupService {
         Meetup updatedMeetup = meetupRepository.save(meetup);
 
         return convertToDto(updatedMeetup, user);
+    }
+
+    public MeetupDeleteDTO deleteMeetup(Long meetupId, User user) {
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() -> new EntityNotFoundException("Meetup not found with ID: " + meetupId));
+
+        if (!meetup.getOrganizerId().getId().equals(user.getId())) {
+            throw new IllegalStateException("User is not the organizer.");
+        }
+
+        meetupRepository.deleteById(meetupId);
+
+        return MeetupDeleteDTO.builder()
+                .meetupId(meetupId)
+                .organizerId(user.getId())
+                .dateTime(LocalDateTime.now())
+                .build();
     }
 }

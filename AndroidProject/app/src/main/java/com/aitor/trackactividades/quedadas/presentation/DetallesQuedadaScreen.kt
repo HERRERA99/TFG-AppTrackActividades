@@ -1,10 +1,6 @@
 package com.aitor.trackactividades.quedadas.presentation
 
-import android.util.Log
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +25,7 @@ import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -74,6 +72,8 @@ fun DetallesQuedadaScreen(
     navigateToProfile: (Int) -> Unit
 ) {
     val meetup by detallesQuedadaViewModel.meetup.collectAsState()
+    val context = LocalContext.current
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -89,7 +89,9 @@ fun DetallesQuedadaScreen(
                     if (meetup != null) {
                         if (detallesQuedadaViewModel.isCreator()) {
                             Button(
-                                onClick = { /* Acción para eliminar la quedada */ },
+                                onClick = {
+                                    showDeleteDialog = true
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -101,9 +103,9 @@ fun DetallesQuedadaScreen(
                             Button(
                                 onClick = {
                                     if (meetup!!.isParticipating) {
-                                        detallesQuedadaViewModel.onLeaveClick(meetup!!.id)
+                                        detallesQuedadaViewModel.onLeaveClick(context, meetup!!.id)
                                     } else {
-                                        detallesQuedadaViewModel.onJoinClick(meetup!!.id)
+                                        detallesQuedadaViewModel.onJoinClick(context, meetup!!.id)
                                     }
                                 },
                                 colors = ButtonDefaults.buttonColors(
@@ -143,6 +145,27 @@ fun DetallesQuedadaScreen(
                     CircularProgressIndicator()
                 }
             }
+        }
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Confirmar eliminación") },
+                text = { Text("¿Estás seguro de que quieres eliminar esta quedada? Esta acción no se puede deshacer.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        detallesQuedadaViewModel.onDeleteClick(context, meetup!!.id)
+                        showDeleteDialog = false
+                        navigateToQuedadas()
+                    }) {
+                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }

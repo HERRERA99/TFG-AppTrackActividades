@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.aitor.trackactividades.quedadas.domain.DeleteMeetupUseCase
 import com.aitor.trackactividades.quedadas.domain.JoinMeetupUseCase
 import com.aitor.trackactividades.quedadas.domain.LeaveMeetupUseCase
 
@@ -25,7 +26,8 @@ class DetallesQuedadaViewModel @Inject constructor(
     private val getMeetupUseCase: GetMeetupUseCase,
     private val userPreferences: UserPreferences,
     private val joinMeetupUseCase: JoinMeetupUseCase,
-    private val leaveMeetupUseCase: LeaveMeetupUseCase
+    private val leaveMeetupUseCase: LeaveMeetupUseCase,
+    private val deleteMeetupUseCase: DeleteMeetupUseCase
 ) : ViewModel() {
 
     private val _meetup = MutableStateFlow<Meetup?>(null)
@@ -63,17 +65,38 @@ class DetallesQuedadaViewModel @Inject constructor(
         }
     }
 
-    fun onJoinClick(id: Long) {
+    fun onJoinClick(context: Context, id: Long) {
         viewModelScope.launch {
-            val updatedMeetup = joinMeetupUseCase(id)
-            _meetup.value = updatedMeetup.copy()
+            try {
+                val updatedMeetup = joinMeetupUseCase(id)
+                _meetup.value = updatedMeetup.copy()
+                Toast.makeText(context, "Apuntado a la quedada correctamente", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al apuntarse a la quedada", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
-    fun onLeaveClick(id: Long) {
+    fun onLeaveClick(context: Context, id: Long) {
         viewModelScope.launch {
-            val updatedMeetup = leaveMeetupUseCase(id)
-            _meetup.value = updatedMeetup.copy()
+            try {
+                val updatedMeetup = leaveMeetupUseCase(id)
+                _meetup.value = updatedMeetup.copy()
+                Toast.makeText(context, "Desapuntado de la quedada correctamente", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al desapuntarse de la quedada", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    fun onDeleteClick(context: Context, id: Long) {
+        viewModelScope.launch {
+            try {
+                deleteMeetupUseCase(id)
+                Toast.makeText(context, "Quedada eliminada correctamente", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al eliminar la quedada", Toast.LENGTH_LONG).show()
+            }
         }
     }
 }

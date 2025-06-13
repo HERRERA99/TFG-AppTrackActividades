@@ -11,7 +11,8 @@ data class ItemListaQuedadasResponse(
     @SerializedName("dateTime") val dateTime: String,
     @SerializedName("location") val location: String,
     @SerializedName("sportType") val sportType: Modalidades,
-    @SerializedName("participating") val isParticipating: Boolean
+    @SerializedName("participating") val isParticipating: Boolean,
+    @SerializedName("organizer") val isOrganizer: Boolean
 ) {
     fun toPresentation(): ItemMeetupList {
         return ItemMeetupList(
@@ -20,7 +21,8 @@ data class ItemListaQuedadasResponse(
             dateTime = LocalDateTime.parse(this.dateTime),
             location = this.location,
             sportType = this.sportType,
-            isParticipating = this.isParticipating
+            isParticipating = this.isParticipating,
+            isOrganizer = this.isOrganizer
         )
     }
 }

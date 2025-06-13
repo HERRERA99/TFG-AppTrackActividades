@@ -21,4 +21,5 @@ public class MeetupItemListDTO {
     private boolean isParticipating;
     private int maxParticipants;
     private int numParticipants;
+    private boolean isOrganizer;
 }

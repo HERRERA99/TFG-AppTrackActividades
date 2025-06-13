@@ -130,6 +130,7 @@ public class MeetupController {
 
     private MeetupItemListDTO convertToItemListDto(Meetup meetup, User currentUser) {
         boolean isParticipating = meetup.getParticipants().contains(currentUser);
+        boolean isOrganizer = meetup.getOrganizerId().getId().equals(currentUser.getId());
 
         return MeetupItemListDTO.builder()
                 .id(meetup.getId())
@@ -138,6 +139,7 @@ public class MeetupController {
                 .location(meetup.getLocation())
                 .sportType(meetup.getSportType())
                 .isParticipating(isParticipating)
+                .isOrganizer(isOrganizer)
                 .build();
     }
 
@@ -154,5 +156,12 @@ public class MeetupController {
         User user = userService.findUserByUsername(authentication.getName());
         MeetupResponseDTO response = meetupService.leaveMeetup(id, user);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMeetup(@PathVariable Long id, Authentication authentication) {
+        User user = userService.findUserByUsername(authentication.getName());
+        MeetupDeleteDTO meetupDelete = meetupService.deleteMeetup(id, user);
+        return ResponseEntity.ok(meetupDelete);
     }
 }
