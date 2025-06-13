@@ -102,6 +102,24 @@ class QuedadasRepository @Inject constructor(
                     quedadasApiService,
                     lat = lat,
                     lng = lng,
+                    misQuedadas = false,
+                    token = "Bearer $token",
+                    pageSize = PAGE_SIZE
+                )
+            }
+        ).flow
+    }
+
+    suspend fun getMyMeetups(): Flow<PagingData<ItemMeetupList>> {
+        val token = tokenManager.getToken() ?: ""
+        return Pager(
+            config = PagingConfig(pageSize = PAGE_SIZE, prefetchDistance = PREFETCH_ITEMS),
+            pagingSourceFactory = {
+                QuedadasPaginSource(
+                    quedadasApiService,
+                    lat = null,
+                    lng = null,
+                    misQuedadas = true,
                     token = "Bearer $token",
                     pageSize = PAGE_SIZE
                 )

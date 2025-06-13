@@ -86,6 +86,7 @@ fun QuedadasScreen(
 ) {
     val context = LocalContext.current
     val meetups = quedadasViewModel.meetups.collectAsLazyPagingItems()
+    val myMeetups = quedadasViewModel.myMeetups.collectAsLazyPagingItems()
     val locationState by quedadasViewModel.location.collectAsState()
 
     // Estado para rastrear si los permisos han sido concedidos
@@ -201,6 +202,7 @@ fun QuedadasScreen(
                     QuedadasTapScreen(
                         quedadasViewModel = quedadasViewModel,
                         meetups = meetups,
+                        myMeetups = myMeetups,
                         navigateToDetallesQuedada = navigateToDetallesQuedada
                     )
                 }
@@ -214,6 +216,7 @@ fun QuedadasScreen(
 fun QuedadasTapScreen(
     quedadasViewModel: QuedadasViewModel,
     meetups: LazyPagingItems<ItemMeetupList>,
+    myMeetups: LazyPagingItems<ItemMeetupList>,
     navigateToDetallesQuedada: (Long) -> Unit
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
@@ -277,20 +280,13 @@ fun QuedadasTapScreen(
                     navigateToDetallesQuedada = navigateToDetallesQuedada
                 )
 
-                1 -> MisQuedadasBody()
+                1 -> QuedadasBody(
+                    viewModel = quedadasViewModel,
+                    meetups = myMeetups,
+                    navigateToDetallesQuedada = navigateToDetallesQuedada
+                )
             }
         }
-    }
-}
-
-@Composable
-fun MisQuedadasBody() {
-    Column(
-        Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Mis Quedadas", fontSize = 25.sp)
     }
 }
 
@@ -302,31 +298,65 @@ fun QuedadasBody(
 ) {
     val isRefreshing = meetups.loadState.refresh is LoadState.Loading
 
-    SwipeRefresh(
-        state = remember { SwipeRefreshState(isRefreshing) },
-        onRefresh = { meetups.refresh() }
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(count = meetups.itemCount) { index ->
-                meetups[index]?.let { meetup ->
-                    MeetupItem(
-                        meetup = meetup,
-                        viewModel = viewModel,
-                        navigateToDetallesQuedada = navigateToDetallesQuedada
-                    )
+    when {
+        meetups.loadState.refresh is LoadState.Loading && meetups.itemCount == 0 -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+
+        meetups.loadState.refresh is LoadState.Error -> {
+            val error = meetups.loadState.refresh as LoadState.Error
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Error al cargar las quedadas")
+                    Text(error.error.localizedMessage ?: "Error desconocido")
+                    Button(onClick = { meetups.retry() }) {
+                        Text("Reintentar")
+                    }
                 }
             }
+        }
 
-            if (meetups.loadState.append is LoadState.Loading) {
-                item {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .wrapContentWidth(Alignment.CenterHorizontally)
-                    )
+        else -> {
+            SwipeRefresh(
+                state = remember { SwipeRefreshState(isRefreshing) },
+                onRefresh = { meetups.refresh() }
+            ) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(count = meetups.itemCount) { index ->
+                        meetups[index]?.let { meetup ->
+                            MeetupItem(
+                                meetup = meetup,
+                                viewModel = viewModel,
+                                navigateToDetallesQuedada = navigateToDetallesQuedada
+                            )
+                        }
+                    }
+
+                    if (meetups.loadState.append is LoadState.Loading) {
+                        item {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
+
+                    if (meetups.itemCount == 0) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("No hay quedadas disponibles")
+                            }
+                        }
+                    }
                 }
             }
         }

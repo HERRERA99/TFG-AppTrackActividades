@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.location.LocationRepository
 import com.aitor.trackactividades.quedadas.domain.GetAllMeetupsUseCase
+import com.aitor.trackactividades.quedadas.domain.GetMyMeetupsUseCase
 import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -23,12 +25,25 @@ import javax.inject.Inject
 @HiltViewModel
 class QuedadasViewModel @Inject constructor(
     private val getAllMeetupsUseCase: GetAllMeetupsUseCase,
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
+    private val myMeetupsUseCase: GetMyMeetupsUseCase
 ) : ViewModel() {
-    private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1)
+    private val _refreshTrigger = MutableSharedFlow<Unit>(replay = 1)
+    val refreshTrigger = _refreshTrigger.asSharedFlow()
 
     private val _location = MutableStateFlow<Pair<Double, Double>?>(null)
     val location: StateFlow<Pair<Double, Double>?> = _location.asStateFlow()
+
+    // Emitir valor inicial para que myMeetups empiece a cargar
+    init {
+        viewModelScope.launch {
+            _refreshTrigger.emit(Unit) // Emitir valor inicial
+            val location = locationRepository.getLastKnownLocation()
+            location?.let { (lat, lng) ->
+                _location.value = lat to lng
+            }
+        }
+    }
 
     val meetups: Flow<PagingData<ItemMeetupList>> = location.flatMapLatest { location ->
         if (location != null) {
@@ -38,17 +53,14 @@ class QuedadasViewModel @Inject constructor(
         }
     }
 
-    init {
-        viewModelScope.launch {
-            val location = locationRepository.getLastKnownLocation()
-            location?.let { (lat, lng) ->
-                _location.value = lat to lng
-            }
-        }
+    val myMeetups: Flow<PagingData<ItemMeetupList>> = refreshTrigger.flatMapLatest {
+        myMeetupsUseCase.execute()
     }
 
     fun refresh() {
         viewModelScope.launch {
+            // Refrescar ambos flujos
+            _refreshTrigger.emit(Unit)
             val location = locationRepository.getLastKnownLocation()
             location?.let { (lat, lng) ->
                 _location.value = lat to lng

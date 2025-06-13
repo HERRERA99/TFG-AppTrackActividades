@@ -138,6 +138,10 @@ public class MeetupService {
         return meetupRepository.findMeetupsOrderedByDistance(lat, lng, pageable);
     }
 
+    public Page<Meetup> getUserMeetupsOrderedByDistance(Integer userId, Pageable pageable) {
+        return meetupRepository.findMeetupsOrganizedByUserOrderedByDate(userId, pageable);
+    }
+
     public MeetupResponseDTO joinMeetup(Long meetupId, User user) {
         Meetup meetup = meetupRepository.findById(meetupId)
                 .orElseThrow(() -> new EntityNotFoundException("Meetup not found with ID: " + meetupId));

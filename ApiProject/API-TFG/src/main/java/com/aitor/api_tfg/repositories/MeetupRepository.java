@@ -25,4 +25,21 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long> {
             @Param("userLng") double userLng,
             Pageable pageable);
 
+    @Query(value = """
+    SELECT m.*
+    FROM meetup m
+    WHERE m.date_time > NOW()
+      AND m.organizer_id = :userId
+    ORDER BY m.date_time ASC
+    """,
+            countQuery = """
+    SELECT COUNT(*)
+    FROM meetup m
+    WHERE m.date_time > NOW()
+      AND m.organizer_id = :userId
+    """,
+            nativeQuery = true)
+    Page<Meetup> findMeetupsOrganizedByUserOrderedByDate(
+            @Param("userId") Integer userId,
+            Pageable pageable);
 }

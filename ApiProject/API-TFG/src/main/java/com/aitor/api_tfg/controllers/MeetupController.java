@@ -128,6 +128,45 @@ public class MeetupController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<PageDTO<MeetupItemListDTO>> getMyMeetupsOrderedByDistance(
+            Authentication authentication,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        User currentUser = userService.findUserByUsername(authentication.getName());
+
+        Page<Meetup> meetupPage = meetupService.getUserMeetupsOrderedByDistance(currentUser.getId(), pageable);
+
+        List<MeetupItemListDTO> content = meetupPage.getContent().stream()
+                .map(meetup -> convertToItemListDto(meetup, currentUser))
+                .toList();
+
+        String baseUrl = request.getRequestURL().toString();
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("size", size);
+
+        String nextUrl = (page < meetupPage.getTotalPages()) ?
+                uriBuilder.replaceQueryParam("page", page + 1).toUriString() : null;
+        String prevUrl = (page > 1) ?
+                uriBuilder.replaceQueryParam("page", page - 1).toUriString() : null;
+
+        PageInfoDTO pageInfo = new PageInfoDTO(
+                (int) meetupPage.getTotalElements(),
+                meetupPage.getTotalPages(),
+                nextUrl,
+                prevUrl
+        );
+
+        PageDTO<MeetupItemListDTO> response = new PageDTO<>(pageInfo, content);
+        return ResponseEntity.ok(response);
+    }
+
     private MeetupItemListDTO convertToItemListDto(Meetup meetup, User currentUser) {
         boolean isParticipating = meetup.getParticipants().contains(currentUser);
         boolean isOrganizer = meetup.getOrganizerId().getId().equals(currentUser.getId());

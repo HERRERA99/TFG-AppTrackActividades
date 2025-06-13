@@ -7,8 +7,9 @@ import javax.inject.Inject
 
 class QuedadasPaginSource @Inject constructor(
     private val quedadasApiService: QuedadasApiService,
-    private val lat: Double,
-    private val lng: Double,
+    private val lat: Double?,
+    private val lng: Double?,
+    private val misQuedadas: Boolean,
     private val token: String,
     private val pageSize: Int
 ) : PagingSource<Int, ItemMeetupList>() {
@@ -24,7 +25,11 @@ class QuedadasPaginSource @Inject constructor(
         return try {
             val page = params.key ?: 1
 
-            val response = quedadasApiService.getAllMeetups(token, page, pageSize, lat, lng)
+            val response = if (misQuedadas) {
+                quedadasApiService.getMyMeetups(token, page, pageSize)
+            } else {
+                quedadasApiService.getAllMeetups(token, page, pageSize, lat!!, lng!!)
+            }
 
             LoadResult.Page(
                 data = response.content.map { it.toPresentation() },

@@ -56,4 +56,11 @@ interface QuedadasApiService {
         @Header("Authorization") token: String,
         @Path("id") id: Long
     )
+
+    @GET("/meetups/my")
+    suspend fun getMyMeetups(
+        @Header("Authorization") token: String,
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): ListaQuedadasPageResponse
 }
