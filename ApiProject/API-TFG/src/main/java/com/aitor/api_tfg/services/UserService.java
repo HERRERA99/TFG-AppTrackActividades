@@ -2,24 +2,28 @@ package com.aitor.api_tfg.services;
 
 import com.aitor.api_tfg.model.db.Follow;
 import com.aitor.api_tfg.model.db.User;
-import com.aitor.api_tfg.model.dto.FollowDTO;
-import com.aitor.api_tfg.model.dto.UnfollowDTO;
-import com.aitor.api_tfg.model.dto.UserProfileDTO;
-import com.aitor.api_tfg.model.dto.UserSearchDTO;
+import com.aitor.api_tfg.model.dto.*;
 import com.aitor.api_tfg.repositories.FollowRepository;
 import com.aitor.api_tfg.repositories.UserRepository;
 import com.aitor.api_tfg.model.response.UserResponse;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -28,6 +32,7 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
+    private final Cloudinary cloudinary;
 
     public User findUserByUsername(String username) {
         return userRepository.getUserByUsername(username);
@@ -137,5 +142,30 @@ public class UserService {
         followRepository.delete(follow);
 
         return new UnfollowDTO(follower.getId(), followed.getId());
+    }
+
+    public UpdateUserDTO updateProfilePicture(int idUser, MultipartFile image, Authentication authentication) throws IOException {
+        // Validar usuario autenticado
+        User authenticatedUser = (User) authentication.getPrincipal();
+        if (authenticatedUser.getId() != idUser) {
+            throw new AccessDeniedException("No puedes modificar otro perfil.");
+        }
+
+        // Obtener usuario de BD
+        User user = userRepository.findById(idUser)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        // Subir imagen a Cloudinary
+        Map uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
+        String imageUrl = (String) uploadResult.get("secure_url");
+
+        // Actualizar usuario
+        user.setImageUrl(imageUrl);
+        userRepository.save(user);
+
+        // Devolver DTO
+        return UpdateUserDTO.builder()
+                .image(imageUrl)
+                .build();
     }
 }

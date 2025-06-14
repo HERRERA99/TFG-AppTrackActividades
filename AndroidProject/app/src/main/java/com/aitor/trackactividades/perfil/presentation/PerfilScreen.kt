@@ -1,5 +1,8 @@
 package com.aitor.trackactividades.perfil.presentation
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,8 +72,19 @@ fun PerfilScreen(
     val publications = perfilViewModel.publications.collectAsLazyPagingItems()
     val user by perfilViewModel.user.collectAsState()
     val isCurrentUser by perfilViewModel.isCurrentUser.collectAsState()
+    val context = LocalContext.current
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                perfilViewModel.onUpdateClick(context, it)
+            }
+        }
+    )
+
 
     Scaffold(
         topBar = {
@@ -89,7 +104,9 @@ fun PerfilScreen(
             item {
                 PerfilContainer(
                     user = user,
-                    onEditClick = {},
+                    onEditClick = {
+                        launcher.launch("image/*")
+                    },
                     isCurrentUser = isCurrentUser,
                     onFollowClick = { perfilViewModel.onFollowClick() }
                 )

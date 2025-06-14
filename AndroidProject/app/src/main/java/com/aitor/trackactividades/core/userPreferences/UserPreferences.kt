@@ -84,5 +84,11 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
             preferences[ID_KEY]
         }.first()
     }
+
+    suspend fun updateImageUrl(newImageUrl: String) {
+        dataStore.edit { preferences ->
+            preferences[IMAGE_URL] = newImageUrl
+        }
+    }
 }
 

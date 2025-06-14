@@ -9,8 +9,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -75,6 +77,13 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{idUser}/profile-picture")
+    public ResponseEntity<UpdateUserDTO> updateProfilePicture(@PathVariable int idUser,
+                                                              @RequestPart("image") MultipartFile image,
+                                                              Authentication authentication) throws IOException {
+        UpdateUserDTO updated = userService.updateProfilePicture(idUser, image, authentication);
+        return ResponseEntity.ok(updated);
+    }
 
     @PostMapping("{followedId}/follow")
     public ResponseEntity<FollowDTO> followUser(@PathVariable int followedId, Authentication authentication) {
