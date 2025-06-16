@@ -1,5 +1,6 @@
 package com.aitor.api_tfg.controllers;
 
+import com.aitor.api_tfg.model.db.User;
 import com.aitor.api_tfg.model.request.LoginRequest;
 import com.aitor.api_tfg.model.request.RegisterRequest;
 import com.aitor.api_tfg.model.response.AuthResponse;
@@ -7,14 +8,14 @@ import com.aitor.api_tfg.model.response.ValidResponse;
 import com.aitor.api_tfg.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -54,5 +55,10 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(new ValidResponse(false, "No valid token found"));
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
+        return authService.verifyUserAccount(token);
     }
 }

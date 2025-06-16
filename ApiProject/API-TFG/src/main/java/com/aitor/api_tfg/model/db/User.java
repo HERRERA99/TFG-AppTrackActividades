@@ -63,6 +63,13 @@ public class User implements UserDetails {
     @Column(name = "gender", nullable = false)
     Gender gender;
 
+    @Column(name = "enabled")
+    private boolean enabled = false;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
