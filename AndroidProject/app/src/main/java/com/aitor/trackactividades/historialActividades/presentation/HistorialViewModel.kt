@@ -2,9 +2,13 @@ package com.aitor.trackactividades.historialActividades.presentation
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.model.Modalidades
+import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import com.aitor.trackactividades.feed.data.PublicationsRepository
 import com.aitor.trackactividades.feed.presentation.model.Publication
 import com.aitor.trackactividades.historialActividades.presentation.model.FiltroModel
@@ -14,16 +18,25 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class HistorialViewModel @Inject constructor(
-    private val publicationsRepository: PublicationsRepository
+    private val publicationsRepository: PublicationsRepository,
+    private val userPreferences: UserPreferences
 ) : ViewModel(){
 
     private val _isFiltered = MutableStateFlow<Boolean>(false)
     val isFiltered: StateFlow<Boolean> = _isFiltered
+
+    private val _imagenPerfil =
+        MutableLiveData<String>("https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp")
+    val imagenPerfil: LiveData<String> = _imagenPerfil
+
+    private val _userId = MutableLiveData<Int?>()
+    val userId: LiveData<Int?> = _userId
 
     data class FilterState(
         val title: String = "",
@@ -36,6 +49,13 @@ class HistorialViewModel @Inject constructor(
 
     private val _filterState = MutableStateFlow<FilterState>(FilterState())
     val filterState: StateFlow<FilterState> = _filterState
+
+    init {
+        viewModelScope.launch {
+            _imagenPerfil.value = userPreferences.getImagenPerfil()!!
+            _userId.value = userPreferences.getId()
+        }
+    }
 
     fun updateLocalFilterState(update: FilterState) {
         _filterState.value = update

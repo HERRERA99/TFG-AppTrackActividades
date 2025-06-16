@@ -1,9 +1,12 @@
 package com.aitor.trackactividades.quedadas.presentation
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.location.LocationRepository
+import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import com.aitor.trackactividades.quedadas.domain.GetAllMeetupsUseCase
 import com.aitor.trackactividades.quedadas.domain.GetMyMeetupsUseCase
 import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
@@ -26,13 +29,21 @@ import javax.inject.Inject
 class QuedadasViewModel @Inject constructor(
     private val getAllMeetupsUseCase: GetAllMeetupsUseCase,
     private val locationRepository: LocationRepository,
-    private val myMeetupsUseCase: GetMyMeetupsUseCase
-) : ViewModel() {
+    private val myMeetupsUseCase: GetMyMeetupsUseCase,
+    private val userPreferences: UserPreferences
+    ) : ViewModel() {
     private val _refreshTrigger = MutableSharedFlow<Unit>(replay = 1)
     val refreshTrigger = _refreshTrigger.asSharedFlow()
 
     private val _location = MutableStateFlow<Pair<Double, Double>?>(null)
     val location: StateFlow<Pair<Double, Double>?> = _location.asStateFlow()
+
+    private val _imagenPerfil =
+        MutableLiveData<String>("https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp")
+    val imagenPerfil: LiveData<String> = _imagenPerfil
+
+    private val _userId = MutableLiveData<Int?>()
+    val userId: LiveData<Int?> = _userId
 
     // Emitir valor inicial para que myMeetups empiece a cargar
     init {
@@ -42,6 +53,8 @@ class QuedadasViewModel @Inject constructor(
             location?.let { (lat, lng) ->
                 _location.value = lat to lng
             }
+            _imagenPerfil.value = userPreferences.getImagenPerfil()!!
+            _userId.value = userPreferences.getId()
         }
     }
 

@@ -40,6 +40,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -67,12 +68,15 @@ fun HistorialScreen(
     navigateToStartRecordActivity: () -> Unit,
     navigateToActivity: (Long) -> Unit,
     navigateToFeed: () -> Unit,
-    navigateToQuedadas: () -> Unit
+    navigateToQuedadas: () -> Unit,
+    navigateToProfile: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val filtered by historialViewModel.isFiltered.collectAsState()
     var showFilterDialog by remember { mutableStateOf(false) }
     val publications = historialViewModel.filteredPublications.collectAsLazyPagingItems()
+    val imagen by historialViewModel.imagenPerfil.observeAsState("")
+    val userId by historialViewModel.userId.observeAsState(0)
 
     // Estado para rastrear si los permisos han sido concedidos
     var hasLocationPermissions by remember {
@@ -160,7 +164,10 @@ fun HistorialScreen(
                 onFeedClick = {
                     navigateToFeed()
                 },
-                onQuedadasClick = navigateToQuedadas
+                onQuedadasClick = navigateToQuedadas,
+                onProfileClick = navigateToProfile,
+                profileImageUrl = imagen,
+                userId = userId!!
             )
         }
     ) { innerPadding ->

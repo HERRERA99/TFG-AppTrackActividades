@@ -35,8 +35,7 @@ import javax.inject.Inject
 class FeedViewModel @Inject constructor(
     getPublicPublications: GetPublicPublicationsUseCase,
     private val postHandler: PostInteractionHandler,
-    private val userPreferences: UserPreferences,
-    private val tokenManager: TokenManager
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1)

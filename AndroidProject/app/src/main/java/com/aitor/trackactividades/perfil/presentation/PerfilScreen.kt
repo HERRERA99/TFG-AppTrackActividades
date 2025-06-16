@@ -1,5 +1,7 @@
 package com.aitor.trackactividades.perfil.presentation
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,6 +45,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,10 +59,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberAsyncImagePainter
 import com.aitor.trackactividades.core.compose.PublicationItem
+import com.aitor.trackactividades.feed.presentation.FeedBottomBar
 import com.aitor.trackactividades.perfil.presentation.model.UserModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,14 +73,50 @@ fun PerfilScreen(
     navigateToHome: () -> Unit,
     navigateToActivity: (Long) -> Unit,
     perfilViewModel: PerfilViewModel,
-    postInteractionViewModel: PostInteractionViewModel
+    postInteractionViewModel: PostInteractionViewModel,
+    navigateToHistorial: () -> Unit,
+    navigateToQuedadas: () -> Unit,
+    navigateToFeed: () -> Unit,
+    navigateToStartRecordActivity: () -> Unit
 ) {
     val publications = perfilViewModel.publications.collectAsLazyPagingItems()
     val user by perfilViewModel.user.collectAsState()
     val isCurrentUser by perfilViewModel.isCurrentUser.collectAsState()
     val context = LocalContext.current
+    val imagen by perfilViewModel.imagenPerfil.observeAsState("")
+    val userId by perfilViewModel.userId.observeAsState(0)
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    // Estado para rastrear si los permisos han sido concedidos
+    var hasLocationPermissions by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // Launcher para solicitar permisos
+    val launcherTopBottonBar = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val hasFineLocationPermission =
+            permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val hasCoarseLocationPermission =
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+        hasLocationPermissions = hasFineLocationPermission || hasCoarseLocationPermission
+
+        if (hasLocationPermissions) {
+            // Navegar a la pantalla de registro si los permisos han sido concedidos
+            navigateToStartRecordActivity()
+        }
+    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -92,6 +134,28 @@ fun PerfilScreen(
                 navigateToHome = navigateToHome,
                 scrollBehavior = scrollBehavior,
                 isCurrentUser = isCurrentUser
+            )
+        },
+        bottomBar = {
+            FeedBottomBar(
+                onRegisterClick = {
+                    if (hasLocationPermissions) {
+                        navigateToStartRecordActivity()
+                    } else {
+                        launcherTopBottonBar.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
+                    }
+                },
+                onHistorialClick = navigateToHistorial,
+                onFeedClick = { navigateToFeed() },
+                onQuedadasClick = navigateToQuedadas,
+                onProfileClick = null,
+                profileImageUrl = imagen,
+                userId = userId!!
             )
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)

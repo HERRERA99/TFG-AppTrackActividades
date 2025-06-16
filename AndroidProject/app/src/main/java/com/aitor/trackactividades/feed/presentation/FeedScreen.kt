@@ -92,11 +92,7 @@ fun FeedScreen(
     Scaffold(
         topBar = {
             FeedTopBar(
-                navigateToProfile = navigateToProfile,
-                navigateToSearch = navigateToSearch,
-                feedViewModel = feedViewModel,
-                imagenPerfil = imagen,
-                userId = userId
+                navigateToSearch = navigateToSearch
             )
         },
         bottomBar = {
@@ -115,7 +111,10 @@ fun FeedScreen(
                 },
                 onHistorialClick = navigateToHistorial,
                 onFeedClick = null,
-                onQuedadasClick = navigateToQuedadas
+                onQuedadasClick = navigateToQuedadas,
+                onProfileClick = navigateToProfile,
+                profileImageUrl = imagen,
+                userId = userId!!
             )
         }
     ) { innerPadding ->
@@ -192,14 +191,8 @@ fun FeedScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedTopBar(
-    navigateToProfile: (Int) -> Unit,
-    navigateToSearch: () -> Unit,
-    feedViewModel: FeedViewModel,
-    imagenPerfil: String,
-    userId: Int?
+    navigateToSearch: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
     TopAppBar(
         title = {
             Text(
@@ -225,25 +218,6 @@ fun FeedTopBar(
                     modifier = Modifier.size(48.dp)
                 )
             }
-            IconButton(onClick = {
-                if (userId != null) {
-                    navigateToProfile(userId)
-                } else {
-                    Log.e("FeedTopBar", "userId es nulo")
-                }
-            }) {
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        model = if (imagenPerfil.isNotEmpty()) imagenPerfil else "https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp"
-                    ),
-                    contentDescription = "Foto de perfil",
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, Color.Gray, CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
@@ -258,7 +232,10 @@ fun FeedBottomBar(
     onRegisterClick: () -> Unit,
     onHistorialClick: (() -> Unit)?,
     onFeedClick: (() -> Unit)?,
-    onQuedadasClick: (() -> Unit)?
+    onQuedadasClick: (() -> Unit)?,
+    onProfileClick: ((Int) -> Unit)?,
+    profileImageUrl: String,
+    userId: Int
 ) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.background,
@@ -285,20 +262,20 @@ fun FeedBottomBar(
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Map,
-                    contentDescription = "Mapa",
+                    Icons.Default.Event,
+                    contentDescription = "Quedadas",
                     modifier = Modifier.size(32.dp)
                 )
             },
             label = {
                 Text(
-                    "Mapa",
+                    "Quedadas",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
             },
-            selected = false,
-            onClick = { /*TODO*/ }
+            selected = if (onQuedadasClick != null) false else true,
+            onClick = { onQuedadasClick?.invoke() }
         )
         NavigationBarItem(
             icon = {
@@ -321,38 +298,42 @@ fun FeedBottomBar(
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Event,
-                    contentDescription = "Quedadas",
+                    Icons.Default.ViewList,
+                    contentDescription = "Historial",
                     modifier = Modifier.size(32.dp)
                 )
             },
             label = {
                 Text(
-                    "Quedadas",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            },
-            selected = if (onQuedadasClick != null) false else true,
-            onClick = { onQuedadasClick?.invoke() }
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = "Tú",
-                    modifier = Modifier.size(32.dp)
-                )
-            },
-            label = {
-                Text(
-                    "Tú",
+                    "Historial",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
             },
             selected = if (onHistorialClick != null) false else true,
             onClick = { onHistorialClick?.invoke() }
+        )
+        NavigationBarItem(
+            icon = {
+                if (profileImageUrl.isNotEmpty()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(profileImageUrl),
+                        contentDescription = "Perfil",
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, Color.Gray, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(Icons.Default.Person, contentDescription = "Tú", modifier = Modifier.size(32.dp))
+                }
+            },
+            label = {
+                Text("Tú", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            },
+            selected = if (onProfileClick != null) false else true,
+            onClick = { onProfileClick?.invoke(userId) }
         )
     }
 }

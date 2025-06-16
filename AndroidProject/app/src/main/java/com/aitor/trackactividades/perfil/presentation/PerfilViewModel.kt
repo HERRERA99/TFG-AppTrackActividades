@@ -47,11 +47,15 @@ class PerfilViewModel @Inject constructor(
     private val updateProfileUseCase: UpdateProfilePictureUseCase
 ) : ViewModel() {
 
-    private val _userId = MutableStateFlow<Int?>(null)
-    val userId: StateFlow<Int?> = _userId
+    private val _userId = MutableLiveData<Int?>()
+    val userId: LiveData<Int?> = _userId
 
     private val _user = MutableStateFlow<UserModel?>(null)
     val user: StateFlow<UserModel?> = _user
+
+    private val _imagenPerfil =
+        MutableLiveData<String>("https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp")
+    val imagenPerfil: LiveData<String> = _imagenPerfil
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val publications: Flow<PagingData<Publication>> = _user
@@ -77,6 +81,7 @@ class PerfilViewModel @Inject constructor(
             )
             _user.value = userLoaded
             _isCurrentUser.value = _userId.value == userLoaded.id
+            _imagenPerfil.value = userPreferences.getImagenPerfil()!!
             Log.d("Perfil", user.value.toString())
         }
     }

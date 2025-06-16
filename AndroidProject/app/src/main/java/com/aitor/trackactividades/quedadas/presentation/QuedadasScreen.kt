@@ -51,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,12 +83,15 @@ fun QuedadasScreen(
     navigateToFeed: () -> Unit,
     navigateToHistorial: () -> Unit,
     navigateToFormularioQuedada: () -> Unit,
-    navigateToDetallesQuedada: (Long) -> Unit
+    navigateToDetallesQuedada: (Long) -> Unit,
+    navigateToProfile: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val meetups = quedadasViewModel.meetups.collectAsLazyPagingItems()
     val myMeetups = quedadasViewModel.myMeetups.collectAsLazyPagingItems()
     val locationState by quedadasViewModel.location.collectAsState()
+    val userId by quedadasViewModel.userId.observeAsState(0)
+    val imagen by quedadasViewModel.imagenPerfil.observeAsState("")
 
     // Estado para rastrear si los permisos han sido concedidos
     var hasLocationPermissions by remember {
@@ -185,7 +189,10 @@ fun QuedadasScreen(
                         },
                         onHistorialClick = navigateToHistorial,
                         onFeedClick = { navigateToFeed() },
-                        onQuedadasClick = null
+                        onQuedadasClick = null,
+                        onProfileClick = navigateToProfile,
+                        profileImageUrl = imagen,
+                        userId = userId!!
                     )
                 },
                 floatingActionButton = {

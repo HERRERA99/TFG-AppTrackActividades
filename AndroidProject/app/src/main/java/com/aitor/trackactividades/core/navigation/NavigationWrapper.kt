@@ -165,7 +165,11 @@ fun NavigationWrapper() {
                     navController.navigate("activity/$publicationId")
                 },
                 perfilViewModel = perfilViewModel,
-                postInteractionViewModel = postInteractionViewModel
+                postInteractionViewModel = postInteractionViewModel,
+                navigateToHistorial = { navController.navigate(Historial) },
+                navigateToQuedadas = { navController.navigate(Quedadas) },
+                navigateToFeed = { navController.navigate(Feed) },
+                navigateToStartRecordActivity = { navController.navigate(RecordActivity) }
             )
         }
         composable(
@@ -209,7 +213,10 @@ fun NavigationWrapper() {
                 },
                 navigateToStartRecordActivity = { navController.navigate(RecordActivity) },
                 navigateToFeed = { navController.navigate(Feed) },
-                navigateToQuedadas = { navController.navigate(Quedadas) }
+                navigateToQuedadas = { navController.navigate(Quedadas) },
+                navigateToProfile = { profileId ->
+                    navController.navigate("profile/$profileId")
+                }
             )
         }
         composable<Quedadas> {
@@ -222,6 +229,9 @@ fun NavigationWrapper() {
                 navigateToFormularioQuedada = { navController.navigate(FormularioQuedada) },
                 navigateToDetallesQuedada = { quedadaId ->
                     navController.navigate(DetallesQuedada.createRoute(quedadaId))
+                },
+                navigateToProfile = { profileId ->
+                    navController.navigate("profile/$profileId")
                 }
             )
         }
