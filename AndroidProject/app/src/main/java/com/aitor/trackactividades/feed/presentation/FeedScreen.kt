@@ -85,6 +85,10 @@ fun FeedScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        feedViewModel.cargarImagenPerfil()
+    }
+
     Scaffold(
         topBar = {
             FeedTopBar(

@@ -1,6 +1,7 @@
 package com.aitor.trackactividades.core.userPreferences
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
@@ -89,6 +90,7 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         dataStore.edit { preferences ->
             preferences[IMAGE_URL] = newImageUrl
         }
+        Log.d("UserPreferences", "Imagen de perfil actualizada: $newImageUrl")
     }
 }
 

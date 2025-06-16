@@ -132,11 +132,13 @@ class FeedViewModel @Inject constructor(
         return _likedPublications[publicationId] ?: likes.contains(_userId.value)
     }
 
-    suspend fun logout() {
-        tokenManager.clearToken()
-    }
-
     fun tiempoTranscurrido(fecha: LocalDateTime): String {
         return postHandler.tiempoTranscurrido(fecha)
+    }
+
+    fun cargarImagenPerfil() {
+        viewModelScope.launch {
+            _imagenPerfil.value = userPreferences.getImagenPerfil() ?: ""
+        }
     }
 }
