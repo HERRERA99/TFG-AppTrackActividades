@@ -117,7 +117,7 @@ fun Logo(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "My App",
+            text = "TrackFit",
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 64.sp,

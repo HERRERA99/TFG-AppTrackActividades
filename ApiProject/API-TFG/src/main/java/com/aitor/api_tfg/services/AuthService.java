@@ -33,20 +33,22 @@ public class AuthService {
     private final EmailService emailService;
 
     public AuthResponse login(LoginRequest request) {
-        UserDetails userDetails = userRepository.findByUsernameOrEmail(request.getIdentifier(), request.getIdentifier())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findByUsernameOrEmail(request.getIdentifier(), request.getIdentifier())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        if (!user.isEnabled()) {
+            throw new IllegalStateException("Debes verificar tu correo electrónico antes de iniciar sesión");
+        }
 
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userDetails.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword())
         );
 
-        String token = jwtService.getToken(userDetails);
+        String token = jwtService.getToken(user);
         return AuthResponse.builder()
                 .token(token)
                 .build();
     }
-
-
 
     public AuthResponse register(RegisterRequest request) {
         String token = UUID.randomUUID().toString();
@@ -63,7 +65,7 @@ public class AuthService {
                 .birthdate(request.getBirthdate())
                 .gender(request.getGender())
                 .imageUrl("https://i.postimg.cc/RFSkJZtg/462076-1g-CSN462076-MG3928385-1248x702.webp")
-                .enabled(false) // cuenta deshabilitada hasta que verifique
+                .enabled(false)
                 .verificationToken(token)
                 .build();
 
@@ -88,18 +90,38 @@ public class AuthService {
     public ResponseEntity<String> verifyUserAccount(String token) {
         Optional<User> userOptional = userRepository.findByVerificationToken(token);
         if (userOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token inválido o expirado");
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .header("Content-Type", "text/html")
+                    .body(getHtmlResponse("❌ Token inválido o expirado", "#F24822"));
         }
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setEnabled(true);
-            user.setVerificationToken(null);
-            userRepository.save(user);
-            return ResponseEntity.ok("Cuenta verificada correctamente. Ya puedes iniciar sesión.");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token inválido o expirado.");
-        }
+        User user = userOptional.get();
+        user.setEnabled(true);
+        user.setVerificationToken(null);
+        userRepository.save(user);
+
+        return ResponseEntity
+                .ok()
+                .header("Content-Type", "text/html")
+                .body(getHtmlResponse("✅ Cuenta verificada correctamente. Ya puedes iniciar sesión.", "#4CAF50"));
     }
 
+
+    private String getHtmlResponse(String message, String color) {
+        return """
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Verificación de Cuenta</title>
+        </head>
+        <body style="font-family: 'Segoe UI', sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 50px auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: center;">
+                <img src="https://i.postimg.cc/vBMsG01L/Logo-Track-Fit.png" alt="Logo" style="width: 80px; margin-bottom: 20px;">
+                <h2 style="color: %s;">%s</h2>
+            </div>
+        </body>
+        </html>
+        """.formatted(color, message);
+    }
 }

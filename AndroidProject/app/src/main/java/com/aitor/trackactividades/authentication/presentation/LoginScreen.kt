@@ -1,5 +1,6 @@
 package com.aitor.trackactividades.authentication.presentation
 
+import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -91,11 +92,12 @@ fun LoginScreen(
 @Composable
 fun LoginHeader(modifier: Modifier) {
     Icon(
-        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+        painter = painterResource(id = R.drawable.logo_track_fit),
         contentDescription = "Logo",
         modifier = modifier.size(150.dp),
         tint = MaterialTheme.colorScheme.primary
     )
+    Spacer(modifier = Modifier.padding(16.dp))
 }
 
 @Composable
