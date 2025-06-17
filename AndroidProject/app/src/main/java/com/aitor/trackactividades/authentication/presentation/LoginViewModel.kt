@@ -77,6 +77,7 @@ class LoginViewModel @Inject constructor(
                 }
             } catch (e: HttpException) {
                 when (e.code()) {
+                    400 -> showError("Verifica la cuenta con el email recibido.")
                     403 -> showError("Acceso denegado. Verifique sus credenciales.")
                     else -> showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
                 }

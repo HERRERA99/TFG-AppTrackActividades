@@ -1,8 +1,10 @@
 package com.aitor.trackactividades.authentication.presentation
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import android.util.Patterns
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -56,8 +58,8 @@ class RegisterViewModel @Inject constructor(
     private val _gender = MutableLiveData<Gender>()
     val gender: LiveData<Gender> = _gender
 
-    private val _navigateToFeed = MutableLiveData<Boolean>()
-    val navigateToFeed: LiveData<Boolean> = _navigateToFeed
+    private val _navigateToLogin = MutableLiveData<Boolean>()
+    val navigateToLogin: LiveData<Boolean> = _navigateToLogin
 
     private val _textoInfo = MutableLiveData<String>()
     val textoInfo: LiveData<String> = _textoInfo
@@ -71,7 +73,6 @@ class RegisterViewModel @Inject constructor(
     private val _height = MutableLiveData<Int>()
     val height: LiveData<Int> = _height
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterChanged(
         email: String,
         username: String,
@@ -134,25 +135,17 @@ class RegisterViewModel @Inject constructor(
                             gender = gender
                         )
                     )
-                    Log.e("Result", result.toString())
-                    // Si el token no es nulo, navega al feed
-                    if (result.token != null) {
-                        tokenManager.clearToken()
-                        tokenManager.saveToken(result.token)
-                        val user = getUserUseCase("Bearer ${result.token}")
-                        Log.e("Usuario", user.toString())
-                        userPreferences.saveUser(user)
-                        _navigateToFeed.value = true
-                    } else {
-                        // Si el token es nulo, muestra un mensaje de error
-                        showError("Credenciales incorrectas o acceso denegado.")
-                    }
+
+                    _navigateToLogin.value = true
+                    showError("Verifica la cuenta con el email recibido.")
+
                 } catch (e: HttpException) {
                     // Manejo específico para errores HTTP
                     when (e.code()) {
                         403 -> {
                             showError("Acceso denegado. Usuario o email ya en uso.")
                         }
+
                         else -> {
                             showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
                         }
@@ -160,6 +153,7 @@ class RegisterViewModel @Inject constructor(
                 } catch (e: Exception) {
                     // Manejo de cualquier otro tipo de excepción (red, timeout, etc.)
                     showError("Ocurrió un error. Intente de nuevo.")
+                    Log.d("Error", e.message ?: "")
                 } finally {
                     _isLoading.value = false
                 }

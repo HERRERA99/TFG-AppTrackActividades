@@ -60,14 +60,13 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun RegisterScreen(
     registerViewModel: RegisterViewModel,
-    navigateToLogin: () -> Unit,
-    navigateToFeed: () -> Unit
+    navigateToLogin: () -> Unit
 ) {
-    val navigateToFeedState: Boolean by registerViewModel.navigateToFeed.observeAsState(initial = false)
+    val navigateToLoginState: Boolean by registerViewModel.navigateToLogin.observeAsState(initial = false)
 
-    LaunchedEffect(navigateToFeedState) {
-        if (navigateToFeedState) {
-            navigateToFeed()
+    LaunchedEffect(navigateToLoginState) {
+        if (navigateToLoginState) {
+            navigateToLogin()
         }
     }
 

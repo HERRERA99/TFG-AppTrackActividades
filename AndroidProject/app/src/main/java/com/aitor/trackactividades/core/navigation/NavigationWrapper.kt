@@ -88,11 +88,6 @@ fun NavigationWrapper() {
             val registerViewModel: RegisterViewModel = hiltViewModel()
             RegisterScreen(
                 navigateToLogin = { navController.navigate(Login) },
-                navigateToFeed = {
-                    navController.navigate(Feed) {
-                        popUpTo(0)
-                    }
-                },
                 registerViewModel = registerViewModel
             )
         }
