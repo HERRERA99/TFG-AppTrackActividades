@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -78,7 +79,7 @@ class RecordActivityViewModel @Inject constructor(
 
     // Variables para registrar la actividad
     private var actividad: Activity? = null
-    private lateinit var startTimeActivity: LocalDateTime
+    private lateinit var startTimeActivity: OffsetDateTime
     private var velocidades: MutableList<Float> = mutableListOf()
     private var altitudes: MutableList<Double> = mutableListOf()
     private var distances: MutableList<Float> = mutableListOf()
@@ -98,7 +99,7 @@ class RecordActivityViewModel @Inject constructor(
         isRunning = true
         isPaused = false
         startTime = SystemClock.elapsedRealtime() - elapsedTime
-        startTimeActivity = LocalDateTime.now()
+        startTimeActivity = OffsetDateTime.now()
         startUserLocation = userLocation.value
 
         viewModelScope.launch {
@@ -146,7 +147,7 @@ class RecordActivityViewModel @Inject constructor(
                 id = System.currentTimeMillis(),
                 horaInicio = startTimeActivity,
                 tipoActividad = _activityType.value!!,
-                horaFin = LocalDateTime.now(),
+                horaFin = OffsetDateTime.now(),
                 distancia = _distance.value!!,
                 duracion = _stopwatch.value!!,
                 desnivelPositivo = calcularDesnivelPositivo(altitudes),
@@ -200,7 +201,7 @@ class RecordActivityViewModel @Inject constructor(
         altitudes.clear()
         distances.clear()
         actividad = null
-        startTimeActivity = LocalDateTime.now()
+        startTimeActivity = OffsetDateTime.now()
         visibility = true
     }
 
@@ -290,7 +291,7 @@ class RecordActivityViewModel @Inject constructor(
         this.visibility = visibility
     }
 
-    fun nombreAutomatico(horaInicio: LocalDateTime, tipoActividad: Modalidades): String {
+    fun nombreAutomatico(horaInicio: OffsetDateTime, tipoActividad: Modalidades): String {
         val hora = horaInicio.hour
         val parteDelDia = when (hora) {
             in 6..11 -> "por la mañana"

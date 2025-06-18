@@ -6,6 +6,7 @@ import com.aitor.trackactividades.quedadas.presentation.model.Meetup
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 data class MeetupResponse(
     @SerializedName("id") val id: Long,
@@ -27,7 +28,7 @@ data class MeetupResponse(
             id = this.id,
             title = this.title,
             description = this.description,
-            dateTime = LocalDateTime.parse(this.date),
+            dateTime = OffsetDateTime.parse(this.date),
             location = this.location,
             distance = this.distance,
             elevationGain = this.elevationGain,

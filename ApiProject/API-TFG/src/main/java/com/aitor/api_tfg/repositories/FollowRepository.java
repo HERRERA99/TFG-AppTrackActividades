@@ -4,6 +4,7 @@ import com.aitor.api_tfg.model.db.Follow;
 import com.aitor.api_tfg.model.db.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,5 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     List<Follow> findAllByFollower(User follower);
     long countByFollowed(User followed);
     long countByFollower(User follower);
+    boolean existsByFollowerAndFollowedAndFollowedAtAfter(User follower, User followed, LocalDateTime time);
 }

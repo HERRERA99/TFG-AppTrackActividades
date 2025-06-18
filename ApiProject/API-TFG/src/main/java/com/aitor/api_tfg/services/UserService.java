@@ -33,6 +33,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
     private final Cloudinary cloudinary;
+    private final NotificacionesService notificacionesService;
+
 
     public User findUserByUsername(String username) {
         return userRepository.getUserByUsername(username);
@@ -114,20 +116,55 @@ public class UserService {
         User followed = userRepository.findById(followedId)
                 .orElseThrow(() -> new EntityNotFoundException("Followed user not found"));
 
-        if (followRepository.existsByFollowerAndFollowed(follower, followed)) {
-            throw new IllegalStateException("Already following this user");
+        Optional<Follow> existingFollowOpt = followRepository.findByFollowerAndFollowed(follower, followed);
+
+        if (existingFollowOpt.isPresent()) {
+            Follow existingFollow = existingFollowOpt.get();
+
+            // Si ya sigue (no se ha hecho unfollow), lanzar excepción
+            if (existingFollow.getUnfollowedAt() == null) {
+                throw new IllegalStateException("Already following this user");
+            }
+
+            // Comprobar si el unfollow fue reciente
+            LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+            boolean recentlyUnfollowed = existingFollow.getUnfollowedAt().isAfter(oneHourAgo);
+
+            existingFollow.setFollowedAt(LocalDateTime.now());
+            existingFollow.setUnfollowedAt(null); // Reactivado
+            followRepository.save(existingFollow);
+
+            if (!recentlyUnfollowed) {
+                notificacionesService.sendPushNotification(
+                        followed.getFcmToken(),
+                        "¡Tienes un nuevo seguidor!",
+                        follower.getFirstname() + " ahora te sigue"
+                );
+            }
+
+            return new FollowDTO(follower.getId(), followed.getId());
         }
 
+        // No existía → crear nuevo
         Follow follow = Follow.builder()
                 .follower(follower)
                 .followed(followed)
                 .followedAt(LocalDateTime.now())
+                .unfollowedAt(null)
                 .build();
 
         followRepository.save(follow);
 
+        notificacionesService.sendPushNotification(
+                followed.getFcmToken(),
+                "¡Tienes un nuevo seguidor!",
+                follower.getFirstname() + " ahora te sigue"
+        );
+
         return new FollowDTO(follower.getId(), followed.getId());
     }
+
+
 
     @Transactional
     public UnfollowDTO unfollowUser(Integer followedId, String followerUsername) {
@@ -139,10 +176,16 @@ public class UserService {
         Follow follow = followRepository.findByFollowerAndFollowed(follower, followed)
                 .orElseThrow(() -> new IllegalStateException("Not following this user"));
 
-        followRepository.delete(follow);
+        if (follow.getUnfollowedAt() != null) {
+            throw new IllegalStateException("Already unfollowed");
+        }
+
+        follow.setUnfollowedAt(LocalDateTime.now());
+        followRepository.save(follow);
 
         return new UnfollowDTO(follower.getId(), followed.getId());
     }
+
 
     public UpdateUserDTO updateProfilePicture(int idUser, MultipartFile image, Authentication authentication) throws IOException {
         // Validar usuario autenticado
@@ -167,5 +210,14 @@ public class UserService {
         return UpdateUserDTO.builder()
                 .image(imageUrl)
                 .build();
+    }
+
+
+    public void updateFcmToken(String username, String fcmToken) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        user.setFcmToken(fcmToken);
+        userRepository.save(user);
     }
 }

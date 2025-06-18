@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -18,7 +19,7 @@ public class MeetupResponseDTO {
     private Long id;
     private String title;
     private String description;
-    private LocalDateTime dateTime;
+    private OffsetDateTime dateTime;
     private String location;
     private Double distance;
     private Double elevationGain;

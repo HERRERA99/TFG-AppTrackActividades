@@ -6,6 +6,9 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.jetbrainsKotlinSerialization)
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
 }
 
 sonar {
@@ -119,6 +122,16 @@ dependencies {
 
     // Refresh
     implementation(libs.swiperefresh)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.firebase:firebase-perf")
+
+    implementation("com.google.firebase:firebase-messaging:23.4.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

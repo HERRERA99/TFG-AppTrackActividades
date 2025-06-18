@@ -6,13 +6,14 @@ import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.quedadas.data.QuedadasRepository
 import com.google.android.gms.maps.model.LatLng
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 class CreateMeetupUseCase @Inject constructor(private val quedadasRepository: QuedadasRepository) {
     suspend operator fun invoke(
         title: String,
         description: String?,
-        dateTime: LocalDateTime,
+        dateTime: OffsetDateTime,
         location: String,
         locationCoordinates: LatLng,
         sportType: Modalidades,

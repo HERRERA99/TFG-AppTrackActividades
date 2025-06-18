@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "181264535800",
+    "project_id": "trackfit-fb863",
+    "storage_bucket": "trackfit-fb863.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181264535800:android:4c5f6f3442a71d3434ab0d",
+        "android_client_info": {
+          "package_name": "com.aitor.trackactividades"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDokhvGfCM-ed_KehLqLEtlGjQcIyAoGXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

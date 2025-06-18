@@ -4,6 +4,7 @@ import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 data class ItemListaQuedadasResponse(
     @SerializedName("id") val id: Long,
@@ -18,7 +19,7 @@ data class ItemListaQuedadasResponse(
         return ItemMeetupList(
             id = this.id,
             title = this.title,
-            dateTime = LocalDateTime.parse(this.dateTime),
+            dateTime = OffsetDateTime.parse(this.dateTime),
             location = this.location,
             sportType = this.sportType,
             isParticipating = this.isParticipating,

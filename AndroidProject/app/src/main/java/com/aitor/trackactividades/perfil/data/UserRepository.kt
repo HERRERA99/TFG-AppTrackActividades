@@ -11,6 +11,7 @@ import com.aitor.trackactividades.perfil.presentation.model.UnfollowModel
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.Response
 import java.io.File
 import javax.inject.Inject
 
@@ -41,6 +42,11 @@ class UserRepository @Inject constructor(
         val multipartBody = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
 
         return userApiService.updateProfilePicture("Bearer $token", idUser, multipartBody)
+    }
+
+    suspend fun updateFcmToken(tokenBody: Map<String, String>): Response<Unit> {
+        val authToken = "Bearer ${tokenManager.getToken()}"
+        return userApiService.updateFcmToken(authToken, tokenBody)
     }
 }
 

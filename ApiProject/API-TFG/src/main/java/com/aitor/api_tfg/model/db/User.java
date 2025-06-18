@@ -69,6 +69,8 @@ public class User implements UserDetails {
     @Column(name = "verification_token")
     private String verificationToken;
 
+    @Column(name = "fcm_token")
+    private String fcmToken;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

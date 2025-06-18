@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -15,9 +16,9 @@ import java.util.List;
 @NoArgsConstructor
 public class ActivityDTO {
     private Long id;
-    private LocalDateTime startTime;
+    private OffsetDateTime startTime;
     private String activityType;
-    private LocalDateTime endTime;
+    private OffsetDateTime endTime;
     private float distance;
     private long duration;
     private double positiveElevation;

@@ -5,11 +5,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aitor.trackactividades.authentication.domain.ActualizarFcmTokenUseCase
 import com.aitor.trackactividades.authentication.domain.LoginUseCase
 import com.aitor.trackactividades.authentication.presentation.model.LoginModel
 import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
 import com.aitor.trackactividades.perfil.domain.GetMyUserUseCase
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -21,6 +23,7 @@ class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val getUserUseCase: GetMyUserUseCase,
     private val userPreferences: UserPreferences,
+    private val actualizarFcmTokenUseCase: ActualizarFcmTokenUseCase,
     private val tokenManager: TokenManager
 ): ViewModel() {
     private val _identifier = MutableLiveData<String>()
@@ -72,6 +75,22 @@ class LoginViewModel @Inject constructor(
                     Log.e("Usuario", user.toString())
                     userPreferences.saveUser(user)
                     _navigateToFeed.value = true
+
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val fcmToken = task.result
+                            viewModelScope.launch {
+                                try {
+                                    actualizarFcmTokenUseCase(fcmToken)
+                                } catch (e: Exception) {
+                                    Log.e("FCM", "Error al enviar token al backend", e)
+                                }
+                            }
+                        } else {
+                            Log.e("FCM", "No se pudo obtener el token", task.exception)
+                        }
+                    }
+
                 } else {
                     showError("Credenciales incorrectas o acceso denegado.")
                 }

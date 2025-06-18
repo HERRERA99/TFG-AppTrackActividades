@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +32,7 @@ public class MeetupService {
 
     private final MeetupRepository meetupRepository;
     private final UserRepository userRepository;
+    private final NotificacionesService notificacionesService;
 
     public MeetupResponseDTO createMeerup(String organizerName, MeetupCreateDTO meetup, MultipartFile gpxFile) {
         Optional<User> user = userRepository.findByUsername(organizerName);
@@ -154,8 +156,19 @@ public class MeetupService {
 
         Meetup updatedMeetup = meetupRepository.save(meetup);
 
+        // Notificar al organizador
+        User organizer = meetup.getOrganizerId();
+        if (organizer != null && organizer.getFcmToken() != null && !organizer.getId().equals(user.getId())) {
+            notificacionesService.sendPushNotification(
+                    organizer.getFcmToken(),
+                    "¡Nuevo participante!",
+                    user.getFirstname() + " se ha unido a tu quedada \"" + meetup.getTitle() + "\""
+            );
+        }
+
         return convertToDto(updatedMeetup, user);
     }
+
 
     public MeetupResponseDTO leaveMeetup(Long meetupId, User user) {
         Meetup meetup = meetupRepository.findById(meetupId)
@@ -180,6 +193,20 @@ public class MeetupService {
             throw new IllegalStateException("User is not the organizer.");
         }
 
+        // Notificar a todos los participantes antes de eliminar
+        List<User> participants = meetup.getParticipants();
+        for (User participant : participants) {
+            if (participant.getFcmToken() != null && !participant.getFcmToken().isBlank()
+                    && !participant.getId().equals(user.getId())) {
+
+                notificacionesService.sendPushNotification(
+                        participant.getFcmToken(),
+                        "Quedada cancelada",
+                        "La quedada \"" + meetup.getTitle() + "\" ha sido cancelada por el organizador."
+                );
+            }
+        }
+
         meetupRepository.deleteById(meetupId);
 
         return MeetupDeleteDTO.builder()
@@ -188,4 +215,5 @@ public class MeetupService {
                 .dateTime(LocalDateTime.now())
                 .build();
     }
+
 }

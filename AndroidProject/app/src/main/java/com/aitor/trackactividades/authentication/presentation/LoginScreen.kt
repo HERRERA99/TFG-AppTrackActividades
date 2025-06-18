@@ -144,7 +144,9 @@ fun LoginBody(modifier: Modifier, loginViewModel: LoginViewModel) {
             password = password,
             info = false,
             onTextChange = { loginViewModel.onLoginChanged(email, it) })
-        ForgotPassword(modifier = Modifier.align(Alignment.End))
+
+        Spacer(modifier = Modifier.padding(16.dp))
+
         LoginButton(isLoginEnable, loginViewModel)
     }
 }

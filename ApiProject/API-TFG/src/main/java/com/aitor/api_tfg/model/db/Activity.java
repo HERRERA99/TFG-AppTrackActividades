@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.Cascade;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Entity
@@ -19,13 +20,13 @@ public class Activity {
     private Long id;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime startTime;
+    private OffsetDateTime startTime;
 
     @Enumerated(EnumType.STRING)
     private Modalidades activityType;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime endTime;
+    private OffsetDateTime endTime;
     private float distance;
     private long duration;
     private double positiveElevation;

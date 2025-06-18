@@ -25,5 +25,7 @@ public class Follow {
     private User followed;
 
     private LocalDateTime followedAt;
+
+    private LocalDateTime unfollowedAt;
 }
 

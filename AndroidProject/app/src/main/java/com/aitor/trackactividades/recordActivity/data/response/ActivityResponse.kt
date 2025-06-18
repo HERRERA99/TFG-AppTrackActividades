@@ -5,6 +5,7 @@ import com.aitor.trackactividades.core.model.Modalidades
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 data class ActivityResponse(
     @SerializedName("id") val id: Long,
@@ -29,9 +30,9 @@ data class ActivityResponse(
     fun toPresentation(): Activity {
         return Activity(
             id = id,
-            horaInicio = LocalDateTime.parse(startTime),
+            horaInicio = OffsetDateTime.parse(startTime),
             tipoActividad = Modalidades.valueOf(activityType),
-            horaFin = LocalDateTime.parse(endTime),
+            horaFin = OffsetDateTime.parse(endTime),
             distancia = distance,
             duracion = duration,
             desnivelPositivo = positiveElevation,

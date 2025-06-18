@@ -90,6 +90,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.util.Calendar
 
@@ -410,13 +411,13 @@ fun MapaSeleccionUbicacion(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTime?) {
+fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: OffsetDateTime?) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var tempDate by remember { mutableStateOf<LocalDate?>(null) }
 
     val context = LocalContext.current
-    val currentDateTime = LocalDateTime.now()
+    val currentDateTime = OffsetDateTime.now()
     val minDateTime = currentDateTime.plusHours(1)
 
     // Formatear la fecha y hora para mostrarla
@@ -426,6 +427,16 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTi
                     "${String.format("%02d", it.hour)}:${String.format("%02d", it.minute)}"
         } ?: "Seleccionar fecha y hora"
     }
+
+    val zoneId = ZoneId.systemDefault()
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = fechaHora
+            ?.atZoneSameInstant(zoneId)
+            ?.toInstant()
+            ?.toEpochMilli()
+            ?: System.currentTimeMillis()
+    )
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -465,12 +476,6 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTi
 
         // DatePicker Dialog
         if (showDatePicker) {
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = fechaHora?.atZone(ZoneId.systemDefault())?.toInstant()
-                    ?.toEpochMilli()
-                    ?: System.currentTimeMillis()
-            )
-
             AlertDialog(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
@@ -521,21 +526,29 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTi
                 onDismissRequest = { showTimePicker = false },
                 confirmButton = {
                     Button(onClick = {
-                        val selectedDateTime = LocalDateTime.of(
-                            tempDate!!,
-                            LocalTime.of(timePickerState.hour, timePickerState.minute)
-                        )
+                        val selectedDateMillis = datePickerState.selectedDateMillis
+                        if (selectedDateMillis != null) {
+                            val selectedDate = Instant.ofEpochMilli(selectedDateMillis)
+                                .atZone(zoneId)
+                                .toLocalDate()
 
-                        if (selectedDateTime.isAfter(minDateTime)) {
-                            viewModel.actualizarFechaHora(selectedDateTime)
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "La quedada debe programarse al menos 1 hora después de ahora",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            val selectedDateTime = OffsetDateTime.of(
+                                selectedDate,
+                                LocalTime.of(timePickerState.hour, timePickerState.minute),
+                                zoneId.rules.getOffset(Instant.now())
+                            )
+
+                            if (selectedDateTime.isAfter(minDateTime)) {
+                                viewModel.actualizarFechaHora(selectedDateTime)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "La quedada debe programarse al menos 1 hora después de ahora",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            showTimePicker = false
                         }
-                        showTimePicker = false
                     }) {
                         Text("Confirmar")
                     }

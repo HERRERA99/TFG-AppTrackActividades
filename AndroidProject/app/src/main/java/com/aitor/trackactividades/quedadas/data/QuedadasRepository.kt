@@ -6,7 +6,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.aitor.trackactividades.core.model.Modalidades
-import com.aitor.trackactividades.core.network.LocalDateTimeQuedadasAdapter
+import com.aitor.trackactividades.core.network.OffsetDateTimeAdapter
 import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.quedadas.data.request.MeetupCreateDTO
 import com.aitor.trackactividades.quedadas.data.request.MeetupResponse
@@ -19,6 +19,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 class QuedadasRepository @Inject constructor(
@@ -34,7 +35,7 @@ class QuedadasRepository @Inject constructor(
     suspend fun createMeetup(
         title: String,
         description: String?,
-        dateTime: LocalDateTime,
+        dateTime: OffsetDateTime,
         location: String,
         locationCoordinates: LatLng,
         sportType: Modalidades,
@@ -48,14 +49,14 @@ class QuedadasRepository @Inject constructor(
             val meetupDTO = MeetupCreateDTO(
                 title = title,
                 description = description,
-                dateTime = dateTime,
+                dateTime = dateTime.toString(),
                 location = location,
                 locationCoordinates = locationCoordinates,
                 sportType = sportType,
             )
 
             val meetupJson = GsonBuilder()
-                .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeQuedadasAdapter())
+                .registerTypeAdapter(LocalDateTime::class.java, OffsetDateTimeAdapter())
                 .create()
                 .toJson(meetupDTO)
 

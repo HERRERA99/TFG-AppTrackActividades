@@ -5,12 +5,13 @@ import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.feed.data.response.UserResponse
 import com.google.android.gms.maps.model.LatLng
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 data class Meetup(
     val id: Long,
     val title: String,
     val description: String?,
-    val dateTime: LocalDateTime,
+    val dateTime: OffsetDateTime,
     val location: String,
     val distance: Double?,
     val elevationGain: Double?,

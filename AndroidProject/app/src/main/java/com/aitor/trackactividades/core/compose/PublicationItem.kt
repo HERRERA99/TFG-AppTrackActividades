@@ -125,6 +125,8 @@ fun PublicationItem(
             }
         }
 
+        Log.e("PublicationItem", "Map URL: $mapUrl")
+
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
@@ -235,7 +237,7 @@ fun PublicationItem(
 
             if (mapUrl.isNotEmpty()) {
                 Image(
-                    painter = rememberImagePainter(mapUrl),
+                    painter = rememberAsyncImagePainter(mapUrl),
                     contentDescription = "Mapa de la ruta",
                     modifier = Modifier
                         .fillMaxWidth()

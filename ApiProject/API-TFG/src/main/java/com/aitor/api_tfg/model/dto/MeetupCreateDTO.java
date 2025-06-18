@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -18,8 +19,7 @@ import java.time.LocalDateTime;
 public class MeetupCreateDTO {
     private String title;
     private String description;
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-    private LocalDateTime dateTime;
+    private OffsetDateTime dateTime;
     private String location;
     private Integer maxParticipants;
     private LatLng locationCoordinates;

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 public class MeetupItemListDTO {
     private long id;
     private String title;
-    private LocalDateTime dateTime;
+    private OffsetDateTime dateTime;
     private String location;
     private Modalidades sportType;
     private boolean isParticipating;

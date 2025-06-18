@@ -1,12 +1,13 @@
 import com.aitor.trackactividades.core.model.Modalidades
 import com.google.android.gms.maps.model.LatLng
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 data class Activity(
     val id: Long,
-    val horaInicio: LocalDateTime,
+    val horaInicio: OffsetDateTime,
     val tipoActividad: Modalidades,
-    var horaFin: LocalDateTime,
+    var horaFin: OffsetDateTime,
     var distancia: Float,
     var duracion: Long,
     var desnivelPositivo: Double,
