@@ -16,9 +16,9 @@ import java.util.List;
 @NoArgsConstructor
 public class ActivityDTO {
     private Long id;
-    private OffsetDateTime startTime;
+    private LocalDateTime startTime;
     private String activityType;
-    private OffsetDateTime endTime;
+    private LocalDateTime endTime;
     private float distance;
     private long duration;
     private double positiveElevation;

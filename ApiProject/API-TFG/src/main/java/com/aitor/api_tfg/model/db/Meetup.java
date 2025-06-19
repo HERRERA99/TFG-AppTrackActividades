@@ -27,9 +27,7 @@ public class Meetup {
     private String title;
     private String description;
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private OffsetDateTime dateTime;
+    private LocalDateTime dateTime;
 
     private String location;
     private Double distance;

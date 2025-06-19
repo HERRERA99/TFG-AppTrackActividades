@@ -28,8 +28,8 @@ class FormularioQuedadaViewModel @Inject constructor(
     private var _descripcion = MutableLiveData<String>()
     val descripcion: LiveData<String> = _descripcion
 
-    private var _fechaHora = MutableLiveData<OffsetDateTime?>()
-    val fechaHora: LiveData<OffsetDateTime?> = _fechaHora
+    private var _fechaHora = MutableLiveData<LocalDateTime?>()
+    val fechaHora: LiveData<LocalDateTime?> = _fechaHora
 
     private var _localizacion = MutableLiveData<String>("")
     val localizacion: LiveData<String> = _localizacion
@@ -65,7 +65,7 @@ class FormularioQuedadaViewModel @Inject constructor(
         _descripcion.value = nuevaDescripcion
     }
 
-    fun actualizarFechaHora(nuevaFechaHora: OffsetDateTime) {
+    fun actualizarFechaHora(nuevaFechaHora: LocalDateTime) {
         _fechaHora.value = nuevaFechaHora
     }
 

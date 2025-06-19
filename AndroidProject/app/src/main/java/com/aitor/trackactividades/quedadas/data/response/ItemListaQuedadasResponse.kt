@@ -19,7 +19,7 @@ data class ItemListaQuedadasResponse(
         return ItemMeetupList(
             id = this.id,
             title = this.title,
-            dateTime = OffsetDateTime.parse(this.dateTime),
+            dateTime = LocalDateTime.parse(this.dateTime),
             location = this.location,
             sportType = this.sportType,
             isParticipating = this.isParticipating,

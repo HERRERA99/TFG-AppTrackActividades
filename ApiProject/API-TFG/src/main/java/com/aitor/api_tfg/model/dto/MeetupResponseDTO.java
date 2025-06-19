@@ -19,7 +19,7 @@ public class MeetupResponseDTO {
     private Long id;
     private String title;
     private String description;
-    private OffsetDateTime dateTime;
+    private LocalDateTime dateTime;
     private String location;
     private Double distance;
     private Double elevationGain;

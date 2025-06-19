@@ -5,9 +5,9 @@ import java.time.OffsetDateTime
 
 data class Activity(
     val id: Long,
-    val horaInicio: OffsetDateTime,
+    val horaInicio: LocalDateTime,
     val tipoActividad: Modalidades,
-    var horaFin: OffsetDateTime,
+    var horaFin: LocalDateTime,
     var distancia: Float,
     var duracion: Long,
     var desnivelPositivo: Double,

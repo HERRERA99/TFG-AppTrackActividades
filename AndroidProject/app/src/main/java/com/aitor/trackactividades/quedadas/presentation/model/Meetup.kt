@@ -11,7 +11,7 @@ data class Meetup(
     val id: Long,
     val title: String,
     val description: String?,
-    val dateTime: OffsetDateTime,
+    val dateTime: LocalDateTime,
     val location: String,
     val distance: Double?,
     val elevationGain: Double?,

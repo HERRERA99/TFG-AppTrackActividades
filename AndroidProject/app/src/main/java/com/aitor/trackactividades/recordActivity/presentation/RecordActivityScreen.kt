@@ -294,7 +294,7 @@ fun SaveActivityDialog(
                                 .padding(bottom = 16.dp),
                             label = { Text("Título") },
                             placeholder = { Text(recordActivityViewModel.nombreAutomatico(
-                                OffsetDateTime.now(), recordActivityViewModel.activityType.value!!)) },
+                                LocalDateTime.now(), recordActivityViewModel.activityType.value!!)) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,

@@ -19,7 +19,7 @@ import java.time.OffsetDateTime;
 public class MeetupCreateDTO {
     private String title;
     private String description;
-    private OffsetDateTime dateTime;
+    private LocalDateTime dateTime;
     private String location;
     private Integer maxParticipants;
     private LatLng locationCoordinates;

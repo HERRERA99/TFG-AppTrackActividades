@@ -47,5 +47,5 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long> {
             @Param("userId") Integer userId,
             Pageable pageable);
 
-    List<Meetup> findByDateTimeBetween(OffsetDateTime start, OffsetDateTime end);
+    List<Meetup> findByDateTimeBetween(LocalDateTime start, LocalDateTime end);
 }

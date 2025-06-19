@@ -13,7 +13,7 @@ class CreateMeetupUseCase @Inject constructor(private val quedadasRepository: Qu
     suspend operator fun invoke(
         title: String,
         description: String?,
-        dateTime: OffsetDateTime,
+        dateTime: LocalDateTime,
         location: String,
         locationCoordinates: LatLng,
         sportType: Modalidades,

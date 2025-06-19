@@ -28,7 +28,7 @@ data class MeetupResponse(
             id = this.id,
             title = this.title,
             description = this.description,
-            dateTime = OffsetDateTime.parse(this.date),
+            dateTime = LocalDateTime.parse(this.date),
             location = this.location,
             distance = this.distance,
             elevationGain = this.elevationGain,

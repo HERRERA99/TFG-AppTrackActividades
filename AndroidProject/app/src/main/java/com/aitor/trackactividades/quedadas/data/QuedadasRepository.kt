@@ -35,7 +35,7 @@ class QuedadasRepository @Inject constructor(
     suspend fun createMeetup(
         title: String,
         description: String?,
-        dateTime: OffsetDateTime,
+        dateTime: LocalDateTime,
         location: String,
         locationCoordinates: LatLng,
         sportType: Modalidades,

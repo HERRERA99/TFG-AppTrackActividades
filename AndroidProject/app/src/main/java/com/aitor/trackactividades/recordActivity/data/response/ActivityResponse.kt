@@ -30,9 +30,9 @@ data class ActivityResponse(
     fun toPresentation(): Activity {
         return Activity(
             id = id,
-            horaInicio = OffsetDateTime.parse(startTime),
+            horaInicio = LocalDateTime.parse(startTime),
             tipoActividad = Modalidades.valueOf(activityType),
-            horaFin = OffsetDateTime.parse(endTime),
+            horaFin = LocalDateTime.parse(endTime),
             distancia = distance,
             duracion = duration,
             desnivelPositivo = positiveElevation,

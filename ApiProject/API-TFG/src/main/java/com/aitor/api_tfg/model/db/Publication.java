@@ -30,8 +30,7 @@ public class Publication {
     @JoinColumn(name = "activity_id", nullable = false)
     private Activity activity;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private OffsetDateTime creationDate;
+    private LocalDateTime creationDate;
 
     @OneToMany(mappedBy = "publication", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

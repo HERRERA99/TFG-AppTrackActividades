@@ -1,7 +1,5 @@
 package com.aitor.trackactividades.quedadas.presentation
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -9,9 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -26,7 +22,6 @@ import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -39,10 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerColors
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,9 +42,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
@@ -61,7 +50,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -74,10 +62,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aitor.trackactividades.R
 import com.aitor.trackactividades.core.model.Modalidades
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -92,7 +78,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -411,13 +396,13 @@ fun MapaSeleccionUbicacion(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: OffsetDateTime?) {
+fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: LocalDateTime?) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var tempDate by remember { mutableStateOf<LocalDate?>(null) }
 
     val context = LocalContext.current
-    val currentDateTime = OffsetDateTime.now()
+    val currentDateTime = LocalDateTime.now()
     val minDateTime = currentDateTime.plusHours(1)
 
     // Formatear la fecha y hora para mostrarla
@@ -432,7 +417,7 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: OffsetDateT
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = fechaHora
-            ?.atZoneSameInstant(zoneId)
+            ?.atZone(zoneId)
             ?.toInstant()
             ?.toEpochMilli()
             ?: System.currentTimeMillis()
@@ -532,11 +517,9 @@ fun FechaHoraInput(viewModel: FormularioQuedadaViewModel, fechaHora: OffsetDateT
                                 .atZone(zoneId)
                                 .toLocalDate()
 
-                            val selectedDateTime = OffsetDateTime.of(
-                                selectedDate,
-                                LocalTime.of(timePickerState.hour, timePickerState.minute),
-                                zoneId.rules.getOffset(Instant.now())
-                            )
+                            val selectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+
+                            val selectedDateTime = LocalDateTime.of(selectedDate, selectedTime)
 
                             if (selectedDateTime.isAfter(minDateTime)) {
                                 viewModel.actualizarFechaHora(selectedDateTime)

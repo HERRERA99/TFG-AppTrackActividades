@@ -16,7 +16,7 @@ import java.time.OffsetDateTime;
 public class MeetupItemListDTO {
     private long id;
     private String title;
-    private OffsetDateTime dateTime;
+    private LocalDateTime dateTime;
     private String location;
     private Modalidades sportType;
     private boolean isParticipating;

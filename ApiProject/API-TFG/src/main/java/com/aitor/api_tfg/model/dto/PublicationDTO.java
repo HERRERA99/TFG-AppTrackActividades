@@ -21,11 +21,9 @@ public class PublicationDTO {
 
     private String title;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private OffsetDateTime startTime;
+    private LocalDateTime startTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private OffsetDateTime endTime;
+    private LocalDateTime endTime;
 
     private Modalidades activityType;
     private float distance;
