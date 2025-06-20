@@ -8,21 +8,29 @@ import com.aitor.api_tfg.model.db.User;
 import com.aitor.api_tfg.repositories.UserRepository;
 import com.aitor.api_tfg.repositories.ActivityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
-
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
     private final ActivityMapper activityMapper;
 
+
     public List<ActivityDTO> getActivities() {
-        return activityRepository.findAll().stream().map(a ->
+        List<Activity> activities = activityRepository.findAll();
+
+        if (activities.isEmpty()) {
+            throw new NoSuchElementException("No hay actividades registradas");
+        }
+
+        return activities.stream().map(a ->
                 new ActivityDTO(
                         a.getId(),
                         a.getStartTime(),
@@ -42,19 +50,25 @@ public class ActivityService {
                         ).collect(Collectors.toList()),
                         a.getDistances(),
                         a.getTitle(),
-                        a.isPublic())).collect(Collectors.toList());
+                        a.isPublicActivity())
+        ).collect(Collectors.toList());
     }
 
     public ActivityDTO createActivity(ActivityDTO activityDTO, String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        if (activityDTO == null || username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Datos de actividad o nombre de usuario inválidos");
+        }
 
-        Activity activity = activityMapper.mapToActivityEntity(activityDTO, user);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
 
-        System.out.println("Activity " + activity.toString());
-
-        Activity createdActivity = activityRepository.save(activity);
-
-        return activityMapper.mapToActivityDTO(createdActivity);
+        try {
+            Activity activity = activityMapper.mapToActivityEntity(activityDTO, user);
+            Activity createdActivity = activityRepository.save(activity);
+            return activityMapper.mapToActivityDTO(createdActivity);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al crear la actividad: " + e.getMessage(), e);
+        }
     }
-
 }
+

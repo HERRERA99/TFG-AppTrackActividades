@@ -42,6 +42,7 @@ public class MeetupController {
             Authentication authentication,
             HttpServletRequest request
     ) {
+        System.out.println(meetupJson);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
@@ -169,7 +170,7 @@ public class MeetupController {
 
     private MeetupItemListDTO convertToItemListDto(Meetup meetup, User currentUser) {
         boolean isParticipating = meetup.getParticipants().contains(currentUser);
-        boolean isOrganizer = meetup.getOrganizerId().getId().equals(currentUser.getId());
+        boolean isOrganizer = meetup.getOrganizer().getId().equals(currentUser.getId());
 
         return MeetupItemListDTO.builder()
                 .id(meetup.getId())

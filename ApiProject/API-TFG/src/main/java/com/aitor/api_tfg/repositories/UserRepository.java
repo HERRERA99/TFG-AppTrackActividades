@@ -25,6 +25,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> searchUsersByText(@Param("text") String text, Pageable pageable);
 
     User getUserByUsername(String username);
-
     Optional<User> findByVerificationToken(String token);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
 }

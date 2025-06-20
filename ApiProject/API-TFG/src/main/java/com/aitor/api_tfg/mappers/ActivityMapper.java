@@ -37,7 +37,7 @@ public class ActivityMapper {
                 .route(convertLatLngDTOs(activityDTO.getRoute()))
                 .distances(activityDTO.getDistances())
                 .title(activityDTO.getTitle())
-                .isPublic(activityDTO.isPublic())
+                .publicActivity(activityDTO.isPublic())
                 .user(user)
                 .build();
     }
@@ -76,7 +76,7 @@ public class ActivityMapper {
                 .route(convertLatLngs(activity.getRoute()))
                 .distances(activity.getDistances())
                 .title(activity.getTitle())
-                .isPublic(activity.isPublic())
+                .isPublic(activity.isPublicActivity())
                 .build();
     }
 
@@ -85,7 +85,7 @@ public class ActivityMapper {
                 .user(user)
                 .activity(activity)
                 .creationDate(activity.getStartTime())
-                .isPublic(activity.isPublic())
+                .isPublic(activity.isPublicActivity())
                 .build();
     }
 

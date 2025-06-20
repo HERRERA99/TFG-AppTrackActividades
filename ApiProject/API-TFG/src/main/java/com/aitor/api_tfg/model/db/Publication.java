@@ -1,11 +1,8 @@
 package com.aitor.api_tfg.model.db;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +10,6 @@ import java.util.List;
 @Table(name = "publications")
 @Data
 @Builder
-@Setter
-@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Publication {
@@ -22,20 +17,25 @@ public class Publication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "activity_id", nullable = false)
     private Activity activity;
 
+    @Column(nullable = false, updatable = false)
     private LocalDateTime creationDate;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "publication", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
+    @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "publication_likes",
@@ -45,10 +45,18 @@ public class Publication {
     @Builder.Default
     private List<User> likes = new ArrayList<>();
 
+    @Column(name = "is_public", nullable = false)
     private boolean isPublic;
 
+    @PrePersist
+    protected void onCreate() {
+        this.creationDate = LocalDateTime.now();
+    }
+
     public void addLike(User user) {
-        likes.add(user);
+        if (!likes.contains(user)) {
+            likes.add(user);
+        }
     }
 
     public void removeLike(User user) {
@@ -64,4 +72,7 @@ public class Publication {
         likes.clear();
     }
 
+    public boolean isPublic() {
+        return isPublic;
+    }
 }

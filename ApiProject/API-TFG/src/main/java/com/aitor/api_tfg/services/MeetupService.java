@@ -85,7 +85,7 @@ public class MeetupService {
                 .elevationGain(elevationGain)
                 .locationCoordinates(meetup.getLocationCoordinates())
                 .sportType(meetup.getSportType())
-                .organizerId(user.get())
+                .organizer(user.get())
                 .participants(new ArrayList<>())
                 .route(routePoints)
                 .build();
@@ -115,7 +115,7 @@ public class MeetupService {
                 .elevationGain(meetup.getElevationGain())
                 .locationCoordinates(meetup.getLocationCoordinates())
                 .sportType(meetup.getSportType())
-                .organizerId(meetup.getOrganizerId().getId())
+                .organizerId(meetup.getOrganizer().getId())
                 .participants(convertParticipantsToDto(meetup.getParticipants()))
                 .route(meetup.getRoute())
                 .isParticipating(isParticipating)
@@ -157,7 +157,7 @@ public class MeetupService {
         Meetup updatedMeetup = meetupRepository.save(meetup);
 
         // Notificar al organizador
-        User organizer = meetup.getOrganizerId();
+        User organizer = meetup.getOrganizer();
         if (organizer != null && organizer.getFcmToken() != null && !organizer.getId().equals(user.getId())) {
             notificacionesService.sendPushNotification(
                     organizer.getFcmToken(),
@@ -189,7 +189,7 @@ public class MeetupService {
         Meetup meetup = meetupRepository.findById(meetupId)
                 .orElseThrow(() -> new EntityNotFoundException("Meetup not found with ID: " + meetupId));
 
-        if (!meetup.getOrganizerId().getId().equals(user.getId())) {
+        if (!meetup.getOrganizer().getId().equals(user.getId())) {
             throw new IllegalStateException("User is not the organizer.");
         }
 
@@ -215,5 +215,4 @@ public class MeetupService {
                 .dateTime(LocalDateTime.now())
                 .build();
     }
-
 }

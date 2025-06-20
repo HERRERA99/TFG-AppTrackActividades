@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,6 +34,11 @@ public class AuthService {
     private final EmailService emailService;
 
     public AuthResponse login(LoginRequest request) {
+        // Validación básica de campos
+        if (request.getIdentifier() == null || request.getPassword() == null) {
+            throw new IllegalArgumentException("El identificador y la contraseña son obligatorios");
+        }
+
         User user = userRepository.findByUsernameOrEmail(request.getIdentifier(), request.getIdentifier())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
@@ -40,9 +46,13 @@ public class AuthService {
             throw new IllegalStateException("Debes verificar tu correo electrónico antes de iniciar sesión");
         }
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword())
+            );
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Contraseña incorrecta");
+        }
 
         String token = jwtService.getToken(user);
         return AuthResponse.builder()
@@ -50,7 +60,22 @@ public class AuthService {
                 .build();
     }
 
+
     public AuthResponse register(RegisterRequest request) {
+        // Validaciones básicas de entrada
+        if (request.getEmail() == null || request.getUsername() == null || request.getPassword() == null) {
+            throw new IllegalArgumentException("El email, usuario y contraseña son obligatorios");
+        }
+
+        // Comprobar si ya existe el usuario o email
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new IllegalArgumentException("El nombre de usuario ya está en uso");
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("El correo electrónico ya está registrado");
+        }
+
         String token = UUID.randomUUID().toString();
 
         User user = User.builder()
@@ -77,15 +102,6 @@ public class AuthService {
                 .build();
     }
 
-
-    public ValidResponse isTokenEnable(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        boolean isValid = jwtService.isTokenValid(jwtService.getToken(userDetails), userDetails);
-
-        return ValidResponse.builder()
-                .isValid(isValid)
-                .build();
-    }
 
     public ResponseEntity<String> verifyUserAccount(String token) {
         Optional<User> userOptional = userRepository.findByVerificationToken(token);

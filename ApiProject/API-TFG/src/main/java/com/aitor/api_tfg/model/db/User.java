@@ -1,6 +1,7 @@
 package com.aitor.api_tfg.model.db;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,60 +11,65 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name = "users")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "user")
-public class User implements UserDetails {
+public class User implements UserDetails, Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
-    @GeneratedValue
-    Integer id;
-
-    @Basic
-    @Column(nullable = false, unique = true)
-    String username;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @Column(nullable = false, unique = true)
-    String email;
+    private String username;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @JsonIgnore
+    @Column(nullable = false)
+    private String password;
 
     @Column(nullable = false)
-    String password;
+    private String firstname;
 
     @Column(nullable = false)
-    String firstname;
+    private String lastname;
 
     @Column(nullable = false)
-    String lastname;
+    private Double weight;
 
     @Column(nullable = false)
-    Double weight;
-
-    @Column(nullable = false)
-    Integer height;
+    private Integer height;
 
     @Enumerated(EnumType.STRING)
-    Role role;
+    @Column(nullable = false)
+    private Role role;
 
-    @Column(name = "image_url", nullable = true)
+    @Column(name = "image_url")
     private String imageUrl;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(name = "birthdate", nullable = false)
-    LocalDate birthdate;
+    private LocalDate birthdate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false)
-    Gender gender;
+    private Gender gender;
 
-    @Column(name = "enabled")
+    @Column(name = "enabled", nullable = false)
     private boolean enabled = false;
 
     @Column(name = "verification_token")
@@ -78,24 +84,16 @@ public class User implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
+    public boolean isEnabled() { return enabled; }
 
     @Override
     public boolean equals(Object o) {
@@ -108,5 +106,5 @@ public class User implements UserDetails {
     public int hashCode() {
         return Objects.hash(id);
     }
-
 }
+

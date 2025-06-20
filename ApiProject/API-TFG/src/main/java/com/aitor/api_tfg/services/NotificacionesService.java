@@ -1,16 +1,9 @@
 package com.aitor.api_tfg.services;
 
-import com.aitor.api_tfg.model.db.Meetup;
-import com.aitor.api_tfg.model.db.User;
-import com.aitor.api_tfg.repositories.MeetupRepository;
 import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

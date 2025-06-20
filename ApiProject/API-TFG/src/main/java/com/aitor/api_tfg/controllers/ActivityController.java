@@ -22,9 +22,6 @@ public class ActivityController {
     @PostMapping
     public ResponseEntity<ActivityDTO> createActivity(
             @RequestBody ActivityDTO activityDTO, Authentication authentication) {
-
-        System.out.println("Activity DTO " + activityDTO.toString());
-
         // Asociar automaticamente el usuario autentificado
         String username = authentication.getName();
         ActivityDTO savedActivity = activityService.createActivity(activityDTO, username);
