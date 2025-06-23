@@ -6,8 +6,10 @@ import com.aitor.trackactividades.authentication.presentation.model.RegisterMode
 import com.aitor.trackactividades.authentication.presentation.model.TokenModel
 import javax.inject.Inject
 
-class RegisterUseCase @Inject constructor(private val authenticationRepository: AuthenticationRepository) {
-    suspend operator fun invoke(registerModel: RegisterModel): TokenModel {
+open class RegisterUseCase @Inject constructor(
+    private val authenticationRepository: AuthenticationRepository
+) {
+    internal suspend operator fun invoke(registerModel: RegisterModel): TokenModel {
         return authenticationRepository.register(RegisterRequest(
             registerModel.username,
             registerModel.email,

@@ -36,6 +36,7 @@ import com.aitor.trackactividades.R
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 
 @Composable
 fun LoginScreen(
@@ -169,7 +170,7 @@ fun EmailInput(email: String, register: Boolean, onTextChange: (String) -> Unit)
     OutlinedTextField(
         value = email,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("emailField"),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Email,
@@ -198,7 +199,13 @@ fun PasswordInput(text: String, password: String, info: Boolean, onTextChange: (
     OutlinedTextField(
         value = password,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(
+            when(text) {
+                "Contraseña" -> "passwordField"
+                "Repite contraseña" -> "repeatPasswordField"
+                else -> "genericPasswordField"
+            }
+        ),
         label = { Text(text = text) },
         supportingText = if (info) {
             { Text(text = "Mínimo 8 caracteres, una mayúscula, una minúscula y un número.") }

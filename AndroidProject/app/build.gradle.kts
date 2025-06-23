@@ -52,6 +52,15 @@ android {
     buildFeatures {
         compose = true
     }
+    packagingOptions {
+        resources {
+            excludes.add("META-INF/LICENSE.md")
+            excludes.add("META-INF/LICENSE-notice.md")
+            excludes.add("META-INF/NOTICE.md")
+            excludes.add("META-INF/*.md")
+            excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+        }
+    }
 }
 
 dependencies {
@@ -132,6 +141,12 @@ dependencies {
     implementation("com.google.firebase:firebase-perf")
 
     implementation("com.google.firebase:firebase-messaging:23.4.1")
+
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.51.1")
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    androidTestImplementation("io.mockk:mockk-android:1.13.8")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

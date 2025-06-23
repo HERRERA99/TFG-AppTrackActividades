@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.aitor.trackactividades.core.model.Gender
@@ -56,7 +57,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RegisterScreen(
     registerViewModel: RegisterViewModel,
@@ -337,7 +337,11 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
         )
     }
 
-    Text(text = textoInfo, color = Color.Red)
+    Text(
+        text = textoInfo,
+        color = Color.Red,
+        modifier = Modifier.testTag("textoInfo")
+    )
 
     RegisterButton(
         registerViewModel = registerViewModel
@@ -362,7 +366,7 @@ fun WeightInput(
                 onWeightChange(0.0) // Evita valores negativos pero permite borrar
             }
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("weightField"),
         label = { Text(text = "Peso") },
         leadingIcon = { Icon(imageVector = Icons.Default.FitnessCenter, contentDescription = "Peso") },
         trailingIcon = { Text(text = "Kg", style = MaterialTheme.typography.bodyMedium) },
@@ -394,7 +398,7 @@ fun HeightInput(
                 onHeightChange(heightInt)
             }
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("heightField"),
         label = { Text(text = "Altura") },
         leadingIcon = { Icon(imageVector = Icons.Default.Height, contentDescription = "Altura") },
         trailingIcon = { Text(text = "cm", style = MaterialTheme.typography.bodyMedium) },
@@ -426,7 +430,8 @@ fun GenderInput(selectedGender: Gender, modifier: Modifier, onGenderSelected: (G
             value = gender.name,
             onValueChange = {},
             modifier = modifier
-                .clickable { expanded = true },
+                .clickable { expanded = true }
+                .testTag("genderField"),
             colors = TextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onBackground,
                 disabledContainerColor = Color.Transparent,
@@ -470,7 +475,13 @@ fun NameInput(text: String, variable: String, onTextChange: (String) -> Unit) {
     OutlinedTextField(
         value = variable,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(
+            when(text) {
+                "Nombre" -> "nameField"
+                "Apellidos" -> "surnameField"
+                else -> "genericNameField"
+            }
+        ),
         label = { Text(text = text) },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -491,7 +502,7 @@ fun UsernameInput(text: String, variable: String, onTextChange: (String) -> Unit
     OutlinedTextField(
         value = variable,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("usernameField"),
         label = { Text(text = text) },
         supportingText = { Text(text = "Solo letras, números, guiones bajos (_) y guiones (-).") },
         colors = TextFieldDefaults.colors(
@@ -532,7 +543,8 @@ fun DateOfBirthInput(
         value = formattedDate,
         onValueChange = {},
         modifier = modifier
-            .clickable { setShowDatePicker(true) },
+            .clickable { setShowDatePicker(true) }
+            .testTag("dateField"),
         readOnly = true,
         enabled = false,
         leadingIcon = {
@@ -608,7 +620,8 @@ fun RegisterButton(registerViewModel: RegisterViewModel) {
         onClick = { registerViewModel.onRegisterSelected() },
         enabled = true,
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .testTag("registerButton"),
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,

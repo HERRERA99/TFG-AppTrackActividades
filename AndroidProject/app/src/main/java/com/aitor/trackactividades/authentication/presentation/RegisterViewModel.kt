@@ -1,11 +1,7 @@
 package com.aitor.trackactividades.authentication.presentation
 
-import android.content.Context
-import android.os.Build
 import android.util.Log
 import android.util.Patterns
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,9 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.authentication.domain.RegisterUseCase
 import com.aitor.trackactividades.core.model.Gender
 import com.aitor.trackactividades.authentication.presentation.model.RegisterModel
-import com.aitor.trackactividades.core.token.TokenManager
-import com.aitor.trackactividades.core.userPreferences.UserPreferences
-import com.aitor.trackactividades.perfil.domain.GetMyUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -25,11 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterUseCase,
-    private val getUserUseCase: GetMyUserUseCase,
-    private val userPreferences: UserPreferences,
-    private val tokenManager: TokenManager
-
+    private val registerUseCase: RegisterUseCase
 ) : ViewModel() {
     private val _email = MutableLiveData<String>()
     val email: LiveData<String> = _email
@@ -122,7 +111,7 @@ class RegisterViewModel @Inject constructor(
                 _isLoading.value = true
                 try {
                     // Realiza la llamada de registro
-                    val result = registerUseCase(
+                    registerUseCase(
                         RegisterModel(
                             username = username,
                             email = email,
