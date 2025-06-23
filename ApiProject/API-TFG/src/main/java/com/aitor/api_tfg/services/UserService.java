@@ -198,12 +198,19 @@ public class UserService {
         User user = userRepository.findById(idUser)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-        // Subir imagen a Cloudinary
+        // Eliminar imagen anterior de Cloudinary (si existe)
+        if (user.getImagePublicId() != null) {
+            cloudinary.uploader().destroy(user.getImagePublicId(), ObjectUtils.emptyMap());
+        }
+
+        // Subir nueva imagen a Cloudinary
         Map uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
         String imageUrl = (String) uploadResult.get("secure_url");
+        String publicId = (String) uploadResult.get("public_id");
 
         // Actualizar usuario
         user.setImageUrl(imageUrl);
+        user.setImagePublicId(publicId);  // Asegúrate de tener este campo en tu entidad User
         userRepository.save(user);
 
         // Devolver DTO
@@ -211,6 +218,7 @@ public class UserService {
                 .image(imageUrl)
                 .build();
     }
+
 
 
     public void updateFcmToken(String username, String fcmToken) {

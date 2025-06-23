@@ -78,6 +78,9 @@ public class User implements UserDetails, Serializable {
     @Column(name = "fcm_token")
     private String fcmToken;
 
+    @Column(name = "image_public_id")
+    private String imagePublicId;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

@@ -39,7 +39,7 @@ public class AuthService {
             throw new IllegalArgumentException("El identificador y la contraseña son obligatorios");
         }
 
-        User user = userRepository.findByUsernameOrEmail(request.getIdentifier(), request.getIdentifier())
+        User user = userRepository.findByUsernameOrEmail(request.getIdentifier())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         if (!user.isEnabled()) {
