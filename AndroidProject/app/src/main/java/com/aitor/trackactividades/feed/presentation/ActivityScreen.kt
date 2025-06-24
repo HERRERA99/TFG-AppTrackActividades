@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.aitor.trackactividades.core.model.Modalidades
+import com.aitor.trackactividades.core.utils.formatSeconds
 import com.aitor.trackactividades.feed.presentation.model.Publication
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.maps.android.compose.GoogleMap
@@ -260,7 +261,7 @@ private fun GraficoLineas(
             startAxis = VerticalAxis.rememberStart(valueFormatter = valueStartAxisFormater),
             bottomAxis = HorizontalAxis.rememberBottom(
                 valueFormatter = CartesianValueFormatter { context, x, vertical ->
-                    viewModel.formatSeconds(context, x, vertical)
+                    formatSeconds(x)
                 }
             ),
             marker = rememberDefaultCartesianMarker(

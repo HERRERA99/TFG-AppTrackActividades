@@ -132,7 +132,7 @@ class FeedViewModel @Inject constructor(
     }
 
     fun tiempoTranscurrido(fecha: LocalDateTime): String {
-        return postHandler.tiempoTranscurrido(fecha)
+        return tiempoTranscurrido(fecha)
     }
 
     fun cargarImagenPerfil() {

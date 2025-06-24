@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.aitor.trackactividades.core.model.Modalidades
+import com.aitor.trackactividades.core.utils.nombreAutomatico
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
 import com.aitor.trackactividades.recordActivity.presentation.utils.FormatTime.formatTime
 import com.aitor.trackactividades.recordActivity.presentation.utils.SpeedManager.speedConversor
@@ -293,7 +294,7 @@ fun SaveActivityDialog(
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
                             label = { Text("Título") },
-                            placeholder = { Text(recordActivityViewModel.nombreAutomatico(
+                            placeholder = { Text(nombreAutomatico(
                                 LocalDateTime.now(), recordActivityViewModel.activityType.value!!)) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(

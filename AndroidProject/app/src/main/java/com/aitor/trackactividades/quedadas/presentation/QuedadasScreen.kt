@@ -69,6 +69,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.aitor.trackactividades.R
+import com.aitor.trackactividades.core.utils.extraerPuebloProvinciaPaisSinNumeros
 import com.aitor.trackactividades.feed.presentation.FeedBottomBar
 import com.aitor.trackactividades.quedadas.presentation.model.ItemMeetupList
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -455,7 +456,7 @@ fun MeetupItem(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = viewModel.extraerPuebloProvinciaPaisSinNumeros(meetup.location),
+                        text = extraerPuebloProvinciaPaisSinNumeros(meetup.location),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )

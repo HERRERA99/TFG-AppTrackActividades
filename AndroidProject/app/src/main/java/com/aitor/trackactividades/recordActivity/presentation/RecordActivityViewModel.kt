@@ -15,6 +15,8 @@ import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.core.model.Modalidades
 import com.aitor.trackactividades.core.token.TokenManager
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
+import com.aitor.trackactividades.core.utils.calcularDesnivelPositivo
+import com.aitor.trackactividades.core.utils.nombreAutomatico
 import com.aitor.trackactividades.recordActivity.domain.SaveActivityUseCase
 import com.aitor.trackactividades.recordActivity.domain.SavePublicationUseCase
 import com.aitor.trackactividades.recordActivity.presentation.model.ScreenTypes
@@ -289,31 +291,5 @@ class RecordActivityViewModel @Inject constructor(
 
     fun setVisibility(visibility: Boolean) {
         this.visibility = visibility
-    }
-
-    fun nombreAutomatico(horaInicio: LocalDateTime, tipoActividad: Modalidades): String {
-        val hora = horaInicio.hour
-        val parteDelDia = when (hora) {
-            in 6..11 -> "por la mañana"
-            in 12..17 -> "por la tarde"
-            in 18..21 -> "por la noche"
-            in 22..23 -> "por la noche"
-            in 0..5 -> "al amanecer"
-            else -> ""
-        }
-        return "${tipoActividad.displayName} $parteDelDia"
-    }
-
-    fun calcularDesnivelPositivo(altitudes: List<Double>): Double {
-        var desnivelPositivo = 0.0
-
-        for (i in 1 until altitudes.size) {
-            val diferencia = altitudes[i] - altitudes[i - 1]
-            if (diferencia > 0) {
-                desnivelPositivo += diferencia
-            }
-        }
-
-        return desnivelPositivo
     }
 }

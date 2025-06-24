@@ -16,16 +16,13 @@
       <SelectionState runConfigName="testEmailInvalido()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testUsernameInvalido()">
+      <SelectionState runConfigName="testSuccessfulRegistration()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testPasswordsVacias()">
+      <SelectionState runConfigName="testCamposVacios()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testPasswordsNoCoinciden()">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="testPasswordsFormatoIncorrecto()">
+      <SelectionState runConfigName="RegisterScreenTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

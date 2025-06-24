@@ -34,6 +34,7 @@ import java.io.File
 import java.time.LocalDateTime
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.aitor.trackactividades.core.utils.uriStringToFile
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
@@ -123,17 +124,6 @@ class PerfilViewModel @Inject constructor(
                 Toast.makeText(context, "Error al actualizar la imagen", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-
-    fun uriStringToFile(context: Context, uriString: Uri): File {
-        val uri = uriString
-        val inputStream = context.contentResolver.openInputStream(uri)!!
-        val tempFile = File.createTempFile("image", ".jpg", context.cacheDir)
-        tempFile.outputStream().use { output ->
-            inputStream.copyTo(output)
-        }
-        return tempFile
     }
 
 }

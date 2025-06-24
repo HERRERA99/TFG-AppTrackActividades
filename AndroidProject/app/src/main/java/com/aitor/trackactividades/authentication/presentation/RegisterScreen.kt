@@ -33,11 +33,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -62,24 +66,39 @@ fun RegisterScreen(
     registerViewModel: RegisterViewModel,
     navigateToLogin: () -> Unit
 ) {
-    val navigateToLoginState: Boolean by registerViewModel.navigateToLogin.observeAsState(initial = false)
+    val navigateToLoginState by registerViewModel.navigateToLogin.observeAsState(initial = false)
+    val uiState by registerViewModel.uiState.collectAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Navegación al login si se completa el registro
     LaunchedEffect(navigateToLoginState) {
         if (navigateToLoginState) {
             navigateToLogin()
         }
     }
 
-    val errorMessage: String? by registerViewModel.errorMessage.observeAsState()
-    val context = LocalContext.current
-
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
-    Scaffold { innerPadding ->
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.testTag("snackbarHost")
+            )
+        }
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -89,13 +108,11 @@ fun RegisterScreen(
                 modifier = Modifier
                     .padding(24.dp)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()), // Agregar scroll
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val isLoading: Boolean by registerViewModel.isLoading.observeAsState(initial = false)
-
-                if (isLoading) {
-                    CircularProgressIndicator(Modifier)
+                if (uiState.isLoading) {
+                    CircularProgressIndicator()
                 } else {
                     RegisterHeader(Modifier)
                     RegisterBody(
@@ -108,6 +125,7 @@ fun RegisterScreen(
         }
     }
 }
+
 
 
 @Composable
@@ -600,7 +618,7 @@ fun DateOfBirthInput(
                     Box(modifier = Modifier.requiredWidthIn(min = 360.dp)) {
                         // Scale in case the width is too large for the screen
                         DatePicker(
-                            modifier = Modifier.scale(scale),
+                            modifier = Modifier.scale(scale).testTag("datePicker"),
                             state = datePickerState,
                             title = null,
                             headline = null,

@@ -97,6 +97,6 @@ class PostInteractionViewModel @Inject constructor(
     }
 
     fun tiempoTranscurrido(fecha: LocalDateTime): String {
-        return postHandler.tiempoTranscurrido(fecha)
+        return tiempoTranscurrido(fecha)
     }
 }
