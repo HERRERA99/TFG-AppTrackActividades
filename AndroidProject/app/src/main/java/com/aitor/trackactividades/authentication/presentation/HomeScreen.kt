@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.aitor.trackactividades.R
 import kotlinx.coroutines.launch
 
@@ -36,7 +37,7 @@ fun HomeScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // Imagen de fondo
         Image(
-            painter = painterResource(id = R.drawable.home),
+            painter = rememberAsyncImagePainter(R.drawable.home),
             contentDescription = "Background",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -65,7 +66,6 @@ fun HomeScreen(
         }
     }
 }
-
 
 @Composable
 fun RegisterHomeButton(modifier: Modifier = Modifier, onRegisterSelected: () -> Unit) {

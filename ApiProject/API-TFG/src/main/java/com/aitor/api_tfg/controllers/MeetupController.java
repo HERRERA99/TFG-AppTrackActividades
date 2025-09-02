@@ -4,7 +4,6 @@ import com.aitor.api_tfg.model.db.Meetup;
 import com.aitor.api_tfg.model.db.User;
 import com.aitor.api_tfg.model.dto.*;
 import com.aitor.api_tfg.model.response.ErrorResponse;
-import com.aitor.api_tfg.model.response.UserResponse;
 import com.aitor.api_tfg.services.MeetupService;
 import com.aitor.api_tfg.services.UserService;
 import com.fasterxml.jackson.databind.DeserializationFeature;

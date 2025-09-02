@@ -8,13 +8,16 @@ import com.aitor.api_tfg.security.JwtService;
 import com.aitor.api_tfg.model.db.Role;
 import com.aitor.api_tfg.model.db.User;
 import com.aitor.api_tfg.repositories.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,7 +37,6 @@ public class AuthService {
     private final EmailService emailService;
 
     public AuthResponse login(LoginRequest request) {
-        // Validación básica de campos
         if (request.getIdentifier() == null || request.getPassword() == null) {
             throw new IllegalArgumentException("El identificador y la contraseña son obligatorios");
         }
@@ -60,14 +62,32 @@ public class AuthService {
                 .build();
     }
 
+    public ValidResponse validateToken(HttpServletRequest request) {
+        if (request.getAttribute("expired") != null) {
+            return new ValidResponse(false, "Token expired");
+        }
+
+        if (request.getAttribute("invalid") != null) {
+            return new ValidResponse(false, "Invalid token");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)) {
+            return new ValidResponse(true, "Token valid");
+        }
+
+        return new ValidResponse(false, "No valid token found");
+    }
+
+
 
     public AuthResponse register(RegisterRequest request) {
-        // Validaciones básicas de entrada
         if (request.getEmail() == null || request.getUsername() == null || request.getPassword() == null) {
             throw new IllegalArgumentException("El email, usuario y contraseña son obligatorios");
         }
 
-        // Comprobar si ya existe el usuario o email
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("El nombre de usuario ya está en uso");
         }
@@ -133,7 +153,7 @@ public class AuthService {
         </head>
         <body style="font-family: 'Segoe UI', sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
             <div style="max-width: 600px; margin: 50px auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: center;">
-                <img src="https://i.postimg.cc/vBMsG01L/Logo-Track-Fit.png" alt="Logo" style="width: 80px; margin-bottom: 20px;">
+                <img src="https://raw.githubusercontent.com/HERRERA99/imagenTFG/refs/heads/main/ic_launcher_foreground.webp" alt="Logo" style="width: 80px; margin-bottom: 20px;">
                 <h2 style="color: %s;">%s</h2>
             </div>
         </body>

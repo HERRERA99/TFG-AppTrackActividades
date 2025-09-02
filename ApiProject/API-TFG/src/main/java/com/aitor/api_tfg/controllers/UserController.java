@@ -1,6 +1,5 @@
 package com.aitor.api_tfg.controllers;
 
-import com.aitor.api_tfg.model.db.User;
 import com.aitor.api_tfg.model.dto.*;
 import com.aitor.api_tfg.model.response.UserResponse;
 import com.aitor.api_tfg.services.UserService;
@@ -9,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;

@@ -14,7 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 public class Activity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private LocalDateTime startTime;

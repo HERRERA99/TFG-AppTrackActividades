@@ -23,11 +23,12 @@ public class PublicationController {
 
     private final PublicationService publicationService;
 
-    @PostMapping("/{activityId}")
-    public ResponseEntity<PublicationDTO> createActivity(@PathVariable Long activityId, Authentication authentication) {
-        // Asociar automaticamente el usuario autentificado
-        String username = authentication.getName();
+    @PostMapping
+    public ResponseEntity<PublicationDTO> createPublication(
+            @RequestParam Long activityId,
+            Authentication authentication) {
 
+        String username = authentication.getName();
         PublicationDTO publicacion = publicationService.createPublication(activityId, username);
 
         return ResponseEntity.ok(publicacion);
@@ -68,8 +69,8 @@ public class PublicationController {
         return ResponseEntity.ok(comment);
     }
 
-    @GetMapping("/{id}/comment")
-    public ResponseEntity<List<CommentDTO>> getComment(@PathVariable Long id) {
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long id) {
         List<CommentDTO> comments = publicationService.getComments(id);
         return ResponseEntity.ok(comments);
     }

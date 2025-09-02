@@ -63,6 +63,10 @@ android {
     }
 }
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -152,6 +156,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     // JUnit 5 Engine
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+
+    testImplementation("org.robolectric:robolectric:4.11.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

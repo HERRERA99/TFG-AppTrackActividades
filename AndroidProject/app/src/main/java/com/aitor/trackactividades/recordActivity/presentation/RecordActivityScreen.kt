@@ -664,7 +664,7 @@ fun ActivityTypeInput(
                         )
                     },
                     colors = MenuDefaults.itemColors(
-                        textColor = MaterialTheme.colorScheme.background,
+                        textColor = MaterialTheme.colorScheme.onBackground,
                         leadingIconColor = MaterialTheme.colorScheme.primary,
                         trailingIconColor = MaterialTheme.colorScheme.onBackground,
                         disabledTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),

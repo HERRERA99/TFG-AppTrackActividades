@@ -247,13 +247,6 @@ fun FeedTopBar(
                     modifier = Modifier.size(48.dp)
                 )
             }
-            IconButton(onClick = { /* TODO: Acción de notificaciones */ }) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notificaciones",
-                    modifier = Modifier.size(48.dp)
-                )
-            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
@@ -288,7 +281,7 @@ fun FeedBottomBar(
             label = {
                 Text(
                     "Inicio",
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
                 )
             },
@@ -306,7 +299,7 @@ fun FeedBottomBar(
             label = {
                 Text(
                     "Quedadas",
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
                 )
             },
@@ -324,7 +317,7 @@ fun FeedBottomBar(
             label = {
                 Text(
                     "Registrar",
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
                 )
             },
@@ -342,7 +335,7 @@ fun FeedBottomBar(
             label = {
                 Text(
                     "Historial",
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
                 )
             },
@@ -362,11 +355,11 @@ fun FeedBottomBar(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Icon(Icons.Default.Person, contentDescription = "Tú", modifier = Modifier.size(32.dp))
+                    Icon(Icons.Default.Person, contentDescription = "12", modifier = Modifier.size(32.dp))
                 }
             },
             label = {
-                Text("Tú", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text("Tú", fontSize = 12.sp, fontWeight = FontWeight.Medium)
             },
             selected = if (onProfileClick != null) false else true,
             onClick = { onProfileClick?.invoke(userId) }

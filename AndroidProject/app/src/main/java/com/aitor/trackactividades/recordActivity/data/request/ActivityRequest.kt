@@ -1,17 +1,16 @@
 package com.aitor.trackactividades.recordActivity.data.request
 
 import com.google.gson.annotations.SerializedName
-import java.time.LocalDateTime
 
 data class ActivityRequest(
     @SerializedName("id") val id: Long,
     @SerializedName("startTime") val startTime: String,
-    @SerializedName("activityType")val activityType: String,
+    @SerializedName("activityType") val activityType: String,
     @SerializedName("endTime") val endTime: String,
     @SerializedName("distance") val distance: Float,
     @SerializedName("duration") val duration: Long,
     @SerializedName("positiveElevation") val positiveElevation: Double,
-    @SerializedName("averageSpeed")val averageSpeed: Float,
+    @SerializedName("averageSpeed") val averageSpeed: Float,
     @SerializedName("calories") val calories: Float,
     @SerializedName("maxSpeed") val maxSpeed: Float,
     @SerializedName("speeds") val speeds: List<Float>,

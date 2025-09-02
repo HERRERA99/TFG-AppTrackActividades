@@ -24,7 +24,7 @@ public class EmailService {
                 <div style="max-width: 600px; margin: 30px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 30px;">
                    \s
                     <div style="text-align: center;">
-                        <img src="https://i.postimg.cc/vBMsG01L/Logo-Track-Fit.png" alt="Logo" style="width: 100px; height: auto; margin-bottom: 20px;">
+                        <img src="https://raw.githubusercontent.com/HERRERA99/imagenTFG/refs/heads/main/ic_launcher_foreground.webp" alt="Logo" style="width: 100px; height: auto; margin-bottom: 20px;">
                         <h2 style="color: #333;">¡Bienvenido a TrackFit!</h2>
                     </div>
                    \s

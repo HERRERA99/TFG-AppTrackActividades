@@ -101,7 +101,7 @@ fun SearchScreen(
 
                 userPagingItems.apply {
                     when {
-                        loadState.refresh is androidx.paging.LoadState.Loading -> {
+                        loadState.refresh is androidx.paging.LoadState.Loading && query.isNotBlank() -> {
                             item {
                                 Box(
                                     modifier = Modifier
@@ -113,11 +113,12 @@ fun SearchScreen(
                             }
                         }
 
-                        loadState.append is androidx.paging.LoadState.Loading -> {
+                        loadState.append is androidx.paging.LoadState.Loading && query.isNotBlank() -> {
                             item {
                                 Box(
                                     modifier = Modifier
-                                        .fillParentMaxSize(),
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     CircularProgressIndicator()
@@ -125,12 +126,17 @@ fun SearchScreen(
                             }
                         }
 
-                        loadState.refresh is androidx.paging.LoadState.Error -> {
+                        loadState.refresh is androidx.paging.LoadState.Error && query.isNotBlank() -> {
                             item { Text("Error al cargar resultados") }
-                            Log.e("SearchScreen", "Error al cargar resultados", (loadState.refresh as androidx.paging.LoadState.Error).error)
+                            Log.e(
+                                "SearchScreen",
+                                "Error al cargar resultados",
+                                (loadState.refresh as androidx.paging.LoadState.Error).error
+                            )
                         }
                     }
                 }
+
             }
         }
     }

@@ -14,10 +14,10 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface PublicationsApiService {
-    @POST("/publications/{activityId}")
+    @POST("/publications")
     suspend fun createPublication(
         @Header("Authorization") token: String,
-        @Path("activityId") activityId: Long
+        @Query("activityId") activityId: Long
     ): PublicationResponse
 
     @GET("/publications/public")
@@ -49,7 +49,7 @@ interface PublicationsApiService {
         @Query("userId") userId: Int
     ): PublicationResponse
 
-    @GET("/publications/{id}/comment")
+    @GET("/publications/{id}/comments")
     suspend fun getComments(
         @Header("Authorization") token: String,
         @Path("id") publicationId: Long

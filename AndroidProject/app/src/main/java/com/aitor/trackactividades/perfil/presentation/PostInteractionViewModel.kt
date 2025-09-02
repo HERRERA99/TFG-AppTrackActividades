@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.core.userPreferences.UserPreferences
+import com.aitor.trackactividades.core.utils.PublicationUtils
 import com.aitor.trackactividades.feed.presentation.model.Comment
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,6 +98,6 @@ class PostInteractionViewModel @Inject constructor(
     }
 
     fun tiempoTranscurrido(fecha: LocalDateTime): String {
-        return tiempoTranscurrido(fecha)
+        return PublicationUtils.tiempoTranscurrido(fecha)
     }
 }

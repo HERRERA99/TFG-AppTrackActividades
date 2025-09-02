@@ -41,7 +41,6 @@ class RegisterScreenTest {
 
     @Test
     fun testSuccessfulRegistration() = runTest {
-        // Mock successful registration
         coEvery { mockRegisterUseCase(any()) } returns mockk()
 
         composeTestRule.setContent {
@@ -51,7 +50,6 @@ class RegisterScreenTest {
             )
         }
 
-        // Fill in all fields
         composeTestRule.onNodeWithTag("usernameField").performTextInput("testuser")
         composeTestRule.onNodeWithTag("emailField").performTextInput("test@example.com")
         composeTestRule.onNodeWithTag("passwordField").performTextInput("Password123")
@@ -61,12 +59,10 @@ class RegisterScreenTest {
         composeTestRule.onNodeWithTag("weightField").performTextInput("70")
         composeTestRule.onNodeWithTag("heightField").performTextInput("170")
 
-        // Click register button
         composeTestRule.onNodeWithTag("registerButton").performClick()
 
         testScheduler.advanceUntilIdle()
 
-        // Verify success message
         composeTestRule.onNodeWithText("Verifica la cuenta con el email recibido.").assertIsDisplayed()
     }
 
@@ -91,7 +87,6 @@ class RegisterScreenTest {
         composeTestRule.onNodeWithTag("weightField").performTextInput("70")
         composeTestRule.onNodeWithTag("heightField").performTextInput("170")
 
-        // Click register button
         composeTestRule.onNodeWithTag("registerButton").performClick()
 
         composeTestRule.onNodeWithTag("textoInfo").assertTextEquals("El correo electrónico no es válido. \n")
@@ -117,7 +112,6 @@ class RegisterScreenTest {
         composeTestRule.onNodeWithTag("weightField").performTextInput("70")
         composeTestRule.onNodeWithTag("heightField").performTextInput("170")
 
-        // Click register button
         composeTestRule.onNodeWithTag("registerButton").performClick()
 
         composeTestRule.onNodeWithTag("textoInfo").assertTextEquals("El nombre de usuario no es válido. \n")
@@ -143,7 +137,6 @@ class RegisterScreenTest {
         composeTestRule.onNodeWithTag("weightField").performTextInput("70")
         composeTestRule.onNodeWithTag("heightField").performTextInput("170")
 
-        // Click register button
         composeTestRule.onNodeWithTag("registerButton").performClick()
 
         composeTestRule.onNodeWithTag("textoInfo").assertTextEquals("Las contraseñas no coinciden. \n")
@@ -169,7 +162,6 @@ class RegisterScreenTest {
         composeTestRule.onNodeWithTag("weightField").performTextInput("70")
         composeTestRule.onNodeWithTag("heightField").performTextInput("170")
 
-        // Click register button
         composeTestRule.onNodeWithTag("registerButton").performClick()
 
         composeTestRule.onNodeWithTag("textoInfo").assertTextEquals("Formato de contraseña incorrecto")
@@ -186,7 +178,6 @@ class RegisterScreenTest {
             )
         }
 
-        // Click register button
         composeTestRule.onNodeWithTag("registerButton").performClick()
 
         composeTestRule.onNodeWithText("Todos los campos son obligatorios.").assertIsDisplayed()

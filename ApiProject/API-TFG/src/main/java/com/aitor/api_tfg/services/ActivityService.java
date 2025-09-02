@@ -34,7 +34,7 @@ public class ActivityService {
                 new ActivityDTO(
                         a.getId(),
                         a.getStartTime(),
-                        a.getActivityType().toString(),
+                        a.getActivityType() != null ? a.getActivityType().toString() : null,
                         a.getEndTime(),
                         a.getDistance(),
                         a.getDuration(),
@@ -45,12 +45,15 @@ public class ActivityService {
                         a.getSpeeds(),
                         a.getElevations(),
                         a.getMaxAltitude(),
-                        a.getRoute().stream().map(r ->
-                                new LatLngDTO(r.getLatitude(), r.getLongitude())
-                        ).collect(Collectors.toList()),
+                        a.getRoute() != null ?
+                                a.getRoute().stream().map(r ->
+                                        new LatLngDTO(r.getLatitude(), r.getLongitude())
+                                ).collect(Collectors.toList()) :
+                                List.of(),
                         a.getDistances(),
                         a.getTitle(),
-                        a.isPublicActivity())
+                        a.isPublicActivity()
+                )
         ).collect(Collectors.toList());
     }
 
