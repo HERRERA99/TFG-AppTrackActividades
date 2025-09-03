@@ -14,7 +14,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,17 +24,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.aitor.trackactividades.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     navigateToLogin: () -> Unit,
-    navigateToRegister: () -> Unit
+    navigateToRegister: () -> Unit,
+    navigateToFeed: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Imagen de fondo
         Image(
-            painter = painterResource(id = R.drawable.home), // Usa una imagen de res/drawable
+            painter = rememberAsyncImagePainter(R.drawable.home),
             contentDescription = "Background",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -42,7 +45,7 @@ fun HomeScreen(
 
         // Contenido de la pantalla
         Scaffold(
-            containerColor = Color.Transparent // Hace que el fondo del Scaffold sea transparente
+            containerColor = Color.Transparent
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -114,7 +117,7 @@ fun Logo(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "My App",
+            text = "TrackFit",
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 64.sp,

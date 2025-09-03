@@ -4,24 +4,21 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidthIn
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Height
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
@@ -36,11 +33,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -51,39 +52,53 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.aitor.trackactividades.authentication.presentation.model.Gender
+import com.aitor.trackactividades.core.model.Gender
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RegisterScreen(
     registerViewModel: RegisterViewModel,
-    navigateToLogin: () -> Unit,
-    navigateToFeed: () -> Unit
+    navigateToLogin: () -> Unit
 ) {
-    val navigateToFeedState: Boolean by registerViewModel.navigateToFeed.observeAsState(initial = false)
+    val navigateToLoginState by registerViewModel.navigateToLogin.observeAsState(initial = false)
+    val uiState by registerViewModel.uiState.collectAsState()
 
-    LaunchedEffect(navigateToFeedState) {
-        if (navigateToFeedState) {
-            navigateToFeed()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Navegación al login si se completa el registro
+    LaunchedEffect(navigateToLoginState) {
+        if (navigateToLoginState) {
+            navigateToLogin()
         }
     }
 
-    val errorMessage: String? by registerViewModel.errorMessage.observeAsState()
-    val context = LocalContext.current
-
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
-    Scaffold { innerPadding ->
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.testTag("snackbarHost")
+            )
+        }
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -93,13 +108,11 @@ fun RegisterScreen(
                 modifier = Modifier
                     .padding(24.dp)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()), // Agregar scroll
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val isLoading: Boolean by registerViewModel.isLoading.observeAsState(initial = false)
-
-                if (isLoading) {
-                    CircularProgressIndicator(Modifier)
+                if (uiState.isLoading) {
+                    CircularProgressIndicator()
                 } else {
                     RegisterHeader(Modifier)
                     RegisterBody(
@@ -112,6 +125,7 @@ fun RegisterScreen(
         }
     }
 }
+
 
 
 @Composable
@@ -134,6 +148,8 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
     val surname: String by registerViewModel.lastname.observeAsState(initial = "")
     val birthDate: LocalDate by registerViewModel.birthDate.observeAsState(initial = LocalDate.now())
     val gender: Gender by registerViewModel.gender.observeAsState(initial = Gender.MASCULINO)
+    val weight: Double by registerViewModel.weight.observeAsState(initial = 0.0)
+    val height: Int by registerViewModel.height.observeAsState(initial = 0)
     val textoInfo: String by registerViewModel.textoInfo.observeAsState(initial = "")
 
     var showDatePicker by remember { mutableStateOf(false) }
@@ -156,7 +172,9 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     name,
                     surname,
                     birthDate,
-                    gender
+                    gender,
+                    weight,
+                    height
                 )
             }
         )
@@ -173,7 +191,9 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     name,
                     surname,
                     birthDate,
-                    gender
+                    gender,
+                    weight,
+                    height
                 )
             })
         PasswordInput(
@@ -189,7 +209,9 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     name,
                     surname,
                     birthDate,
-                    gender
+                    gender,
+                    weight,
+                    height
                 )
             })
         PasswordInput(
@@ -205,7 +227,9 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     name,
                     surname,
                     birthDate,
-                    gender
+                    gender,
+                    weight,
+                    height
                 )
             }
         )
@@ -222,7 +246,9 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     it,
                     surname,
                     birthDate,
-                    gender
+                    gender,
+                    weight,
+                    height
                 )
             }
         )
@@ -239,7 +265,9 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     name,
                     it,
                     birthDate,
-                    gender
+                    gender,
+                    weight,
+                    height
                 )
             }
         )
@@ -256,7 +284,9 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     name,
                     surname,
                     it,
-                    gender
+                    gender,
+                    weight,
+                    height
                 )
             },
             modifier = Modifier.fillMaxWidth(),
@@ -281,19 +311,130 @@ fun RegisterBody(modifier: Modifier, registerViewModel: RegisterViewModel) {
                     name,
                     surname,
                     birthDate,
-                    it
+                    it,
+                    weight,
+                    height
                 )
             }
         )
 
+        WeightInput(
+            weight = weight,
+            onWeightChange = {
+                registerViewModel.onRegisterChanged(
+                    email,
+                    username,
+                    password1,
+                    password2,
+                    name,
+                    surname,
+                    birthDate,
+                    gender,
+                    it,
+                    height
+                )
+            }
+        )
+
+        HeightInput(
+            height = height,
+            onHeightChange = {
+                registerViewModel.onRegisterChanged(
+                    email,
+                    username,
+                    password1,
+                    password2,
+                    name,
+                    surname,
+                    birthDate,
+                    gender,
+                    weight,
+                    it
+                )
+            }
+        )
     }
 
-    Text(text = textoInfo, color = Color.Red)
+    Text(
+        text = textoInfo,
+        color = Color.Red,
+        modifier = Modifier.testTag("textoInfo")
+    )
 
     RegisterButton(
         registerViewModel = registerViewModel
     )
 }
+
+@Composable
+fun WeightInput(
+    weight: Double,
+    onWeightChange: (Double) -> Unit
+) {
+    var textValue by remember { mutableStateOf(weight.takeIf { it > 0 }?.toString() ?: "") }
+
+    OutlinedTextField(
+        value = textValue,
+        onValueChange = { newValue ->
+            textValue = newValue
+            val weightDouble = newValue.toDoubleOrNull()
+            if (weightDouble != null && weightDouble > 0) {
+                onWeightChange(weightDouble)
+            } else if (newValue.isEmpty()) {
+                onWeightChange(0.0) // Evita valores negativos pero permite borrar
+            }
+        },
+        modifier = Modifier.fillMaxWidth().testTag("weightField"),
+        label = { Text(text = "Peso") },
+        leadingIcon = { Icon(imageVector = Icons.Default.FitnessCenter, contentDescription = "Peso") },
+        trailingIcon = { Text(text = "Kg", style = MaterialTheme.typography.bodyMedium) },
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+        ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        maxLines = 1,
+        singleLine = true
+    )
+}
+
+
+@Composable
+fun HeightInput(
+    height: Int,
+    onHeightChange: (Int) -> Unit
+) {
+    OutlinedTextField(
+        value = if (height > 0) height.toString() else "",
+        onValueChange = { newValue ->
+            val heightInt = newValue.toIntOrNull()
+            if (heightInt != null && heightInt > 0) {
+                onHeightChange(heightInt)
+            }
+        },
+        modifier = Modifier.fillMaxWidth().testTag("heightField"),
+        label = { Text(text = "Altura") },
+        leadingIcon = { Icon(imageVector = Icons.Default.Height, contentDescription = "Altura") },
+        trailingIcon = { Text(text = "cm", style = MaterialTheme.typography.bodyMedium) },
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+        ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        maxLines = 1,
+        singleLine = true
+    )
+}
+
+
 
 
 @Composable
@@ -307,7 +448,8 @@ fun GenderInput(selectedGender: Gender, modifier: Modifier, onGenderSelected: (G
             value = gender.name,
             onValueChange = {},
             modifier = modifier
-                .clickable { expanded = true },
+                .clickable { expanded = true }
+                .testTag("genderField"),
             colors = TextFieldDefaults.colors(
                 disabledTextColor = MaterialTheme.colorScheme.onBackground,
                 disabledContainerColor = Color.Transparent,
@@ -351,7 +493,13 @@ fun NameInput(text: String, variable: String, onTextChange: (String) -> Unit) {
     OutlinedTextField(
         value = variable,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(
+            when(text) {
+                "Nombre" -> "nameField"
+                "Apellidos" -> "surnameField"
+                else -> "genericNameField"
+            }
+        ),
         label = { Text(text = text) },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -372,7 +520,7 @@ fun UsernameInput(text: String, variable: String, onTextChange: (String) -> Unit
     OutlinedTextField(
         value = variable,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("usernameField"),
         label = { Text(text = text) },
         supportingText = { Text(text = "Solo letras, números, guiones bajos (_) y guiones (-).") },
         colors = TextFieldDefaults.colors(
@@ -413,7 +561,8 @@ fun DateOfBirthInput(
         value = formattedDate,
         onValueChange = {},
         modifier = modifier
-            .clickable { setShowDatePicker(true) },
+            .clickable { setShowDatePicker(true) }
+            .testTag("dateField"),
         readOnly = true,
         enabled = false,
         leadingIcon = {
@@ -469,7 +618,7 @@ fun DateOfBirthInput(
                     Box(modifier = Modifier.requiredWidthIn(min = 360.dp)) {
                         // Scale in case the width is too large for the screen
                         DatePicker(
-                            modifier = Modifier.scale(scale),
+                            modifier = Modifier.scale(scale).testTag("datePicker"),
                             state = datePickerState,
                             title = null,
                             headline = null,
@@ -489,7 +638,8 @@ fun RegisterButton(registerViewModel: RegisterViewModel) {
         onClick = { registerViewModel.onRegisterSelected() },
         enabled = true,
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .testTag("registerButton"),
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,

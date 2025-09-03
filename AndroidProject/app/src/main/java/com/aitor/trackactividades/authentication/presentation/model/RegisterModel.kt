@@ -1,6 +1,6 @@
 package com.aitor.trackactividades.authentication.presentation.model
 
-import com.google.gson.annotations.SerializedName
+import com.aitor.trackactividades.core.model.Gender
 import java.time.LocalDate
 
 data class RegisterModel (
@@ -10,5 +10,7 @@ data class RegisterModel (
     val firstname: String,
     val lastname: String,
     val birthdate: LocalDate,
+    val weight: Double,
+    val height: Int,
     val gender: Gender
 )

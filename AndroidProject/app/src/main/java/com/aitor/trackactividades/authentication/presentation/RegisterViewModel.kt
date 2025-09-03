@@ -1,18 +1,21 @@
 package com.aitor.trackactividades.authentication.presentation
 
-import android.os.Build
+import android.util.Log
 import android.util.Patterns
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aitor.trackactividades.authentication.domain.RegisterUseCase
-import com.aitor.trackactividades.authentication.presentation.model.Gender
+import com.aitor.trackactividades.core.model.Gender
 import com.aitor.trackactividades.authentication.presentation.model.RegisterModel
-import com.aitor.trackactividades.core.token.TokenManager
+import com.aitor.trackactividades.core.utils.isPasswordSecure
+import com.aitor.trackactividades.core.utils.isUsernameValid
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.time.LocalDate
@@ -20,9 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterUseCase,
-    private val tokenManager: TokenManager
-
+    private val registerUseCase: RegisterUseCase
 ) : ViewModel() {
     private val _email = MutableLiveData<String>()
     val email: LiveData<String> = _email
@@ -32,9 +33,6 @@ class RegisterViewModel @Inject constructor(
 
     private val _password2 = MutableLiveData<String>()
     val password2: LiveData<String> = _password2
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
 
     private val _firstname = MutableLiveData<String>()
     val firstname: LiveData<String> = _firstname
@@ -51,16 +49,27 @@ class RegisterViewModel @Inject constructor(
     private val _gender = MutableLiveData<Gender>()
     val gender: LiveData<Gender> = _gender
 
-    private val _navigateToFeed = MutableLiveData<Boolean>()
-    val navigateToFeed: LiveData<Boolean> = _navigateToFeed
+    private val _navigateToLogin = MutableLiveData<Boolean>()
+    val navigateToLogin: LiveData<Boolean> = _navigateToLogin
 
     private val _textoInfo = MutableLiveData<String>()
     val textoInfo: LiveData<String> = _textoInfo
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage
+    private val _weight = MutableLiveData<Double>()
+    val weight: LiveData<Double> = _weight
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    private val _height = MutableLiveData<Int>()
+    val height: LiveData<Int> = _height
+
+    data class RegisterUiState(
+        val isLoading: Boolean = false,
+        val successMessage: String? = null,
+        val errorMessage: String? = null
+    )
+
+    private val _uiState = MutableStateFlow(RegisterUiState())
+    val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
+
     fun onRegisterChanged(
         email: String,
         username: String,
@@ -69,7 +78,9 @@ class RegisterViewModel @Inject constructor(
         name: String,
         surname: String,
         birthDate: LocalDate,
-        gender: Gender
+        gender: Gender,
+        weight: Double,
+        height: Int
     ) {
         _email.value = email
         _password1.value = password1
@@ -79,9 +90,10 @@ class RegisterViewModel @Inject constructor(
         _lastname.value = surname
         _birthDate.value = birthDate
         _gender.value = gender
+        _weight.value = weight
+        _height.value = height
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterSelected() {
         val email = _email.value
         val password1 = _password1.value
@@ -91,21 +103,22 @@ class RegisterViewModel @Inject constructor(
         val surname = _lastname.value
         val birthDate = _birthDate.value
         val gender = _gender.value
+        val weight = _weight.value
+        val height = _height.value
 
-        // Verificar que ningún campo sea nulo o esté vacío
-        if (email.isNullOrEmpty() || password1.isNullOrEmpty() || password2.isNullOrEmpty() || username.isNullOrEmpty() ||
-            name.isNullOrEmpty() || surname.isNullOrEmpty() || birthDate == null || gender == null
+        if (email.isNullOrEmpty() || password1.isNullOrEmpty() || password2.isNullOrEmpty() ||
+            username.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() ||
+            birthDate == null || gender == null || weight == null || height == null
         ) {
-            showError("Todos los campos son obligatorios.")
+            setError("Todos los campos son obligatorios.")
             return
         }
 
         if (chekTexts(email, username, password1, password2, birthDate)) {
             viewModelScope.launch {
-                _isLoading.value = true
+                _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
                 try {
-                    // Realiza la llamada de registro
-                    val result = registerUseCase(
+                    registerUseCase(
                         RegisterModel(
                             username = username,
                             email = email,
@@ -113,38 +126,42 @@ class RegisterViewModel @Inject constructor(
                             firstname = name,
                             lastname = surname,
                             birthdate = birthDate,
+                            weight = weight,
+                            height = height,
                             gender = gender
                         )
                     )
-                    // Si el token no es nulo, navega al feed
-                    if (result.token != null) {
-                        tokenManager.saveToken(result.token)
-                        _navigateToFeed.value = true
-                    } else {
-                        // Si el token es nulo, muestra un mensaje de error
-                        showError("Credenciales incorrectas o acceso denegado.")
-                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        successMessage = "Verifica la cuenta con el email recibido."
+                    )
+                    _navigateToLogin.value = true
+
                 } catch (e: HttpException) {
-                    // Manejo específico para errores HTTP
+                    _uiState.value = _uiState.value.copy(isLoading = false)
                     when (e.code()) {
-                        403 -> {
-                            showError("Acceso denegado. Usuario o email ya en uso.")
-                        }
-                        else -> {
-                            showError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
-                        }
+                        403 -> setError("Acceso denegado. Usuario o email ya en uso.")
+                        else -> setError("Ocurrió un error en el servidor. Intente de nuevo más tarde.")
                     }
                 } catch (e: Exception) {
-                    // Manejo de cualquier otro tipo de excepción (red, timeout, etc.)
-                    showError("Ocurrió un error. Intente de nuevo.")
-                } finally {
-                    _isLoading.value = false
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    setError("Ocurrió un error. Intente de nuevo.")
                 }
             }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setError(message: String) {
+        _uiState.value = _uiState.value.copy(errorMessage = message)
+        viewModelScope.launch {
+            delay(2000)
+            _uiState.value = _uiState.value.copy(errorMessage = null)
+        }
+    }
+
+
+
     fun chekTexts(
         email: String,
         username: String,
@@ -189,38 +206,5 @@ class RegisterViewModel @Inject constructor(
         _textoInfo.value = texto
 
         return result
-    }
-
-    /**
-     * Valida que la contraseña sea segura.
-     * Requisitos:
-     * - Al menos 8 caracteres.
-     * - Al menos una letra mayúscula.
-     * - Al menos una letra minúscula.
-     * - Al menos un número.
-     */
-    private fun isPasswordSecure(password: String): Boolean {
-        val passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$"
-        return password.matches(passwordRegex.toRegex())
-    }
-
-    /**
-     * Valida que el nombre de usuario cumpla con las reglas:
-     * - No contiene espacios.
-     * - Solo permite letras, números, guiones bajos (_) y guiones (-).
-     * - Longitud mínima de 3 caracteres y máxima de 20 (opcional).
-     */
-    private fun isUsernameValid(username: String): Boolean {
-        val usernameRegex = "^[a-zA-Z0-9_-]{3,20}$"
-        return username.matches(usernameRegex.toRegex())
-    }
-
-    fun showError(message: String) {
-        _errorMessage.value = message
-        // Resetear el error después de un pequeño delay, esto garantiza que siempre se pueda mostrar el toast para errores consecutivos
-        viewModelScope.launch {
-            delay(500)  // Un pequeño retraso antes de resetear el mensaje
-            _errorMessage.value = null
-        }
     }
 }

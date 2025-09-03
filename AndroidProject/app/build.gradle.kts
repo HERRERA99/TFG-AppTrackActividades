@@ -6,6 +6,9 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.jetbrainsKotlinSerialization)
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
 }
 
 sonar {
@@ -22,7 +25,7 @@ android {
 
     defaultConfig {
         applicationId = "com.aitor.trackactividades"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -49,6 +52,19 @@ android {
     buildFeatures {
         compose = true
     }
+    packagingOptions {
+        resources {
+            excludes.add("META-INF/LICENSE.md")
+            excludes.add("META-INF/LICENSE-notice.md")
+            excludes.add("META-INF/NOTICE.md")
+            excludes.add("META-INF/*.md")
+            excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+        }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 dependencies {
@@ -90,8 +106,58 @@ dependencies {
     // DataStore
     implementation(libs.data.store)
 
+    // Maps
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+
+    // Corrutines Play Services
+    implementation(libs.corrutines.play.services)
+
+    // Mockito
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    androidTestImplementation(libs.mockito.android)
+
+    // Gson
+    implementation(libs.gson)
+
+    // Paginacion
+    implementation(libs.paging.compose)
+    implementation(libs.paging.runtime)
+
     implementation(libs.lottie.compose)
     implementation(libs.material.icons)
+
+    // Vico
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.views)
+
+    // Refresh
+    implementation(libs.swiperefresh)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.firebase:firebase-perf")
+
+    implementation("com.google.firebase:firebase-messaging:23.4.1")
+
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.51.1")
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    androidTestImplementation("io.mockk:mockk-android:1.13.8")
+
+    // JUnit 5 API
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    // JUnit 5 Engine
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+
+    testImplementation("org.robolectric:robolectric:4.11.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

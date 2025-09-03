@@ -1,5 +1,6 @@
 package com.aitor.trackactividades.authentication.presentation
 
+import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import com.aitor.trackactividades.R
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 
 @Composable
 fun LoginScreen(
@@ -91,11 +93,12 @@ fun LoginScreen(
 @Composable
 fun LoginHeader(modifier: Modifier) {
     Icon(
-        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+        painter = painterResource(id = R.drawable.logo_track_fit),
         contentDescription = "Logo",
         modifier = modifier.size(150.dp),
         tint = MaterialTheme.colorScheme.primary
     )
+    Spacer(modifier = Modifier.padding(16.dp))
 }
 
 @Composable
@@ -142,7 +145,9 @@ fun LoginBody(modifier: Modifier, loginViewModel: LoginViewModel) {
             password = password,
             info = false,
             onTextChange = { loginViewModel.onLoginChanged(email, it) })
-        ForgotPassword(modifier = Modifier.align(Alignment.End))
+
+        Spacer(modifier = Modifier.padding(16.dp))
+
         LoginButton(isLoginEnable, loginViewModel)
     }
 }
@@ -165,12 +170,12 @@ fun EmailInput(email: String, register: Boolean, onTextChange: (String) -> Unit)
     OutlinedTextField(
         value = email,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("emailField"),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Email,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         },
         label = { Text(text = if (register) "Email" else "Usuario o Email") },
@@ -194,7 +199,13 @@ fun PasswordInput(text: String, password: String, info: Boolean, onTextChange: (
     OutlinedTextField(
         value = password,
         onValueChange = { onTextChange(it) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(
+            when(text) {
+                "Contraseña" -> "passwordField"
+                "Repite contraseña" -> "repeatPasswordField"
+                else -> "genericPasswordField"
+            }
+        ),
         label = { Text(text = text) },
         supportingText = if (info) {
             { Text(text = "Mínimo 8 caracteres, una mayúscula, una minúscula y un número.") }
@@ -205,7 +216,7 @@ fun PasswordInput(text: String, password: String, info: Boolean, onTextChange: (
             Icon(
                 imageVector = Icons.Default.Lock,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
