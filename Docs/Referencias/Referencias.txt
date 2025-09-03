@@ -1,9 +1,4 @@
 // Imágenes
-
-https://www.pexels.com
-https://unsplash.com
-https://pixabay.com
-
 https://www.pexels.com/es-es/foto/dos-hombres-montando-bicicleta-3642537/
 https://www.pexels.com/es-es/foto/hombre-andar-en-bicicleta-1443527/
 https://www.pexels.com/es-es/foto/carretera-naturaleza-soleado-hombre-19431252/

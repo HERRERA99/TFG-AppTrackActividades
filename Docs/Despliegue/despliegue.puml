@@ -1,0 +1,38 @@
+@startuml
+title Diagrama de Despliegue - TrackFit (Azure)
+
+cloud "Microsoft Azure" {
+  node "Grupo de Recursos\nTFG-TrackFit" {
+    
+    node "Azure App Service" as appService {
+      artifact "API REST\nSpring Boot"
+      frame "Puerto 8080\nHTTP/HTTPS" {
+      }
+    }
+
+    database "Azure Database\nMySQL - trackfit" as db {
+      note bottom
+        Base de datos relacional
+        MySQL gestionada por Azure.
+      end note
+    }
+
+    node "Máquina Virtual\nTFGHost (Ubuntu)" as vm {
+      note bottom
+        Utilizada inicialmente para pruebas
+        y despliegue manual por SSH.
+      end note
+    }
+  }
+}
+
+actor "Cliente Android\n(TrackFit App)" as mobile
+actor "Administrador\n(Despliegue por SSH)" as admin
+
+' Relaciones
+mobile --> appService : Peticiones HTTP/HTTPS\n(puerto 443)
+appService --> db : JDBC / Spring Data JPA
+admin --> vm : SSH (22)
+vm --> appService : scp + jar\n(para pruebas o despliegue)
+
+@enduml
