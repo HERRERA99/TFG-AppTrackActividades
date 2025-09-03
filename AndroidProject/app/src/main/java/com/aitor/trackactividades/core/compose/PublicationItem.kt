@@ -62,6 +62,7 @@ fun PublicationItem(
     val scope = rememberCoroutineScope()
     var showComments by remember() { mutableStateOf(false) }
 
+
     // Observar el estado del ViewModel
     val isLiked by remember(publication.id) {
         derivedStateOf {
@@ -121,7 +122,7 @@ fun PublicationItem(
                 "https://maps.googleapis.com/maps/api/staticmap?" +
                         "size=600x300&" +
                         "path=color:0x$primaryColorHex|weight:5|$path&" +
-                        "key=AIzaSyCdDvb7RiCnc86jlFjJ8yJzIE4xTC8Fri8"
+                        "key=AIzaSyAo8XeY5HLt264gm3BXw74_ma60SZDVDxk"
             }
         }
 
